@@ -1,0 +1,695 @@
+import * as THREE from 'three'
+import * as CANNON from 'cannon'
+import { TransformControls } from 'three/examples/jsm/controls/TransformControls.js'
+import Controls1 from './Controls1'
+
+export default class Car12
+{
+    constructor(_options)
+    {
+        // Options
+        this.time = _options.time
+        this.resources = _options.resources
+        this.objects = _options.objects
+        this.physics = _options.physics
+        this.shadows = _options.shadows
+        this.materials = _options.materials
+        this.controls = new Controls1({
+            config: this.config,
+            sizes: this.sizes,
+            time: this.time,
+            camera: this.camera,
+            sounds: this.sounds
+        }),
+        this.sounds = _options.sounds
+        this.renderer = _options.renderer
+        this.camera = _options.camera
+        this.debug = _options.debug
+        this.config = _options.config
+        this.playerId = _options.playerId
+
+        this.bullets = [];
+        this.battery = 100;
+        this.score = 0;
+        this.lastHitBy = null;
+
+        // Set up
+        this.container = new THREE.Object3D()
+        this.position = new THREE.Vector3()
+
+        // Debug
+        if(this.debug)
+        {
+            this.debugFolder = this.debug.addFolder('car')
+            // this.debugFolder.open()
+        }
+
+        this.setModels()
+        this.setMovement()
+        this.setChassis()
+        this.setAntena()
+        this.setBackLights()
+        this.setWheels()
+        this.setTransformControls()
+    }
+
+    // Define a method to create spark effects
+    createSparkEffect(position) {
+        
+        const particleCount = 50;
+        const geometry = new THREE.BufferGeometry();
+        const vertices = [];
+        const colors = [];
+        const sizes = [];
+        
+        for (let i = 0; i < particleCount; i++) {
+            vertices.push(
+                (Math.random() - 0.5) * 2, // x
+                (Math.random() - 0.5) * 2, // y
+                (Math.random() - 0.5) * 2  // z
+            );
+            
+            colors.push(
+                Math.random(), // Red
+                Math.random(), // Green
+                Math.random()  // Blue
+            );
+            
+            sizes.push(Math.random() * 0.02 + 0.01); // Random size between 0.1 and 0.3
+        }
+        
+        geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+        geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+        geometry.setAttribute('size', new THREE.Float32BufferAttribute(sizes, 1));
+    
+        const material = new THREE.PointsMaterial({
+            size: 0.5, // Base size
+            vertexColors: true,
+            sizeAttenuation: true, // Size diminishes with distance
+            opacity: 1,
+            transparent: true
+        });
+    
+        const particles = new THREE.Points(geometry, material);
+        particles.position.copy(this.physics.car.chassis.body.position);
+    
+        // Add particles to the scene
+        this.container.add(particles);
+    
+        // Animate particles
+        const duration = 500; // Duration in milliseconds
+        const startTime = performance.now();
+    
+        const animateParticles = () => {
+            const elapsedTime = performance.now() - startTime;
+            if (elapsedTime < duration) {
+                particles.rotation.y += 0.02; // Rotate particles for effect
+                particles.scale.set(1, 1, 1).multiplyScalar(1 - (elapsedTime / duration)); // Scale down over time
+                particles.material.opacity = 1 - (elapsedTime / duration); // Fade out over time
+    
+                requestAnimationFrame(animateParticles);
+            } else {
+                this.container.remove(particles);
+                particles.geometry.dispose();
+                particles.material.dispose();
+            }
+        };
+    
+        animateParticles();
+    }
+
+    setShootingMechanism() {
+        if (typeof window !== 'undefined') {
+
+            window.addEventListener('mousedown', (event) => {
+                if (this.canShoot) {
+                    event.preventDefault();
+                    this.createAndShootBullet({ shooterId: this.playerId });
+                    this.updateBatteryStatus(); // Update battery status in HTML
+                    this.updateBatteryPosition(); // Update battery vector position
+                    this.canShoot = false;
+
+                    setTimeout(() => {
+                        this.canShoot = true;
+                    }, 10000); // Delay in milliseconds
+                }
+            });
+        }
+
+        // Initialize shooting flag
+        this.canShoot = true;
+    } 
+
+    updateBatteryStatus(battery) {
+        const batteryStatusElement = document.getElementById('battery-status');
+        if (batteryStatusElement) {
+            const batteryPercentageElement = document.getElementById('battery-percentage');
+            const batteryBar = batteryStatusElement.querySelector('.battery-bar');
+            if (batteryBar) {
+                // Set the width of the battery bar based on the battery percentage
+                batteryBar.style.width = `${battery}%`;
+                batteryPercentageElement.textContent = `${battery}%`;
+            }
+        }
+    }
+
+    // Define a method to create nitro effects behind the car
+    createNitroEffect(position, quaternion) {
+        const particleCount = 100; // More particles for a more intense effect
+        const geometry = new THREE.BufferGeometry();
+        const vertices = [];
+        const colors = [];
+        const sizes = [];
+
+        for (let i = 0; i < particleCount; i++) {
+            vertices.push(
+                (Math.random() - 0.5) * 2, // x
+                (Math.random() - 0.5) * 2, // y
+                (Math.random() - 0.5) * 2  // z
+            );
+
+            colors.push(
+                0, // Red
+                0.5 + Math.random() * 0.5, // Green
+                1 // Blue, for a blueish nitro effect
+            );
+
+            sizes.push(Math.random() * 0.2 + 0.1); // Random size between 0.1 and 0.3
+        }
+
+        geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+        geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+        geometry.setAttribute('size', new THREE.Float32BufferAttribute(sizes, 1));
+
+        const material = new THREE.PointsMaterial({
+            size: 0.1, // Larger base size for nitro effect
+            vertexColors: true,
+            sizeAttenuation: true, // Size diminishes with distance
+            opacity: 1,
+            transparent: true
+        });
+
+        const particles = new THREE.Points(geometry, material);
+        particles.position.copy(position);
+
+        // Adjust the nitro position to be behind the car
+        const nitroOffset = new THREE.Vector3(-2, 0, 0); // Slightly further back for nitro
+        nitroOffset.applyQuaternion(quaternion);
+        particles.position.add(nitroOffset);
+
+        // Add particles to the scene
+        this.container.add(particles);
+
+        // Animate particles
+        const duration = 700; // Duration in milliseconds
+        const startTime = performance.now();
+
+        const animateParticles = () => {
+            const elapsedTime = performance.now() - startTime;
+            if (elapsedTime < duration) {
+                particles.rotation.y += 0.02; // Rotate particles for effect
+                particles.scale.set(1, 1, 1).multiplyScalar(1 - (elapsedTime / duration)); // Scale down over time
+                particles.material.opacity = 1 - (elapsedTime / duration); // Fade out over time
+
+                requestAnimationFrame(animateParticles);
+            } else {
+                this.container.remove(particles);
+                particles.geometry.dispose();
+                particles.material.dispose();
+            }
+        };
+
+        animateParticles();
+    }
+
+    createAndShootBullet({ shooterId, bulletData = null }) {
+        const bulletBall = this.resources.items.rocketBase.scene.clone();
+    
+        // Set color to white
+        bulletBall.traverse((child) => {
+            if (child.isMesh) {
+                child.material = this.materials.shades.items.blueGlass;
+            }
+        });
+
+        // Ensure shooterId is set
+        if (!shooterId && bulletData) {
+            shooterId = bulletData.shooterId;
+        }
+        if (!shooterId) {
+            shooterId = this.playerId;  // Default to the current player if not provided
+        }
+    
+        let bulletPosition, bulletQuaternion, bulletVelocity;
+    
+        if (bulletData) {
+            if (bulletData.position) {
+                bulletPosition = new THREE.Vector3(bulletData.position.x, bulletData.position.y, bulletData.position.z);
+            } else {
+                console.error('Bullet position data is incomplete:', bulletData);
+                return;
+            }
+            bulletQuaternion = new THREE.Quaternion(
+                bulletData.rotation?.x || 0,
+                bulletData.rotation?.y || 0,
+                bulletData.rotation?.z || 0,
+                bulletData.rotation?.w || 1
+            );
+            bulletVelocity = new CANNON.Vec3(
+                bulletData.velocity?.x || 0,
+                bulletData.velocity?.y || 0,
+                bulletData.velocity?.z || 0
+            );
+            shooterId = bulletData.shooterId;
+        } else {
+            const frontOffset = new THREE.Vector3(0.8, 0, 0);
+            frontOffset.applyQuaternion(this.physics.car.chassis.body.quaternion);
+            frontOffset.multiplyScalar(2);
+            bulletPosition = new THREE.Vector3().addVectors(this.physics.car.chassis.body.position, frontOffset);
+            bulletQuaternion = this.physics.car.chassis.body.quaternion.clone();
+    
+            const baseVelocity = new THREE.Vector3(100, 0, 0);
+            bulletVelocity = baseVelocity.applyQuaternion(bulletQuaternion);
+        }
+    
+        bulletBall.position.copy(bulletPosition);
+        bulletBall.quaternion.copy(bulletQuaternion);
+        this.container.add(bulletBall);
+    
+        const bulletBody = new CANNON.Body({
+            mass: 40,
+            shape: new CANNON.Sphere(0.5)
+        });
+    
+        bulletBody.position.set(bulletPosition.x, bulletPosition.y, bulletPosition.z);
+        bulletBody.quaternion.copy(bulletQuaternion);
+        bulletBody.velocity.set(bulletVelocity.x, bulletVelocity.y, bulletVelocity.z);
+        bulletBody.shooterId = shooterId;
+    
+        console.log("Creating bullet with shooterId:", shooterId);
+    
+        this.physics.world.addBody(bulletBody);
+        const bullet = { mesh: bulletBall, body: bulletBody };
+        this.physics.bullets.push(bullet);
+    
+        bulletBody.addEventListener('collide', (event) => {
+            const index = this.physics.bullets.findIndex(b => b.body === bulletBody);
+            this.physics.handleBulletCollision(bullet, index);
+            console.log("Car: Handling bullet collision via physics");
+        });
+
+        this.createFireEffect(bulletBall.position, bulletQuaternion);
+    } 
+
+     // Define a method to create fire effects behind the rocket
+     createFireEffect(position, quaternion) {
+        const particleCount = 100;
+        const geometry = new THREE.BufferGeometry();
+        const vertices = [];
+        const colors = [];
+        const sizes = [];
+
+        for (let i = 0; i < particleCount; i++) {
+            vertices.push(
+                (Math.random() - 0.5) * 2, // x
+                (Math.random() - 0.5) * 2, // y
+                (Math.random() - 0.5) * 2  // z
+            );
+
+            colors.push(
+                1, // Red
+                Math.random() * 0.5, // Green
+                0 // Blue
+            );
+
+            sizes.push(Math.random() * 0.1 + 0.05); // Random size between 0.05 and 0.15
+        }
+
+        geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+        geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+        geometry.setAttribute('size', new THREE.Float32BufferAttribute(sizes, 1));
+
+        const material = new THREE.PointsMaterial({
+            size: 0.5, // Base size
+            vertexColors: true,
+            sizeAttenuation: true, // Size diminishes with distance
+            opacity: 1,
+            transparent: true
+        });
+
+        const particles = new THREE.Points(geometry, material);
+        particles.position.copy(position);
+
+        // Adjust the fire position to be behind the rocket
+        const fireOffset = new THREE.Vector3(-3, 0, 0);
+        fireOffset.applyQuaternion(quaternion);
+        particles.position.add(fireOffset);
+
+        // Add particles to the scene
+        this.container.add(particles);
+
+        // Animate particles
+        const duration = 500; // Duration in milliseconds
+        const startTime = performance.now();
+
+        const animateParticles = () => {
+            const elapsedTime = performance.now() - startTime;
+            if (elapsedTime < duration) {
+                particles.rotation.y += 0.02; // Rotate particles for effect
+                particles.scale.set(1, 1, 1).multiplyScalar(1 - (elapsedTime / duration)); // Scale down over time
+                particles.material.opacity = 1 - (elapsedTime / duration); // Fade out over time
+
+                requestAnimationFrame(animateParticles);
+            } else {
+                this.container.remove(particles);
+                particles.geometry.dispose();
+                particles.material.dispose();
+            }
+        };
+
+        animateParticles();
+    }
+
+    setModels()
+    {
+        this.models = {}
+
+        {
+            this.models.chassis = this.resources.items.car1DefaultChassis
+            this.models.antena = this.resources.items.car1DefaultAntena
+            this.models.backLightsBrake = this.resources.items.car1DefaultBackLightsBrake
+            this.models.backLightsReverse = this.resources.items.car1DefaultBackLightsReverse
+            this.models.backLightsBattery = this.resources.items.carDefaultBackLightsBattery
+            this.models.wheel = this.resources.items.car1DefaultWheel
+        }
+    }
+
+    setMovement()
+    {
+        this.movement = {}
+        this.movement.speed = new THREE.Vector3()
+        this.movement.localSpeed = new THREE.Vector3()
+        this.movement.acceleration = new THREE.Vector3()
+        this.movement.localAcceleration = new THREE.Vector3()
+        this.movement.lastScreech = 0
+
+        // Time tick
+        this.time.on('tick', () =>
+        {
+            // Movement
+            const movementSpeed = new THREE.Vector3()
+            if (this.car && this.car.physics && this.car.physics.car && this.car.physics.car.chassis && this.car.physics.car.chassis.body && this.car.physics.car.chassis.object) {
+
+                movementSpeed.copy(this.chassis.object.position).sub(this.chassis.oldPosition)
+
+            }
+            movementSpeed.multiplyScalar(1 / this.time.delta * 17)
+            this.movement.acceleration = movementSpeed.clone().sub(this.movement.speed)
+            this.movement.speed.copy(movementSpeed)
+            if (this.car && this.car.physics && this.car.physics.car && this.car.physics.car.chassis && this.car.physics.car.chassis.body && this.car.physics.car.chassis.object) {
+
+            this.movement.localSpeed = this.movement.speed.clone().applyAxisAngle(new THREE.Vector3(0, 0, 1), - this.chassis.object.rotation.z)
+            this.movement.localAcceleration = this.movement.acceleration.clone().applyAxisAngle(new THREE.Vector3(0, 0, 1), - this.chassis.object.rotation.z)
+            }
+
+            if(this.movement.localAcceleration.x > 0.03 && this.time.elapsed - this.movement.lastScreech > 5000)
+            {
+                this.movement.lastScreech = this.time.elapsed
+            }
+        })
+    }
+
+    setChassis()
+    {
+        this.chassis = {}
+        this.chassis.offset = new THREE.Vector3(0, 0, - 0.28)
+        this.chassis.object = this.objects.getConvertedMesh(this.models.chassis.scene.children)
+        this.chassis.object.position.copy(this.physics.car1.chassis.body.position)
+        this.chassis.oldPosition = this.chassis.object.position.clone()
+        this.container.add(this.chassis.object)
+
+        this.shadows.add(this.chassis.object, { sizeX: 3, sizeY: 2, offsetZ: 0.2 })
+
+        // Time tick
+        this.time.on('tick', () =>
+        {
+            // Save old position for movement calculation
+            this.chassis.oldPosition = this.chassis.object.position.clone()
+
+            // Update if mode physics
+            if(!this.transformControls.enabled)
+            
+                this.chassis.object.position.copy(this.physics.car1.chassis.body.position).add(this.chassis.offset)
+                this.chassis.object.quaternion.copy(this.physics.car1.chassis.body.quaternion)
+            
+
+            // Update position
+            this.position.copy(this.chassis.object.position)
+        })
+    }
+
+    setAntena()
+    {
+        this.antena = {}
+
+        this.antena.speedStrength = 10
+        this.antena.damping = 0.035
+        this.antena.pullBackStrength = 0.02
+
+        this.antena.object = this.objects.getConvertedMesh(this.models.antena.scene.children)
+        this.chassis.object.add(this.antena.object)
+
+        this.antena.speed = new THREE.Vector2()
+        this.antena.absolutePosition = new THREE.Vector2()
+        this.antena.localPosition = new THREE.Vector2()
+
+        // Time tick
+        this.time.on('tick', () =>
+        {
+            const max = 1
+            const accelerationX = Math.min(Math.max(this.movement.acceleration.x, - max), max)
+            const accelerationY = Math.min(Math.max(this.movement.acceleration.y, - max), max)
+
+            this.antena.speed.x -= accelerationX * this.antena.speedStrength
+            this.antena.speed.y -= accelerationY * this.antena.speedStrength
+
+            const position = this.antena.absolutePosition.clone()
+            const pullBack = position.negate().multiplyScalar(position.length() * this.antena.pullBackStrength)
+            this.antena.speed.add(pullBack)
+
+            this.antena.speed.x *= 1 - this.antena.damping
+            this.antena.speed.y *= 1 - this.antena.damping
+
+            this.antena.absolutePosition.add(this.antena.speed)
+
+            this.antena.localPosition.copy(this.antena.absolutePosition)
+            this.antena.localPosition.rotateAround(new THREE.Vector2(), - this.chassis.object.rotation.z)
+
+            this.antena.object.rotation.y = this.antena.localPosition.x * 0.1
+            this.antena.object.rotation.x = this.antena.localPosition.y * 0.1
+
+        })
+
+        // Debug
+        if(this.debug)
+        {
+            const folder = this.debugFolder.addFolder('antena')
+            folder.open()
+
+            folder.add(this.antena, 'speedStrength').step(0.001).min(0).max(50)
+            folder.add(this.antena, 'damping').step(0.0001).min(0).max(0.1)
+            folder.add(this.antena, 'pullBackStrength').step(0.0001).min(0).max(0.1)
+        }
+    }
+
+    setBackLights()
+    {
+        this.backLightsBrake = {}
+
+        this.backLightsBrake.material = this.materials.pures.items.red.clone()
+        this.backLightsBrake.material.transparent = true
+        this.backLightsBrake.material.opacity = 0.5
+
+        this.backLightsBrake.object = this.objects.getConvertedMesh(this.models.backLightsBrake.scene.children)
+        for(const _child of this.backLightsBrake.object.children)
+        {
+            _child.material = this.backLightsBrake.material
+        }
+
+        this.chassis.object.add(this.backLightsBrake.object)
+
+        // Back lights brake
+        this.backLightsReverse = {}
+
+        this.backLightsReverse.material = this.materials.pures.items.white.clone()
+        this.backLightsReverse.material.transparent = true
+        this.backLightsReverse.material.opacity = 0.5
+
+        this.backLightsReverse.object = this.objects.getConvertedMesh(this.models.backLightsReverse.scene.children)
+        for(const _child of this.backLightsReverse.object.children)
+        {
+            _child.material = this.backLightsReverse.material
+        }
+
+        this.chassis.object.add(this.backLightsReverse.object)
+
+         // Back lights battery
+        this.backLightsBattery = {}
+
+        this.backLightsBattery.materialRed = this.materials.pures.items.red.clone()
+        this.backLightsBattery.materialWhite = this.materials.pures.items.red.clone()
+        this.backLightsBattery.materialRed.transparent = true
+        this.backLightsBattery.materialRed.opacity = 0.5
+        this.backLightsBattery.materialWhite.transparent = true
+        this.backLightsBattery.materialWhite.opacity = 0.5
+
+        this.backLightsBattery.object = this.objects.getConvertedMesh(this.models.backLightsBattery.scene.children)
+        for(const _child of this.backLightsBattery.object.children)
+        {
+            _child.material = this.backLightsBattery.materialRed
+        }
+
+        this.chassis.object.add(this.backLightsBattery.object)
+
+        // Initialize battery status in three.js vector
+        this.batteryVector = new THREE.Vector3(0, 0, 0); // Ensure batteryVector is a THREE.Vector3 instance
+        this.chassis.object.add(new THREE.Object3D()); // Add an Object3D instance as a parent for the batteryVector
+
+        // Time tick
+        this.time.on('tick', () =>
+            {
+                this.backLightsBrake.material.opacity = this.physics.controls.actions.brake ? 1 : 0.5
+                this.backLightsReverse.material.opacity = this.physics.controls.actions.down ? 1 : 0.5
+
+                const batteryLevelWidth = this.battery / 100; // Calculate the width based on battery percentage
+                    this.backLightsBattery.object.children.forEach(child => {
+                        child.material = this.backLightsBattery.materialWhite;
+                        child.scale.set(batteryLevelWidth, 0.41, 0.41); // Update the scale to show battery level
+                        child.material.opacity = 1;
+                    })
+        
+                // Update the battery status position
+                this.updateBatteryPosition();
+            })
+    }
+
+    // Update the battery position
+    updateBatteryPosition() {
+        if (this.batteryVector && this.backLightsBattery.object) {
+            this.batteryVector.copy(this.backLightsBattery.object.position);
+        }
+    }
+
+    setWheels()
+    {
+        this.wheels = {}
+        this.wheels.object = this.objects.getConvertedMesh(this.models.wheel.scene.children)
+        this.wheels.items = []
+
+        for(let i = 0; i < 4; i++)
+        {
+            const object = this.wheels.object.clone()
+
+            this.wheels.items.push(object)
+            this.container.add(object)
+        }
+
+        // Time tick
+        this.time.on('tick', () =>
+        {
+            if(!this.transformControls.enabled)
+            
+                for(const _wheelKey in this.physics.car1.wheels.bodies)
+                {
+                    const wheelBody = this.physics.car1.wheels.bodies[_wheelKey]
+                    const wheelObject = this.wheels.items[_wheelKey]
+
+                    wheelObject.position.copy(wheelBody.position)
+                    wheelObject.quaternion.copy(wheelBody.quaternion)
+                }
+            
+        })
+    }
+
+    setTransformControls()
+    {
+        this.transformControls = new TransformControls(this.camera.instance, this.renderer.domElement)
+        this.transformControls.size = 0.5
+        this.transformControls.attach(this.chassis.object)
+        this.transformControls.enabled = false
+        this.transformControls.visible = this.transformControls.enabled
+
+        document.addEventListener('keydown', (_event) =>
+        {
+            if(this.mode === 'transformControls')
+            {
+                if(_event.key === 'r')
+                {
+                    this.transformControls.setMode('rotate')
+                }
+                else if(_event.key === 'g')
+                {
+                    this.transformControls.setMode('translate')
+                }
+            }
+        })
+
+        this.transformControls.addEventListener('dragging-changed', (_event) =>
+        {
+            this.camera.orbitControls.enabled = !_event.value
+        })
+
+        this.container.add(this.transformControls)
+
+        if(this.debug)
+        {
+            const folder = this.debugFolder.addFolder('controls')
+            folder.open()
+
+            folder.add(this.transformControls, 'enabled').onChange(() =>
+            {
+                this.transformControls.visible = this.transformControls.enabled
+            })
+        }
+    }
+
+    setShootingBall()
+    {
+        if(!this.config.cyberTruck)
+        {
+            return
+        }
+
+        if (typeof window !== 'undefined') {
+
+            window.addEventListener('keydown', (_event) =>
+            {
+                if(_event.key === 'b')
+                {
+                    const angle = Math.random() * Math.PI * 2
+                    const distance = 10
+                    const x = this.position.x + Math.cos(angle) * distance
+                    const y = this.position.y + Math.sin(angle) * distance
+                    const z = 2 + 2 * Math.random()
+                    const bowlingBall = this.objects.add({
+                        base: this.resources.items.bowlingBallBase.scene,
+                        collision: this.resources.items.bowlingBallCollision.scene,
+                        offset: new THREE.Vector3(x, y, z),
+                        rotation: new THREE.Euler(Math.PI * 0.5, 0, 0),
+                        duplicated: true,
+                        shadow: { sizeX: 1.5, sizeY: 1.5, offsetZ: - 0.15, alpha: 0.35 },
+                        mass: 5,
+                        soundName: 'bowlingBall',
+                        sleep: false
+                    })
+
+                    const car1Position = new CANNON.Vec3(this.position.x, this.position.y, this.position.z + 1)
+                    let direction = car1Position.vsub(bowlingBall.collision.body.position)
+                    direction.normalize()
+                    direction = direction.scale(100)
+                    bowlingBall.collision.body.applyImpulse(direction, bowlingBall.collision.body.position)
+                }
+            })
+        }
+    }
+}
