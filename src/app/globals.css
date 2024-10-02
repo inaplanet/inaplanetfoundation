@@ -207,6 +207,10 @@ opacity: 0;
   opacity: 1; /* Visible */
 }
 
+.overflow-hidden {
+  overflow: hidden;
+}
+
 #ordinaryButton {
   background: rgba(0, 0, 0, 0.1);
   font-family: 'Orbitron, sans-serif';
