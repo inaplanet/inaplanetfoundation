@@ -82,9 +82,13 @@ export default function Home() {
 
       {/* Show the connectWalletDiv initially */}
       {!isConnected && (
-        <div className="connectWalletDiv flex flex-col justify-between items-center h-screen p-4">
+                // <div className="connectWalletDiv flex flex-col justify-between items-center h-screen p-4">
+
+        <div className="connectWalletDiv">
           {/* Centered Connect Wallet Button */}
-          <div className="flex-grow flex justify-center items-center">
+          {/* <div className="flex-grow flex justify-center items-center"> */}
+          <div className="">
+
 
           {/* Logo */}
           {/* <div className='loadingLogo' style={{ position: 'absolute', top: '50px' }}>
@@ -142,11 +146,13 @@ export default function Home() {
         </div>
       )}
 
-      <header className="w-full py-4 flex justify-between items-center">
-      </header>
+      {/* <header className="w-full py-4 flex justify-between items-center">
+      </header> */}
 
       {/* Wallet connection button (Web3Modal) */}
-      <div className="max-w-4xl">
+      {/* <div className="max-w-4xl"> */}
+      <div>
+
 
         <br />
 
