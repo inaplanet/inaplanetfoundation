@@ -109,24 +109,23 @@ export default class IntroSection
         // Dynamically find the canvas element
         const gameCanvas = document.querySelector('.canvas.js-canvas');
     
-        // Disable canvas interactions when the popup opens
+        // Disable all canvas interactions
         if (gameCanvas) {
-            gameCanvas.style.pointerEvents = 'none'; // Disable all pointer events on the canvas
-            console.log("Game canvas events disabled");
+            gameCanvas.style.pointerEvents = 'none';  // Disable all pointer events on the canvas
         }
     
-        // Prevent interaction on modalContent (except input and button)
-        const disableInteraction = (e) => {
+        // Allow interaction only for input and button
+        const allowInteraction = (e) => {
             if (e.target !== inputElement && e.target !== confirmButton) {
                 e.preventDefault();
-                e.stopPropagation();  // Block any interaction except on input and confirm button
+                e.stopPropagation();  // Block any interaction outside input and confirm button
             }
         };
     
-        // Adding event listeners to block interactions on the canvas and modalContent
-        document.addEventListener('click', disableInteraction, true);  // Capture phase
-        document.addEventListener('mousedown', disableInteraction, true);  // Mouse down events
-        document.addEventListener('touchstart', disableInteraction, true);  // Touch events
+        // Add global event listener to block interaction with anything but input and button
+        document.addEventListener('click', allowInteraction, true);
+        document.addEventListener('mousedown', allowInteraction, true);
+        document.addEventListener('touchstart', allowInteraction, true);
     
         // Restrict input to digits and show message on non-digit input
         inputElement.addEventListener('input', () => {
@@ -152,15 +151,10 @@ export default class IntroSection
             document.body.removeChild(modal); // Remove modal from DOM
             this.isPopupOpen = false;  // Reset popup flag
     
-            // Re-enable game canvas interactions
-            if (gameCanvas) {
-                gameCanvas.style.pointerEvents = 'auto';  // Re-enable pointer events on canvas
-            }
-    
             // Remove event listeners after popup is closed
-            document.removeEventListener('click', disableInteraction, true);
-            document.removeEventListener('mousedown', disableInteraction, true);
-            document.removeEventListener('touchstart', disableInteraction, true);
+            document.removeEventListener('click', allowInteraction, true);
+            document.removeEventListener('mousedown', allowInteraction, true);
+            document.removeEventListener('touchstart', allowInteraction, true);
     
             callback(answer);  // Pass the answer to the callback
         });
@@ -170,19 +164,12 @@ export default class IntroSection
             document.body.removeChild(modal);  // Remove modal from DOM
             this.isPopupOpen = false;  // Reset popup flag
     
-            // Re-enable game canvas interactions
-            if (gameCanvas) {
-                gameCanvas.style.pointerEvents = 'auto';  // Re-enable pointer events on canvas
-            }
-    
             // Remove event listeners after popup is closed
-            document.removeEventListener('click', disableInteraction, true);
-            document.removeEventListener('mousedown', disableInteraction, true);
-            document.removeEventListener('touchstart', disableInteraction, true);
+            document.removeEventListener('click', allowInteraction, true);
+            document.removeEventListener('mousedown', allowInteraction, true);
+            document.removeEventListener('touchstart', allowInteraction, true);
         });
-    }
-    
-    
+    }    
 
     setGreenLink()
     {

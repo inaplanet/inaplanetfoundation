@@ -124,14 +124,14 @@ export default function Home() {
       {isConnected && !isCanvasInitialized && (
         <div>
           
-          <div id="loading-layer" className="loading-layer">
+          <div id="loading-layer" className="loading-layer overflow-hidden">
             {/* <h2 style={{paddingTop: '5px', paddingLeft: '15px', fontSize: '25px', fontFamily: 'Orbitron, sans-serif'}}>Sphere orbit</h2>
             <h3 style={{paddingTop: '5px', paddingLeft: '15px', fontSize: '70px', fontFamily: 'Orbitron, sans-serif'}}>110–210 Earth radii</h3>
             <h3 style={{paddingTop: '15px', paddingLeft: '15px', fontSize: '30px', fontFamily: 'Orbitron, sans-serif'}}>299.2 million km · 2 AU · ~6.54 AU</h3>
             <h3 style={{paddingLeft: '12px', fontSize: '50px', fontFamily: 'Orbitron, sans-serif'}}>6,363,000–12,663,000 km</h3> */}
           </div>
 
-          <div id="w3m-layer" className='w3m-layer'>
+          <div id="w3m-layer" className='w3m-layer overflow-hidden'>
 
             <w3m-button />
               <h1 style={{ paddingTop: '20px', paddingLeft: '15px', fontWeight: '700', fontFamily: 'Orbitron, sans-serif', opacity: '0.8', color: '#B4B4B8'}}>
