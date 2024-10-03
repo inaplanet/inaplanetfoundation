@@ -3,8 +3,8 @@
 @tailwind utilities;
 
 :root {
-  --background: #0213f7;
-  --foreground: #0213f7;
+  --background: #fff;
+  --foreground: #fff;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -17,6 +17,10 @@
 body {
   color: #fff;
   background: #0213f7;
+  margin: 0;
+  padding: 0;
+  height: 100%; /* Ensure the body takes full height */
+  overflow: hidden; /* Prevent scrolling */
 }
 
 @layer utilities {
@@ -464,7 +468,6 @@ opacity: 0;
   width: 300px;
   text-align: center;
   font-family: 'Orbitron', sans-serif;
-  top: 5%;
 }
 
 .popup-content h1 {
@@ -675,6 +678,13 @@ opacity: 0;
     width: 100vw;
     height: 100vh;
     display: block;
+    touch-action: none; /* Disable touch scrolling on the canvas */
+}
+
+@supports (-webkit-touch-callout: none) {
+  .canvas {
+    height: -webkit-fill-available; /* Special fix for iOS to take full height without the UI bars */
+  }
 }
 
 #activeUsers {
