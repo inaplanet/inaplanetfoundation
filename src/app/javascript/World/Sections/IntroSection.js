@@ -67,10 +67,10 @@ export default class IntroSection
     createPopup(question, callback) {
         // Check if a popup is already open
         if (this.isPopupOpen) return;  // Prevent multiple popups
-
+    
         // Set popup open flag to true
         this.isPopupOpen = true;
-
+    
         // Create popup elements
         const modal = document.createElement('div');
         modal.classList.add('popup-modal');
@@ -89,8 +89,7 @@ export default class IntroSection
         inputElement.placeholder = 'Enter your answer...';
         
         const confirmButton = document.createElement('button');
-        confirmButton.innerHTML = `${feather.icons['corner-down-right'].toSvg({ width: 15, height: 15 })} CONFIRM`;
-        feather.replace();
+        confirmButton.innerHTML = 'CONFIRM';
         
         // Message element to show non-digit error
         const messageElement = document.createElement('p');
@@ -106,35 +105,84 @@ export default class IntroSection
         modal.appendChild(overlay);
         modal.appendChild(modalContent);
         document.body.appendChild(modal);
-        
+    
+        // Dynamically find the canvas element
+        const gameCanvas = document.querySelector('.canvas.js-canvas');
+    
+        // Disable canvas interactions when the popup opens
+        if (gameCanvas) {
+            gameCanvas.style.pointerEvents = 'none'; // Disable all pointer events on the canvas
+            console.log("Game canvas events disabled");
+        }
+    
+        // Prevent interaction on modalContent (except input and button)
+        const disableInteraction = (e) => {
+            if (e.target !== inputElement && e.target !== confirmButton) {
+                e.preventDefault();
+                e.stopPropagation();  // Block any interaction except on input and confirm button
+            }
+        };
+    
+        // Adding event listeners to block interactions on the canvas and modalContent
+        document.addEventListener('click', disableInteraction, true);  // Capture phase
+        document.addEventListener('mousedown', disableInteraction, true);  // Mouse down events
+        document.addEventListener('touchstart', disableInteraction, true);  // Touch events
+    
         // Restrict input to digits and show message on non-digit input
         inputElement.addEventListener('input', () => {
             const nonDigitCharacters = /[^0-9]/g;
             if (nonDigitCharacters.test(inputElement.value)) {
-            inputElement.value = inputElement.value.replace(nonDigitCharacters, '');  // Remove non-digit characters
-            messageElement.textContent = 'Please enter digits only.';  // Show error message
-            messageElement.style.display = 'block';
-            messageElement.style.paddingTop = '10px';
-
+                inputElement.value = inputElement.value.replace(nonDigitCharacters, '');  // Remove non-digit characters
+                messageElement.textContent = 'Please enter digits only.';  // Show error message
+                messageElement.style.display = 'block';
+                messageElement.style.paddingTop = '10px';
             } else {
-            messageElement.style.display = 'none';  // Hide error message when input is valid
+                messageElement.style.display = 'none';  // Hide error message when input is valid
             }
         });
-
+    
+        // Ensure no other actions happen when typing inside the input
+        inputElement.addEventListener('keydown', (e) => {
+            e.stopPropagation();  // Stop the event from reaching the canvas or other game inputs
+        });
+    
         // Close modal and handle confirmation
         confirmButton.addEventListener('click', () => {
             const answer = inputElement.value.trim();
             document.body.removeChild(modal); // Remove modal from DOM
             this.isPopupOpen = false;  // Reset popup flag
+    
+            // Re-enable game canvas interactions
+            if (gameCanvas) {
+                gameCanvas.style.pointerEvents = 'auto';  // Re-enable pointer events on canvas
+            }
+    
+            // Remove event listeners after popup is closed
+            document.removeEventListener('click', disableInteraction, true);
+            document.removeEventListener('mousedown', disableInteraction, true);
+            document.removeEventListener('touchstart', disableInteraction, true);
+    
             callback(answer);  // Pass the answer to the callback
         });
-
+    
         // Close the popup if user clicks outside the modal content
         overlay.addEventListener('click', () => {
             document.body.removeChild(modal);  // Remove modal from DOM
             this.isPopupOpen = false;  // Reset popup flag
+    
+            // Re-enable game canvas interactions
+            if (gameCanvas) {
+                gameCanvas.style.pointerEvents = 'auto';  // Re-enable pointer events on canvas
+            }
+    
+            // Remove event listeners after popup is closed
+            document.removeEventListener('click', disableInteraction, true);
+            document.removeEventListener('mousedown', disableInteraction, true);
+            document.removeEventListener('touchstart', disableInteraction, true);
         });
     }
+    
+    
 
     setGreenLink()
     {

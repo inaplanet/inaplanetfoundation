@@ -534,6 +534,11 @@ export default class
                         case 'partyUpdate':
                             this.inParty = true;
                             updateToggleButtonVisibility(this.inParty);
+
+                            const partyInfo = document.getElementById('party-info');
+                            if (partyInfo) {
+                                partyInfo.style.opacity = 1;
+                            }
                             
                             // Ensure no duplicate players are added
                             const uniqueMembers = new Set([...this.partyMembers, ...message.party.members]);
@@ -943,9 +948,9 @@ export default class
                     let partyElement = document.getElementById('party-info');
                     
                     if (!partyElement) {
-                        partyElement = document.createElement('div');
-                        partyElement.id = 'party-info';
-                        partyElement.innerText = 'PARTY'
+                        partyElement = document.getElementById('party-info');
+                        // partyElement.id = 'party-info';
+                        // partyElement.innerText = 'PARTY'
                         partyElement.style.position = 'absolute';
                         partyElement.style.top = '15px';
                         partyElement.style.left = '345px';

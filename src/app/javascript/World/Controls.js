@@ -515,7 +515,9 @@ export default class Controls extends EventEmitter
                 touchMute.style.display = 'block';
                 touchSlider.style.display = 'block';
                 touchSlider.style.display = 'block';
-                partyInfo.style.display = 'unset';
+                if (partyInfo) {
+                    partyInfo.style.display = 'block';
+                }
 
             } else {
                 switchToggle.style.left = '5px';   // Move square back to the left
@@ -528,7 +530,9 @@ export default class Controls extends EventEmitter
                 touchRadio.style.display = 'none';
                 touchMute.style.display = 'none';
                 touchSlider.style.display = 'none';
-                partyInfo.style.display = 'none';
+                if (partyInfo) {
+                    partyInfo.style.display = 'none';
+                }
 
             }
         });
@@ -1484,6 +1488,7 @@ export default class Controls extends EventEmitter
             const signOutButton = document.getElementById('signOutButton');
             const speedometer = document.getElementById('speedometer');
             const inviteButton = document.getElementById('invite-button');
+            const partyInfo = document.getElementById('party-info');
             const switchContainer = document.getElementById('switch-container');
 
 
@@ -1509,6 +1514,10 @@ export default class Controls extends EventEmitter
 
             if (switchContainer) {
                 switchContainer.style.opacity = 1;
+            }
+
+            if (partyInfo) {
+                partyInfo.style.opacity = 1;
             }
         }
 
