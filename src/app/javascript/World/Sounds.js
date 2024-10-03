@@ -24,9 +24,6 @@ const capitolo4vol5 = '/sounds/radio/capitolo4vol5.mp3';
 const capitolo4vol6 = '/sounds/radio/capitolo4vol6.mp3';
 const capitolo4vol7 = '/sounds/radio/capitolo4vol7.mp3';
 const capitolo4vol8 = '/sounds/radio/capitolo4vol8.mp3';
-const capitolo4vol9 = '/sounds/radio/capitolo4vol9.mp3';
-const capitolo4vol10 = '/sounds/radio/capitolo4vol10.mp3';
-const capitolo4vol11 = '/sounds/radio/capitolo4vol11.mp3';
 
 const playboi = '/sounds/radio/playboi.mp3';
 
