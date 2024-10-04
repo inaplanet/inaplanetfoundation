@@ -176,6 +176,29 @@ export default class
         targetElement.style.display = 'block';
         targetElement.style.opacity = '1';
     }
+
+    // Function to dynamically update the display style based on orientation
+    updateTargetPlayerDisplay() {
+        const isHorizontal = window.innerWidth > window.innerHeight;
+        
+        if (isHorizontal) {
+            // Display for horizontal (desktop/landscape mode)
+            targetElement.style.display = 'block';
+            targetElement.style.position = 'absolute';
+            targetElement.style.textAlign = 'center';
+            targetElement.style.fontFamily = 'Orbitron, sans-serif'
+            targetElement.style.fontSize = '10px';
+            targetElement.style.top = '48px';
+            targetElement.style.left = '269px';
+            targetElement.style.background = 'rgba(0, 0, 0, 0.5);';
+            targetElement.style.color = '#fff';
+            targetElement.style.padding = '10px 10px';
+            targetElement.style.borderRadius = '5px';
+            targetElement.style.zIndex = '10px';
+            targetElement.style.opacity = '0';
+            targetElement.style.rotate = '90deg';
+        }
+    }
     
     hideTargetPlayerId() {
         const targetElement = document.getElementById('target-player-id');
@@ -948,26 +971,45 @@ export default class
                     let partyElement = document.getElementById('party-info');
                     
                     if (!partyElement) {
-                        partyElement = document.createElement('div')
+                        partyElement = document.createElement('div');
                         partyElement.id = 'party-info';
-                        // partyElement.innerText = 'PARTY'
                         partyElement.style.position = 'absolute';
-                        partyElement.style.top = '15px';
-                        partyElement.style.left = '345px';
                         partyElement.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
                         partyElement.style.color = 'white';
                         partyElement.style.padding = '10px';
                         partyElement.style.zIndex = '1000';
                         partyElement.style.backdropFilter = 'blur(10px)';
-                        partyElement.style.width = '15%';
-
+                        
+                        // Function to update styles based on orientation
+                        function updatePartyUIStyles() {
+                            const isHorizontal = window.innerWidth > window.innerHeight;
+                    
+                            if (isHorizontal) {
+                                // Horizontal (landscape) settings
+                                partyElement.style.top = '15px';
+                                partyElement.style.left = '346px'; // Adjust as needed
+                                partyElement.style.width = '18%'; // Adjust width for landscape
+                            } else {
+                                // Vertical (portrait) settings
+                                partyElement.style.top = '15px';
+                                partyElement.style.left = '345px'; // Adjust as needed
+                                partyElement.style.width = '15%'; // Adjust width for portrait
+                            }
+                        }
+                    
+                        // Initial call to set the style based on current orientation
+                        updatePartyUIStyles();
+                    
+                        // Event listener to update the layout on orientation change
+                        window.addEventListener('resize', updatePartyUIStyles);
+                    
                         const leaveButton = document.createElement('button');
-                        leaveButton.id = 'ordinaryButton'
+                        leaveButton.id = 'ordinaryButton';
                         leaveButton.onclick = leaveParty;
                         partyElement.appendChild(leaveButton);
-
+                    
                         document.body.appendChild(partyElement);
-                    }
+                    }                    
 
                     // Ensure the party UI is visible
                     partyElement.style.display = 'block';
@@ -990,6 +1032,12 @@ export default class
                     leaveButton.style.fontFamily = 'Orbitron, sans-serif';
                     leaveButton.onclick = leaveParty;
                     partyElement.appendChild(leaveButton);
+
+                    // Conditionally attach it to the switch button
+                    // const switchContainer = document.getElementById('switch-container');
+                    // if (switchContainer) {
+                    //     switchContainer.appendChild(partyElement);  // Append to the switch-container
+                    // }
 
                     function formatPlayerId(id) {
                         const firstPart = id.substring(0, 4);
