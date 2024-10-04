@@ -207,12 +207,12 @@ opacity: 0;
 @media (orientation: landscape) {
   #party-info {
     position: absolute;
-    width: 27%;
+    width: 17%;
     text-align: left;
     font-family: 'Orbitron', sans-serif;
     font-size: 13px;
-    top: 15px;
-    left: 345px;
+    top: calc(50% - 183px);
+    left: calc(50% - 60px);
     background: rgba(0, 0, 0, 0.2);
     color: white;
     padding: 10px 10px;

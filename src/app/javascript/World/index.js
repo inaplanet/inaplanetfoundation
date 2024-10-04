@@ -973,12 +973,12 @@ export default class
                     if (!partyElement) {
                         partyElement = document.createElement('div');
                         partyElement.id = 'party-info';
-                        partyElement.style.position = 'absolute';
-                        partyElement.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
-                        partyElement.style.color = 'white';
-                        partyElement.style.padding = '10px';
-                        partyElement.style.zIndex = '1000';
-                        partyElement.style.backdropFilter = 'blur(10px)';
+                        // partyElement.style.position = 'absolute';
+                        // partyElement.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+                        // partyElement.style.color = 'white';
+                        // partyElement.style.padding = '10px';
+                        // partyElement.style.zIndex = '1000';
+                        // partyElement.style.backdropFilter = 'blur(10px)';
                     
                         const leaveButton = document.createElement('button');
                         leaveButton.id = 'ordinaryButton';
