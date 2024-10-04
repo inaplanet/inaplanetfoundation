@@ -281,7 +281,7 @@ export default class Controls extends EventEmitter
         this.touch.camera.$element.style.left = cameraButtonElementLeft;
         
         const resetButtonElementBottom = this.isVerticalDisplay() ? '175px' : '35px';
-        const resetButtonElementLeft = this.isVerticalDisplay() ? '83px': '190px';
+        const resetButtonElementLeft = this.isVerticalDisplay() ? '83px': '188px';
 
         this.touch.reset.$element.style.bottom = resetButtonElementBottom;
         this.touch.reset.$element.style.left = resetButtonElementLeft;
@@ -305,11 +305,11 @@ export default class Controls extends EventEmitter
         const touchSlider = document.getElementById('touch-slider');
         const switchContainer = document.getElementById('switch-container');
 
-        targetPlayerId.style.display = this.isVerticalDisplay() ? 'block' : 'none';
-        inviteButton.style.display = this.isVerticalDisplay() ? 'flex' : 'none';
+        targetPlayerId.style.display = this.isVerticalDisplay() ? 'unset' : 'none';
+        inviteButton.style.display = this.isVerticalDisplay() ? 'none' : 'none';
         tradeButton.style.display = this.isVerticalDisplay() ? 'none' : 'none';
-        touchRadio.style.display = this.isVerticalDisplay() ? 'block' : 'none';
-        touchMute.style.display = this.isVerticalDisplay() ? 'block' : 'none';
+        touchRadio.style.display = this.isVerticalDisplay() ? 'none' : 'none';
+        touchMute.style.display = this.isVerticalDisplay() ? 'none' : 'none';
         touchSlider.style.display = this.isVerticalDisplay() ? 'block' : 'none';
         switchContainer.style.display = this.isVerticalDisplay() ? 'block' : 'none';
         
