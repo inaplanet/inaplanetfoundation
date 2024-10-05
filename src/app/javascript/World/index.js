@@ -996,8 +996,8 @@ export default class
                         const updateStylesForOrientation = (orientation) => {
                             if (orientation === 'portrait') {
                                 partyElement.style.top = '180px';
-                                partyElement.style.left = '260px';
-                                partyElement.style.width = '33%';
+                                partyElement.style.left = '235px';
+                                partyElement.style.width = '35%';
                                 partyElement.style.fontSize = '13px';
                                 partyElement.style.textAlign = 'left';
                                 partyElement.style.borderRadius = '5px';
