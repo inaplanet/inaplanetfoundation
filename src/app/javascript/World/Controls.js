@@ -141,7 +141,7 @@ export default class Controls extends EventEmitter
                     this.actions.shoot = true
                     break
 
-                case 'Command':
+                case 'y':
                     this.actions.camera = true
                     break
 

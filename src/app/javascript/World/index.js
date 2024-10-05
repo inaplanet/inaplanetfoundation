@@ -918,7 +918,7 @@ export default class
                             timeLeft -= 1;
                             if (timeLeft <= 0) {
                                 clearInterval(countdownInterval);
-                                // hideInvitePrompt(inviteElement); // Automatically hide the invite prompt after timeout
+                                hideInvitePrompt(inviteElement); // Automatically hide the invite prompt after timeout
                             }
                         }, 1000);
                     }

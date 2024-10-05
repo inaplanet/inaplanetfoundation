@@ -2,6 +2,9 @@
   "name": "krashauth",
   "version": "0.1.0",
   "private": true,
+  "env": {
+    "NEXT_PUBLIC_MEMORY": "2GB"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",

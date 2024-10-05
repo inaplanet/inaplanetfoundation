@@ -39,6 +39,21 @@ export default class Camera
         this.setOrbitControls()
     }
 
+    triggerCameraAction() {
+        console.log("Y button pressed, triggering camera action...");
+    
+        // Here, you can switch between different camera modes (e.g., perspective, orthographic, birds-eye)
+        if (this.type === 'perspective') {
+            this.setOrthographic();  // Switch to orthographic view
+        } else if (this.type === 'orthographic') {
+            this.setBirdsEye();      // Switch to birds-eye view
+        } else {
+            this.setPerspective();   // Default back to perspective
+        }
+    
+        console.log(`Camera switched to: ${this.type}`);
+    }    
+
     setPerspective() {
         this.type = 'perspective';
         

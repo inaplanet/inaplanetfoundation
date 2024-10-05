@@ -147,22 +147,70 @@ const Application = ({ playerId }) => {
     /**
      * Set camera
      */
-    setCamera()
-    {
+    // setCamera()
+    // {
+    //     this.camera = new Camera({
+    //         time: this.time,
+    //         sizes: this.sizes,
+    //         renderer: this.renderer,
+    //         debug: this.debug,
+    //         config: this.config,
+    //         car: this.car
+    //     })
+    //     this.scene.add(this.camera.container)
+    //     this.time.on('tick', () => {
+    //         if (this.world.car) {
+    //             this.camera.target.x = this.world.car.chassis.object.position.x
+    //             this.camera.target.y = this.world.car.chassis.object.position.y
+    //             console.log("World car", this.world.car)
+    //         }
+    //     })
+    // }
+
+    /**
+     * Set camera
+     */
+    setCamera() {
         this.camera = new Camera({
             time: this.time,
             sizes: this.sizes,
             renderer: this.renderer,
             debug: this.debug,
-            config: this.config
-        })
-        this.scene.add(this.camera.container)
+            config: this.config,
+            car: this.car
+        });
+        
+        this.scene.add(this.camera.container);
+        
         this.time.on('tick', () => {
             if (this.world && this.world.car) {
-                this.camera.target.x = this.world.car.chassis.object.position.x
-                this.camera.target.y = this.world.car.chassis.object.position.y
+                // Update camera target position to match the car's position
+                this.camera.target.x = this.world.car.chassis.object.position.x;
+                this.camera.target.y = this.world.car.chassis.object.position.y;
+                this.camera.target.z = this.world.car.chassis.object.position.z;
+                
+                // Handle car's rotation (quaternion) for better camera tracking
+                // const carQuaternion = this.world.car.chassis.object.quaternion;
+                // const cameraDistance = 10; // Distance between the car and the camera, adjust as needed
+
+                // Offset the camera based on the car's rotation (apply quaternion to offset)
+                // const offset = new THREE.Vector3(0, -cameraDistance, 5); // Offset the camera behind and above the car
+                // offset.applyQuaternion(carQuaternion);
+
+                // Set camera position based on the car's position and the offset
+                // this.camera.instance.position.copy(this.world.car.chassis.object.position).add(offset);
+
+                // Look at the car to keep it centered in the camera view
+                // this.camera.instance.lookAt(this.world.car.chassis.object.position);
             }
-        })
+
+            // Key event listener for camera action
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Y' || e.key === 'y') {
+                    this.camera.triggerCameraAction();
+                }
+            });
+        });
     }
 
     setPasses()
@@ -284,6 +332,7 @@ const Application = ({ playerId }) => {
             camera: this.camera,
             scene: this.scene,
             physics: this.physics,
+            car: this.car,
             renderer: this.renderer,
             passes: this.passes,
             canvas: this.$canvas,
