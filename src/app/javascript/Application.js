@@ -147,29 +147,6 @@ const Application = ({ playerId }) => {
     /**
      * Set camera
      */
-    // setCamera()
-    // {
-    //     this.camera = new Camera({
-    //         time: this.time,
-    //         sizes: this.sizes,
-    //         renderer: this.renderer,
-    //         debug: this.debug,
-    //         config: this.config,
-    //         car: this.car
-    //     })
-    //     this.scene.add(this.camera.container)
-    //     this.time.on('tick', () => {
-    //         if (this.world.car) {
-    //             this.camera.target.x = this.world.car.chassis.object.position.x
-    //             this.camera.target.y = this.world.car.chassis.object.position.y
-    //             console.log("World car", this.world.car)
-    //         }
-    //     })
-    // }
-
-    /**
-     * Set camera
-     */
     setCamera() {
         this.camera = new Camera({
             time: this.time,
@@ -397,7 +374,11 @@ return () => {
 };
 }, [playerId]);
 
-return <canvas ref={canvasRef} className="canvas js-canvas" style={{ width: '100vw', height: '100vh' }} />;
+return (
+    <div style={{ width: '100vw', height: '100vh', margin: 0, padding: 0 }}>
+      <canvas ref={canvasRef} className="canvas js-canvas" />
+    </div>
+  );
 };
 
 export default Application;

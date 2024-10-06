@@ -5,6 +5,11 @@
 :root {
   --background: #fff;
   --foreground: #fff;
+  height: 100%;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -19,8 +24,9 @@ body {
   background: #0213f7;
   margin: 0;
   padding: 0;
-  height: 100%; /* Ensure the body takes full height */
-  overflow: hidden; /* Prevent scrolling */
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
 }
 
 @layer utilities {
@@ -697,7 +703,8 @@ opacity: 0;
     width: 100vw;
     height: 100vh;
     display: block;
-    touch-action: none; /* Disable touch scrolling on the canvas */
+    touch-action: none;
+    background: none;
 }
 
 @supports (-webkit-touch-callout: none) {

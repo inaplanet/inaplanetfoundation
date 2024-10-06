@@ -130,9 +130,9 @@ addWorldBorders() {
     const wallMaterial = new CANNON.Material("wallMaterial");
 
     // Wall dimensions (adjust these according to your world size)
-    const wallThickness = 1;
-    const wallHeight = 15;
-    const worldSize = 525;
+    const wallThickness = 5;
+    const wallHeight = 25;
+    const worldSize = 700;
 
     // Four walls surrounding the world
     this.walls = [
@@ -7962,10 +7962,78 @@ addWorldBorders() {
             }
 
             // Handle flight mode with boost controls
+            // if (this.car.flightMode && this.controls.actions.boost) {
+            //     // Existing flight mode control logic
+            //     const rotationSpeed = 0.5;
+            //     const thrustStrength = 500;
+                
+            //     // Lift the car up along the Z-axis when boost is activated
+            //     this.car.chassis.body.position.z += 0.1;  // Adjust the value to control the rate of ascent
+
+            //     // Forward (up) flight control
+            //     if (this.controls.actions.up) {
+            //         // Apply rotation for angular velocity (optional)
+            //         this.car.chassis.body.angularVelocity.x += rotationSpeed;
+                
+            //         // Calculate the thrust force in the car's local forward direction
+            //         const localThrust = new CANNON.Vec3(thrustStrength, 0, 0); // Thrust along the local X axis (forward)
+                
+            //         // Rotate the thrust to the car's orientation using the car's quaternion
+            //         const thrustWorld = new CANNON.Vec3();
+            //         this.car.chassis.body.quaternion.vmult(localThrust, thrustWorld); // Apply rotation to the thrust
+                
+            //         // Apply the thrust force in the world direction (move forward)
+            //         this.car.chassis.body.applyForce(
+            //             thrustWorld,
+            //             this.car.chassis.body.position
+            //         );
+            //     }
+
+            //     // Backward (down) flight control
+            //     if (this.controls.actions.down) {
+            //         this.car.chassis.body.angularVelocity.y -= rotationSpeed;
+
+            //         // Reverse thrust (backward)
+            //         const localThrust = new CANNON.Vec3(-thrustStrength, 0, 0); // Reverse thrust
+            //         const thrustWorld = new CANNON.Vec3();
+            //         this.car.chassis.body.quaternion.vmult(localThrust, thrustWorld); // Apply rotation to reverse thrust
+            //         this.car.chassis.body.applyForce(thrustWorld, this.car.chassis.body.position);
+            //     }
+
+            //     // Left flight control (roll left)
+            //     if (this.controls.actions.left) {
+            //         this.car.chassis.body.angularVelocity.z += rotationSpeed;
+
+            //         // Apply left thrust (move left)
+            //         const localThrust = new CANNON.Vec3(0, thrustStrength, 0); // Thrust along the Y axis
+            //         const thrustWorld = new CANNON.Vec3();
+            //         this.car.chassis.body.quaternion.vmult(localThrust, thrustWorld);
+            //         this.car.chassis.body.applyForce(thrustWorld, this.car.chassis.body.position);
+            //     }
+
+            //     // Right flight control (roll right)
+            //     if (this.controls.actions.right) {
+            //         this.car.chassis.body.angularVelocity.z -= rotationSpeed;
+
+            //         // Apply right thrust (move right)
+            //         const localThrust = new CANNON.Vec3(0, -thrustStrength, 0); // Thrust in the opposite Y axis
+            //         const thrustWorld = new CANNON.Vec3();
+            //         this.car.chassis.body.quaternion.vmult(localThrust, thrustWorld);
+            //         this.car.chassis.body.applyForce(thrustWorld, this.car.chassis.body.position);
+            //     }
+
+            //     // Apply gravity or adjust position to make sure it behaves like a flight mode
+            //     this.car.chassis.body.applyForce(new CANNON.Vec3(0, 0, -5), this.car.chassis.body.position);
+            // }
+
+            // Handle flight mode with boost controls
             if (this.car.flightMode && this.controls.actions.boost) {
                 // Existing flight mode control logic
                 const rotationSpeed = 0.5;
                 const thrustStrength = 500;
+
+                // Lift the car up along the Z-axis when boost is activated
+                this.car.chassis.body.position.z += 0.1;  // Adjust the value to control the rate of ascent
 
                 // if (this.controls.actions.up) {
                 //     this.car.chassis.body.angularVelocity.x += rotationSpeed;

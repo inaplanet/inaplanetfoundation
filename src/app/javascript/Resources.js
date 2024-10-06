@@ -2,6 +2,7 @@ import * as THREE from 'three'
 
 import Loader from './Utils/Loader.js'
 import EventEmitter from './Utils/EventEmitter.js'
+import { FontLoader } from './Utils/FontLoader.js';
 
 // Matcaps
 const matcapBeigeSource = '/models/matcaps/beige.png'
@@ -182,6 +183,9 @@ const tilesDCollisionSource = '/models/tiles/d/collision.glb'
 const tilesEBaseSource = '/models/tiles/e/base.glb'
 const tilesECollisionSource = '/models/tiles/e/collision.glb'
 
+// Font
+// const orbitronFont = '/fonts/Orbitron.json'
+
 export default class Resources extends EventEmitter
 {
     constructor()
@@ -269,6 +273,9 @@ export default class Resources extends EventEmitter
 
             { name: 'introDevBase', source: introDevBaseSource },
             { name: 'introDevCollision', source: introDevCollisionSource },
+
+            // Font
+            // { name: 'orbitronFont', source: orbitronFont },
 
             // Intro
             { name: 'crossroadsStaticBase', source: crossroadsStaticBaseSource },
@@ -394,6 +401,18 @@ export default class Resources extends EventEmitter
             
                     this.items[`${_resource.name}VideoTexture`] = videoTexture
                 }
+
+                // Font: Handle font loading using FontLoader
+                if (_resource.type === 'font')
+                    {
+                        const fontLoader = new FontLoader();
+                        fontLoader.load(_resource.source, (font) => {
+                            this.items[_resource.name] = font; // Store the loaded font in `items`
+                            console.log("Font loaded")
+                        }, undefined, (error) => {
+                            console.error('Error loading font:', error);
+                        });
+                    }
             
                 // Trigger progress
                 this.trigger('progress', [this.loader.loaded / this.loader.toLoad])

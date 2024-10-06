@@ -1615,6 +1615,26 @@ export default class
                                 child.scale.set(batteryLevelWidth, 4, 3);
                                 child.material.opacity = 1;
                             });
+
+                            // Create or update playerId text above the battery
+                            // let playerIdText = car.playerId;
+                            // const font = this.resources.items.orbitron; // Access the Orbitron font
+                            // if (!playerIdText) {
+                            //     const playerIdMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+                            //     const playerIdGeometry = new THREE.TextGeometry(data.playerId, {
+                            //         font: font, // Assuming you've loaded a font via your resources manager
+                            //         size: 0.2, // Adjust the size as needed
+                            //         height: 0.02, // Depth of the text
+                            //         curveSegments: 12,
+                            //         bevelEnabled: false
+                            //     });
+
+                            //     playerIdText = new THREE.Mesh(playerIdGeometry, playerIdMaterial);
+                            //     playerIdText.position.set(-0.22, 0, 1.6); // Adjust position above the battery
+                            //     playerIdText.rotation.set(0, 1, 0);
+                            //     car.backLightsBattery.object.add(playerIdText);
+                            //     car.playerId = playerIdText; // Store reference to update later if needed
+                            // }
                         } else {
                             console.error("We cannot find the battery object")
                         }
