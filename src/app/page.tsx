@@ -78,7 +78,7 @@ export default function Home() {
 
   return (
     //<main className="min-h-screen px-8 py-0 pb-12 flex-1 flex flex-col items-center" style={{ backgroundColor: '#fff', fontFamily: "'Orbitron', sans-serif" }}>
-    <main className="overflow-hidden flex-1 flex flex-col items-center" style={{ backgroundColor: '#0213f7', fontFamily: "'Orbitron', sans-serif" }}>
+    <main className="overflow-hidden flex flex-col items-center" style={{ backgroundColor: '#0213f7', fontFamily: "'Orbitron', sans-serif" }}>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
 
       {/* Show the connectWalletDiv initially */}
@@ -89,13 +89,6 @@ export default function Home() {
           {/* Centered Connect Wallet Button */}
           <div className="flex-grow flex justify-center items-center">
           {/* <div className=""> */}
-
-
-          {/* Logo */}
-          {/* <div className='loadingLogo' style={{ position: 'absolute', top: '50px' }}>
-              <img src="/images/mobile/logo.png" alt="Krashbox Logo" style={{ width: '100px', height: '100px' }} />
-            </div> */}
-
           
             <button className="connectWalletButton flex flex-col justify-center items-center">
               <span></span>
@@ -130,10 +123,7 @@ export default function Home() {
         <div>
           
           <div id="loading-layer" className="loading-layer overflow-hidden">
-            {/* <h2 style={{paddingTop: '5px', paddingLeft: '15px', fontSize: '25px', fontFamily: 'Orbitron, sans-serif'}}>Sphere orbit</h2>
-            <h3 style={{paddingTop: '5px', paddingLeft: '15px', fontSize: '70px', fontFamily: 'Orbitron, sans-serif'}}>110–210 Earth radii</h3>
-            <h3 style={{paddingTop: '15px', paddingLeft: '15px', fontSize: '30px', fontFamily: 'Orbitron, sans-serif'}}>299.2 million km · 2 AU · ~6.54 AU</h3>
-            <h3 style={{paddingLeft: '12px', fontSize: '50px', fontFamily: 'Orbitron, sans-serif'}}>6,363,000–12,663,000 km</h3> */}
+            {/* <h3 style={{paddingLeft: '12px', fontSize: '50px', fontFamily: 'Orbitron, sans-serif'}}>6,363,000–12,663,000 km</h3> */}
           </div>
 
           <div id="w3m-layer" className='w3m-layer overflow-hidden'>

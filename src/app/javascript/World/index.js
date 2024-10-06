@@ -430,6 +430,7 @@ export default class
                 this.cars = {};
                 this.inParty = false;
                 this.partyMembers = [];
+                this.isPartyLeader = false;
 
                 const messageQueue = [];
         
@@ -556,6 +557,7 @@ export default class
 
                         case 'partyUpdate':
                             this.inParty = true;
+                            this.isPartyLeader = message.party.leader === this.playerId;  // Check if current player is the leader
                             updateToggleButtonVisibility(this.inParty);
 
                             const partyInfo = document.getElementById('party-info');
@@ -577,6 +579,16 @@ export default class
                                 // handleNewMessage(message);
                             }
                             break;
+
+                        // case 'partyCall':
+                        //     if (this.inParty && message.senderId === message.party.leader) {
+                        //         promptPartyCallParticipation(message.senderId);  // Prompt other party members to join the call
+                        //     }
+                        //     break;
+
+                        // case 'partyCallResponse':
+                        //     handlePartyCallResponse(message.senderId, message.response);
+                        //     break;
 
                         // case 'batteryStatus':
                         //     updateBatteryStatus(message.playerId, message.battery);
@@ -797,6 +809,13 @@ export default class
                     }
                 });
 
+                // Add party call button functionality
+                // if (this.isPartyLeader) {
+                //     document.getElementById('party-call-button').addEventListener('click', () => {
+                //         initiatePartyCall();  // Party leader initiates the call
+                //     });
+                // }
+
                 // Invite target player
                 function sendInvite(targetPlayerId, playerId) {
                     if (typeof window !== 'undefined') {
@@ -969,25 +988,7 @@ export default class
                 
                 // Update party UI
                 function updatePartyUI(inviterId, members, physics) {
-                    let partyElement = document.getElementById('party-info');
-                    
-                    // if (!partyElement) {
-                    //     partyElement = document.createElement('div');
-                    //     partyElement.id = 'party-info';
-                    //     partyElement.style.position = 'absolute';
-                    //     partyElement.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
-                    //     partyElement.style.color = 'white';
-                    //     partyElement.style.padding = '10px';
-                    //     partyElement.style.zIndex = '1000';
-                    //     partyElement.style.backdropFilter = 'blur(10px)';
-                    
-                    //     const leaveButton = document.createElement('button');
-                    //     leaveButton.id = 'ordinaryButton';
-                    //     leaveButton.onclick = leaveParty;
-                    //     partyElement.appendChild(leaveButton);
-                    
-                    //     document.body.appendChild(partyElement);
-                    // }                    
+                    let partyElement = document.getElementById('party-info');              
 
                     if (!partyElement) {
                         partyElement = document.createElement('div');
@@ -1009,11 +1010,6 @@ export default class
                                 partyElement.style.top = '15px';
                                 partyElement.style.left = '345px';
                                 partyElement.style.width = '15%';
-                                // partyElement.style.fontSize = '13px';
-                                // partyElement.style.textAlign = 'left';
-                                // partyElement.style.borderRadius = '5px';
-                                // partyElement.style.fontFamily = 'Orbitron, sans-serif';
-                                // partyElement.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
                             }
                         };
                     
@@ -1151,6 +1147,76 @@ export default class
                     }  
                 }
 
+                // const initiatePartyCall = () => {
+                //     if (this.isPartyLeader && this.ws && this.ws.readyState === WebSocket.OPEN) {
+                //         this.ws.send(JSON.stringify({
+                //             type: 'partyCall',
+                //             senderId: this.playerId,
+                //             party: {
+                //                 leader: this.playerId,
+                //                 members: this.partyMembers
+                //             }
+                //         }));
+                //         displayPartyMessage(this.playerId, "You initiated a party call.", true);  // Notify in the chat
+                //     } else {
+                //         console.error("Only the party leader can initiate a party call.");
+                //     }
+                // };
+
+                // const promptPartyCallParticipation = (senderId) => {
+                //     const callPromptElement = document.createElement('div');
+                //     callPromptElement.id = 'party-call-prompt';
+                //     callPromptElement.style.position = 'absolute';
+                //     callPromptElement.style.top = '50%';
+                //     callPromptElement.style.left = '50%';
+                //     callPromptElement.style.transform = 'translate(-50%, -50%)';
+                //     callPromptElement.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+                //     callPromptElement.style.color = 'white';
+                //     callPromptElement.style.padding = '20px';
+                //     callPromptElement.style.borderRadius = '10px';
+                //     callPromptElement.style.zIndex = '1000';
+                //     callPromptElement.innerText = `${formatPlayerId(senderId)} is initiating a party call. Do you want to join?`;
+                
+                //     const buttonContainer = document.createElement('div');
+                //     buttonContainer.style.display = 'flex';
+                //     buttonContainer.style.justifyContent = 'space-between';
+                //     buttonContainer.style.marginTop = '10px';
+                
+                //     const acceptButton = document.createElement('button');
+                //     acceptButton.innerText = 'Join Call';
+                //     acceptButton.style.flex = '1';
+                //     acceptButton.style.marginRight = '10px';
+                //     acceptButton.onclick = () => {
+                //         respondToPartyCall('yes', senderId);
+                //         document.body.removeChild(callPromptElement);  // Remove the prompt
+                //     };
+                
+                //     const declineButton = document.createElement('button');
+                //     declineButton.innerText = 'Decline';
+                //     declineButton.style.flex = '1';
+                //     declineButton.onclick = () => {
+                //         respondToPartyCall('no', senderId);
+                //         document.body.removeChild(callPromptElement);  // Remove the prompt
+                //     };
+                
+                //     buttonContainer.appendChild(acceptButton);
+                //     buttonContainer.appendChild(declineButton);
+                //     callPromptElement.appendChild(buttonContainer);
+                
+                //     document.body.appendChild(callPromptElement);
+                // };        
+                
+                // const respondToPartyCall = (response, leaderId) => {
+                //     if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+                //         this.ws.send(JSON.stringify({
+                //             type: 'partyCallResponse',
+                //             senderId: this.playerId,
+                //             leaderId: leaderId,
+                //             response: response
+                //         }));
+                //     }
+                // };                
+
                 // Function to send a message to party members
                 const sendPartyMessage = (text) => {
                     if (text && this.ws && this.ws.readyState === WebSocket.OPEN && this.inParty) {
@@ -1171,6 +1237,14 @@ export default class
                     messageInput.value = ''; // Clear the input after sending
                     }
                 });
+
+                // const handlePartyCallResponse = (senderId, response) => {
+                //     const message = response === 'yes'
+                //         ? `${formatPlayerId(senderId)} joined the party call.`
+                //         : `${formatPlayerId(senderId)} declined the party call.`;
+                //     displayPartyMessage(senderId, message, false);
+                // };
+                
             
                 // Function to display a party message in the chat UI
                 const displayPartyMessage = (senderId, text, isOwnMessage) => {
