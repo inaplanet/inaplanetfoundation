@@ -606,6 +606,17 @@ export default class Controls extends EventEmitter
         this.touch.radio.$icon.style.backgroundSize = 'cover';
         this.touch.radio.$element.appendChild(this.touch.radio.$icon);
 
+        // Needle handler
+        this.touch.radio.$tinyNeedleHandler = document.createElement('div');
+        this.touch.radio.$tinyNeedleHandler.style.position = 'absolute';
+        this.touch.radio.$tinyNeedleHandler.style.top = '66px'; // Adjust the top position inside the main needle
+        this.touch.radio.$tinyNeedleHandler.style.left = '44px'; // Adjust the left position inside the main needle
+        this.touch.radio.$tinyNeedleHandler.style.width = '10px';
+        this.touch.radio.$tinyNeedleHandler.style.height = '10px';
+        this.touch.radio.$tinyNeedleHandler.style.background = 'rgba(0, 0, 0, 0.5)'; // Lighter color for the tiny needle
+        this.touch.radio.$tinyNeedleHandler.style.borderRadius = '1px';
+        this.touch.radio.$element.appendChild(this.touch.radio.$tinyNeedleHandler); // Attach the tiny needle to the main needle
+
         // Needle Element
         this.touch.radio.$needle = document.createElement('div');
         this.touch.radio.$needle.style.position = 'absolute';
@@ -624,7 +635,7 @@ export default class Controls extends EventEmitter
         this.touch.radio.$tinyNeedle = document.createElement('div');
         this.touch.radio.$tinyNeedle.style.position = 'absolute';
         this.touch.radio.$tinyNeedle.style.top = '23px'; // Adjust the top position inside the main needle
-        this.touch.radio.$tinyNeedle.style.left = '1.5px'; // Adjust the left position inside the main needle
+        this.touch.radio.$tinyNeedle.style.left = '1.8px'; // Adjust the left position inside the main needle
         this.touch.radio.$tinyNeedle.style.width = '1px';
         this.touch.radio.$tinyNeedle.style.height = '4px';
         this.touch.radio.$tinyNeedle.style.background = 'rgba(200, 200, 200, 0.5)'; // Lighter color for the tiny needle
