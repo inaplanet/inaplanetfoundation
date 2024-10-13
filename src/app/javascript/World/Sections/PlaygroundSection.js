@@ -163,8 +163,8 @@ export default class PlaygroundSection
     setBowling()
     {
         this.bowling = {}
-        this.bowling.x = this.x + 15
-        this.bowling.y = this.y + 4
+        this.bowling.x = this.x + 25
+        this.bowling.y = this.y + 14
 
         // this.bowling.pins = this.walls.add({
         //     object:

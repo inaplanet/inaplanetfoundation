@@ -747,7 +747,7 @@ export default class
                 });
                 
                 // Airdrop
-                const airdropObj1 = this.resources.items.rocketBase.scene;
+                const airdropObj1 = this.resources.items.airdropBase.scene;
                 
                 // Set color to orange
                 airdropObj1.traverse((child) => {
@@ -2505,8 +2505,8 @@ export default class
         // Playground
         this.sections.playground = new PlaygroundSection({
             ...options,
-            x: - 38,
-            y: - 34
+            x: 0,
+            y: 0
             // x: - 15,
             // y: - 4
         })
