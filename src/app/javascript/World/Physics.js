@@ -8567,7 +8567,7 @@ addWorldBorders() {
             // Remove the bullet from the bullets array
             if (index >= 0 && index < this.bullets.length) {
                 this.bullets.splice(index, 1);
-                console.log("THESE BULLETS", this.bullets)
+                // console.log("THESE BULLETS", this.bullets)
             } else {
                 console.warn(`Bullet index ${index} is out of bounds.`);
             }

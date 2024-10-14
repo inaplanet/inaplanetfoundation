@@ -318,7 +318,7 @@ export default class Car3
         bulletBody.velocity.set(bulletVelocity.x, bulletVelocity.y, bulletVelocity.z);
         bulletBody.shooterId = shooterId;
     
-        console.log("Creating bullet with shooterId:", shooterId);
+        // console.log(":", shooterId);
     
         this.physics.world.addBody(bulletBody);
         const bullet = { mesh: bulletBall, body: bulletBody };
@@ -327,7 +327,7 @@ export default class Car3
         bulletBody.addEventListener('collide', (event) => {
             const index = this.physics.bullets.findIndex(b => b.body === bulletBody);
             this.physics.handleBulletCollision(bullet, index);
-            console.log("Car: Handling bullet collision via physics");
+            console.log("");
         });
 
         this.createFireEffect(bulletBall.position, bulletQuaternion);

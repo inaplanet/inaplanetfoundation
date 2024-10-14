@@ -950,6 +950,7 @@ opacity: 0;
   padding-left: 8px;
   padding-right: 5px;
   padding-bottom: 5px;
+  padding-top: 5px;
   background-color: rgba(0, 0, 0, 0.1);
   margin-top: -10px;
 }
@@ -988,9 +989,9 @@ opacity: 0;
   transition: background-color 0.3s ease;
 }
 
-.send-button:hover {
+/* .send-button:hover {
   background-color: #FF5733;
-}
+} */
 
 /* Message styling */
 #party-chat-box .chat-message {

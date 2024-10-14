@@ -212,14 +212,15 @@ export default class
     }
 
     start() {
+        this.signIn(this.playerId);
+
         if (typeof window !== 'undefined') {
             window.setTimeout(() => {
                 this.camera.pan.enable();
             }, 2000);
         }
 
-        this.signIn(this.playerId);
-        this.setAds();
+        // this.setAds();
         this.setMaterials();
         this.setShadows();
         this.setZones();
@@ -324,32 +325,7 @@ export default class
                 videoTexture.needsUpdate = true;
             }
         });
-    }
-
-        // // Function to find the world ID for a specific player using WebSocket
-        // findPlayerWorld = async (playerId) => {
-        //     await this.ensureWebSocketReady();
-        
-        //     return new Promise((resolve) => {
-        //         const message = JSON.stringify({
-        //             type: 'findPlayerWorld',
-        //             playerId: playerId
-        //         });
-        
-        //         this.ws.send(message);
-        
-        //         this.ws.onmessage = (event) => {
-        //             const data = JSON.parse(event.data);
-        //             if (data.type === 'findPlayerWorldResult') {
-        //                 if (data.success && data.worldId) {
-        //                     resolve(data.worldId);
-        //                 } else {
-        //                     resolve(null);
-        //                 }
-        //             }
-        //         };
-        //     });
-        // };        
+    }  
         
         generateWorldId = async () => {
             await this.ensureWebSocketReady();
@@ -396,17 +372,6 @@ export default class
             });
         };
 
-        // getCarData(playerId) {
-        //     // Access stored state from the server (this would normally come from a WebSocket message)
-        //     const playerScore = this.cars[playerId] || {}; // Assuming this.otherPlayers stores received data from the server
-            
-        //     // Fetch data related to the player's car
-        //     return {
-        //         playerId: playerId,
-        //         score: playerScore.score, // Retrieve score from the server state
-        //     };
-        // }
-
         requestPlayerScore(playerId) {
             if (this.ws && this.ws.readyState === WebSocket.OPEN) {
                 const getScoreMessage = {
@@ -433,7 +398,6 @@ export default class
                 }
 
                 // Add the token to the WebSocket URL query parameter
-                // const ws = new WebSocket(`ws://localhost:8080?token=${token}`);
                 const serverAddress = `wss://krashbox.glitch.me?token=${token}`;
                 const ws = new WebSocket(serverAddress)
                 this.ws = ws;  // Store the WebSocket connection
@@ -727,22 +691,13 @@ export default class
                 this.physics.cars[playerId] = playerCar;
                 this.cars[playerId] = playerCar;
 
-                // Retrieve car data for the player
-                // const carData = this.requestPlayerScore(playerId);
-                // if (carData) {
-                //     playerCar.score = carData.score || 0;
-                //     this.updateScoreStatus(playerCar.score); // Update the score display
-                // } else {
-                //     playerCar.score = 0;
-                // }
-
                 // Airdrop
                 const airdropObj = this.resources.items.airdropBase.scene;
                 
                 // Set color to orange
                 airdropObj.traverse((child) => {
                     if (child.isMesh) {
-                        child.material = this.materials.shades.items.orange;
+                        child.material = this.materials.shades.items.blueGlass;
                     }
                 });
                 
@@ -752,7 +707,7 @@ export default class
                 // Set color to orange
                 airdropObj1.traverse((child) => {
                     if (child.isMesh) {
-                        child.material = this.materials.shades.items.orange;
+                        child.material = this.materials.shades.items.greenBulb;
                     }
                 });
 
@@ -819,7 +774,6 @@ export default class
                 const checkForAirdrop = () => {
                     if (playerCar.score >= lastAirdropScore + 5) {
                         lastAirdropScore += 5;
-                        console.log("dropping", airdropObjects);
                         dropAirdrop(playerCar);
                     }
                 };
@@ -1540,7 +1494,6 @@ export default class
                     // Check if score has reached the next multiple of 500
                     if (playerCar.score >= lastAirdropScore + 5) {
                         lastAirdropScore += 5;
-                        console.log("dropping", airdropObjects);
                         dropAirdrop(playerCar);
                     }
 

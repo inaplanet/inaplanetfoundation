@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "env": {
-    "NEXT_PUBLIC_MEMORY": "2GB"
+    "NEXT_PUBLIC_MEMORY": "16GB"
   },
   "scripts": {
     "dev": "next dev",

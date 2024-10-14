@@ -424,7 +424,7 @@ export default class Resources extends EventEmitter
         {
             // Trigger ready
             this.trigger('ready')
-            console.log('All assets are loaded, triggering ready event');
+            // console.log('All assets are loaded, triggering ready event');
         })
     }
 }

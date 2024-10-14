@@ -98,7 +98,6 @@ export default class Resources extends EventEmitter {
                         _resource.source,
                         (font) => {
                             this.fileLoadEnd(_resource, font);
-                            console.log(`Font loaded: ${_resource.name}`);
                         },
                         undefined,
                         (error) => console.error(`Error loading font: ${_resource.source}`, error)
