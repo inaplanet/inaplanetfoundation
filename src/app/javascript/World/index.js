@@ -39,8 +39,7 @@ import Controls1 from './Controls1.js'
 import Sounds from './Sounds.js'
 const videoAdsSource = 'images/videos/video.mp4';
 import feather from 'feather-icons'
-import squareCheck from 'feather-icons/dist/icons/check-square.svg'
-import squareX from 'feather-icons/dist/icons/x-square.svg'
+import LazyLoad from 'react-lazy-load';
 
 import detectEthereumProvider from '@metamask/detect-provider'
 import gsap from 'gsap'
@@ -220,7 +219,7 @@ export default class
             }, 2000);
         }
 
-        // this.setAds();
+        this.setAds();
         this.setMaterials();
         this.setShadows();
         this.setZones();
@@ -273,30 +272,11 @@ export default class
         video.loop = true;
         video.style = 'display: none';
 
-        // Prevent default actions for certain events
-        video.addEventListener('click', (event) => {
-            event.preventDefault();
-        });
-        
-        video.addEventListener('contextmenu', (event) => {
-            event.preventDefault();
-        });
-
-        video.addEventListener('mousedown', (event) => {
-            event.preventDefault();
-        });
-
-        video.addEventListener('mouseup', (event) => {
-            event.preventDefault();
-        });
-
-        video.addEventListener('touchstart', (event) => {
-            event.preventDefault();
-        });
-
-        video.addEventListener('touchend', (event) => {
-            event.preventDefault();
-        });
+        // Event listeners to prevent unwanted behavior
+        const preventDefaultHandler = (event) => event.preventDefault();
+        ['click', 'contextmenu', 'mousedown', 'mouseup', 'touchstart', 'touchend'].forEach(event => 
+            video.addEventListener(event, preventDefaultHandler)
+        );
     
         document.body.appendChild(video);
     

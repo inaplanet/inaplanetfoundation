@@ -167,7 +167,7 @@ export default class Controls extends EventEmitter
                 // Set a cooldown time for boost to prevent repeated triggering
                 setTimeout(() => {
                     this.boostCooldown = false;
-                }, 1000); // Adjust the cooldown duration as needed
+                }, 400); // Adjust the cooldown duration as needed
             }
         };
 
