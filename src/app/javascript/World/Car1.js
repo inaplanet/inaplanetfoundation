@@ -2,7 +2,7 @@ import * as THREE from 'three'
 import * as CANNON from 'cannon'
 import { TransformControls } from 'three/examples/jsm/controls/TransformControls.js'
 import Controls1 from './Controls1'
-import { sparkTexture } from './SparkTexture'
+import { sparkTexture } from './SparkTexture.js'
 
 export default class Car1
 {
