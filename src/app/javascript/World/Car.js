@@ -350,7 +350,7 @@ export default class Car
             this.container.add(particles); // Add particles to the scene
 
             // Calculate the exhaust offset
-            const exhaustOffset = new THREE.Vector3(-2, 0, 0);
+            const exhaustOffset = new THREE.Vector3(-1.75, 0, 0);
             exhaustOffset.applyQuaternion(quaternion);
 
             // Set the initial position of the particles
@@ -370,7 +370,7 @@ export default class Car
                     const localMovement = new THREE.Vector3(
                         (Math.random() - 0.5) * 0.1, // X-axis jitter
                         (Math.random() - 0.5) * 0.1, // Y-axis jitter
-                        Math.random() * 0.025 // Z-axis forward movement (toward initial position)
+                        Math.random() * 0 // Z-axis forward movement (toward initial position)
                     );
 
                     // Rotate the movement 90 degrees along the Y-axis
