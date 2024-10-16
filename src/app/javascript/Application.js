@@ -68,10 +68,10 @@ const Application = ({ playerId }) => {
                     this.world.controls.setTouch();
                 }
     
-                this.passes.horizontalBlurPass.strength = 1;
-                this.passes.horizontalBlurPass.material.uniforms.uStrength.value = new THREE.Vector2(this.passes.horizontalBlurPass.strength, 0);
-                this.passes.verticalBlurPass.strength = 1;
-                this.passes.verticalBlurPass.material.uniforms.uStrength.value = new THREE.Vector2(0, this.passes.verticalBlurPass.strength);
+                // this.passes.horizontalBlurPass.strength = 1;
+                // this.passes.horizontalBlurPass.material.uniforms.uStrength.value = new THREE.Vector2(this.passes.horizontalBlurPass.strength, 0);
+                // this.passes.verticalBlurPass.strength = 1;
+                // this.passes.verticalBlurPass.material.uniforms.uStrength.value = new THREE.Vector2(0, this.passes.verticalBlurPass.strength);
             }, { once: true });
         }
     }    
@@ -206,37 +206,37 @@ const Application = ({ playerId }) => {
         // Create passes
         this.passes.renderPass = new RenderPass(this.scene, this.camera.instance)
 
-        this.passes.horizontalBlurPass = new ShaderPass(BlurPass);  // This is where the error occurs
+        // this.passes.horizontalBlurPass = new ShaderPass(BlurPass);  // This is where the error occurs
 
-        this.passes.horizontalBlurPass = new ShaderPass(BlurPass)
-        this.passes.horizontalBlurPass.strength = this.config.touch ? 0 : 1
-        this.passes.horizontalBlurPass.material.uniforms.uResolution.value = new THREE.Vector2(this.sizes.viewport.width, this.sizes.viewport.height)
-        this.passes.horizontalBlurPass.material.uniforms.uStrength.value = new THREE.Vector2(this.passes.horizontalBlurPass.strength, 0)
+        // this.passes.horizontalBlurPass = new ShaderPass(BlurPass)
+        // this.passes.horizontalBlurPass.strength = this.config.touch ? 0 : 1
+        // this.passes.horizontalBlurPass.material.uniforms.uResolution.value = new THREE.Vector2(this.sizes.viewport.width, this.sizes.viewport.height)
+        // this.passes.horizontalBlurPass.material.uniforms.uStrength.value = new THREE.Vector2(this.passes.horizontalBlurPass.strength, 0)
 
-        this.passes.verticalBlurPass = new ShaderPass(BlurPass);  // This is where the error occurs
+        // this.passes.verticalBlurPass = new ShaderPass(BlurPass);  // This is where the error occurs
 
-        this.passes.verticalBlurPass = new ShaderPass(BlurPass)
-        this.passes.verticalBlurPass.strength = this.config.touch ? 0 : 1
-        this.passes.verticalBlurPass.material.uniforms.uResolution.value = new THREE.Vector2(this.sizes.viewport.width, this.sizes.viewport.height)
-        this.passes.verticalBlurPass.material.uniforms.uStrength.value = new THREE.Vector2(0, this.passes.verticalBlurPass.strength)
+        // this.passes.verticalBlurPass = new ShaderPass(BlurPass)
+        // this.passes.verticalBlurPass.strength = this.config.touch ? 0 : 1
+        // this.passes.verticalBlurPass.material.uniforms.uResolution.value = new THREE.Vector2(this.sizes.viewport.width, this.sizes.viewport.height)
+        // this.passes.verticalBlurPass.material.uniforms.uStrength.value = new THREE.Vector2(0, this.passes.verticalBlurPass.strength)
 
         // Debug
         if(this.debug)
         {
-            const folder = this.passes.debugFolder.addFolder('blur')
+            // const folder = this.passes.debugFolder.addFolder('blur')
             folder.open()
 
-            folder.add(this.passes.horizontalBlurPass.material.uniforms.uStrength.value, 'x').step(0.001).min(0).max(10)
-            folder.add(this.passes.verticalBlurPass.material.uniforms.uStrength.value, 'y').step(0.001).min(0).max(10)
+            // folder.add(this.passes.horizontalBlurPass.material.uniforms.uStrength.value, 'x').step(0.001).min(0).max(10)
+            // folder.add(this.passes.verticalBlurPass.material.uniforms.uStrength.value, 'y').step(0.001).min(0).max(10)
         }
 
-        this.passes.glowsPass = new ShaderPass(GlowsPass)
-        this.passes.glowsPass.color = '#ffcfe0'
-        this.passes.glowsPass.material.uniforms.uPosition.value = new THREE.Vector2(0, 0.25)
-        this.passes.glowsPass.material.uniforms.uRadius.value = 0.7
-        this.passes.glowsPass.material.uniforms.uColor.value = new THREE.Color(this.passes.glowsPass.color)
-        this.passes.glowsPass.material.uniforms.uColor.value.convertLinearToSRGB()
-        this.passes.glowsPass.material.uniforms.uAlpha.value = 0.55
+        // this.passes.glowsPass = new ShaderPass(GlowsPass)
+        // this.passes.glowsPass.color = '#ffcfe0'
+        // this.passes.glowsPass.material.uniforms.uPosition.value = new THREE.Vector2(0, 0.25)
+        // this.passes.glowsPass.material.uniforms.uRadius.value = 0.7
+        // this.passes.glowsPass.material.uniforms.uColor.value = new THREE.Color(this.passes.glowsPass.color)
+        // this.passes.glowsPass.material.uniforms.uColor.value.convertLinearToSRGB()
+        // this.passes.glowsPass.material.uniforms.uAlpha.value = 0.55
 
         // Debug
         if(this.debug)
@@ -249,49 +249,49 @@ const Application = ({ playerId }) => {
             folder.add(this.passes.glowsPass.material.uniforms.uRadius, 'value').step(0.001).min(0).max(2).name('radius')
             folder.addColor(this.passes.glowsPass, 'color').name('color').onChange(() =>
             {
-                this.passes.glowsPass.material.uniforms.uColor.value = new THREE.Color(this.passes.glowsPass.color)
+                // this.passes.glowsPass.material.uniforms.uColor.value = new THREE.Color(this.passes.glowsPass.color)
             })
             folder.add(this.passes.glowsPass.material.uniforms.uAlpha, 'value').step(0.001).min(0).max(1).name('alpha')
         }
 
-        if (this.passes.horizontalBlurPass && this.passes.verticalBlurPass && this.passes.glowsPass) {
+        // if (this.passes.horizontalBlurPass && this.passes.verticalBlurPass && this.passes.glowsPass) {
 
-            // Add passes
-            this.passes.composer.addPass(this.passes.renderPass)
-            this.passes.composer.addPass(this.passes.horizontalBlurPass)
-            this.passes.composer.addPass(this.passes.verticalBlurPass)
-            this.passes.composer.addPass(this.passes.glowsPass)
+        //     // Add passes
+        //     this.passes.composer.addPass(this.passes.renderPass)
+        //     this.passes.composer.addPass(this.passes.horizontalBlurPass)
+        //     this.passes.composer.addPass(this.passes.verticalBlurPass)
+        //     this.passes.composer.addPass(this.passes.glowsPass)
 
-        } else {
-            console.error('One or more passes are not initialized correctly');
-        }
+        // } else {
+        //     console.error('One or more passes are not initialized correctly');
+        // }
 
         // Time tick
-        this.time.on('tick', () =>
-        {
-            if (this.passes.horizontalBlurPass) {
-                this.passes.horizontalBlurPass.enabled = this.passes.horizontalBlurPass.material.uniforms.uStrength.value.x > 0
-            }
+        // this.time.on('tick', () =>
+        // {
+        //     if (this.passes.horizontalBlurPass) {
+        //         this.passes.horizontalBlurPass.enabled = this.passes.horizontalBlurPass.material.uniforms.uStrength.value.x > 0
+        //     }
 
-            if (this.passes.verticalBlurPass) {
-                this.passes.verticalBlurPass.enabled = this.passes.verticalBlurPass.material.uniforms.uStrength.value.y > 0
-            }
+        //     if (this.passes.verticalBlurPass) {
+        //         this.passes.verticalBlurPass.enabled = this.passes.verticalBlurPass.material.uniforms.uStrength.value.y > 0
+        //     }
 
-            // Renderer
-            this.passes.composer.render()
-            // this.renderer.domElement.style.background = 'black'
-            // this.renderer.render(this.scene, this.camera.instance)
-        })
+        //     // Renderer
+        //     this.passes.composer.render()
+        //     // this.renderer.domElement.style.background = 'black'
+        //     // this.renderer.render(this.scene, this.camera.instance)
+        // })
 
         // Resize event
         this.sizes.on('resize', () =>
         {
             this.renderer.setSize(this.sizes.viewport.width, this.sizes.viewport.height)
             this.passes.composer.setSize(this.sizes.viewport.width, this.sizes.viewport.height)
-            this.passes.horizontalBlurPass.material.uniforms.uResolution.value.x = this.sizes.viewport.width
-            this.passes.horizontalBlurPass.material.uniforms.uResolution.value.y = this.sizes.viewport.height
-            this.passes.verticalBlurPass.material.uniforms.uResolution.value.x = this.sizes.viewport.width
-            this.passes.verticalBlurPass.material.uniforms.uResolution.value.y = this.sizes.viewport.height
+            // this.passes.horizontalBlurPass.material.uniforms.uResolution.value.x = this.sizes.viewport.width
+            // this.passes.horizontalBlurPass.material.uniforms.uResolution.value.y = this.sizes.viewport.height
+            // this.passes.verticalBlurPass.material.uniforms.uResolution.value.x = this.sizes.viewport.width
+            // this.passes.verticalBlurPass.material.uniforms.uResolution.value.y = this.sizes.viewport.height
         })
     }
 

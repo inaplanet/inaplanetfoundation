@@ -83,7 +83,7 @@ export default class
         // this.setAxes()
         this.setSounds()
         this.setControls()
-        this.setFloor()
+        // this.setFloor()
         this.setAreas()
         this.setStartingScreen()
 

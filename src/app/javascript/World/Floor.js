@@ -10,35 +10,51 @@ export default class Floor {
         this.container = new THREE.Object3D();
         this.container.matrixAutoUpdate = false;
 
-        // Geometry
-        this.geometry = new THREE.PlaneGeometry(2, 2, 10, 10); // Larger size for the floor
+        // --- Skybox Setup ---
+        // Use large dimensions to cover the entire scene and camera
+        this.geometry = new THREE.BoxGeometry(1000, 1000, 1000); // Large skybox
 
-        // Load texture
-        const floorTexture = new THREE.TextureLoader().load('/images/skybox/floor-texture1.jpg');
-        floorTexture.wrapS = THREE.RepeatWrapping;
-        floorTexture.wrapT = THREE.RepeatWrapping;
-        floorTexture.repeat.set(10, 10); // Repeat the texture over the plane
+        // Load skybox textures (using CubeTextureLoader)
+        const skyboxImages = [
+            '/images/skybox/Daylight-Box_Right.jpg', // Right (+X)
+            '/images/skybox/Daylight-Box_Left.jpg',  // Left (-X)
+            '/images/skybox/Daylight-Box_Top.jpg',   // Top (+Y)
+            '/images/skybox/Daylight-Box_Bottom.jpg',// Bottom (-Y)
+            '/images/skybox/Daylight-Box_Front.jpg', // Front (+Z)
+            '/images/skybox/Daylight-Box_Back.jpg',  // Back (-Z)
+        ];
 
-        // Material
-        this.material = new FloorMaterial();
-        this.material.uniforms.tBackground.value = floorTexture; // Use the loaded texture
+        // Create skybox materials for each side of the cube
+        const skyboxMaterials = [
+            new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load(skyboxImages[0]), side: THREE.BackSide }),
+            new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load(skyboxImages[1]), side: THREE.BackSide }),
+            new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load(skyboxImages[2]), side: THREE.BackSide }),
+            new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load(skyboxImages[3]), side: THREE.BackSide }),
+            new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load(skyboxImages[4]), side: THREE.BackSide }),
+            new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load(skyboxImages[5]), side: THREE.BackSide }),
+        ];
 
-        // Mesh
-        this.mesh = new THREE.Mesh(this.geometry, this.material);
-        this.mesh.rotation.x = -Math.PI / 2; // Rotate the plane to be horizontal (floor-like)
-        this.mesh.position.y = 0; // Set the position of the floor
+        // Create the skybox mesh (large cube)
+        this.skyboxMesh = new THREE.Mesh(this.geometry, skyboxMaterials);
+        this.skyboxMesh.frustumCulled = false; // Ensure it's always rendered
+        this.skyboxMesh.matrixAutoUpdate = false;
 
-        this.mesh.frustumCulled = false;
-        this.mesh.matrixAutoUpdate = false;
-        this.mesh.updateMatrix();
+        // Position the skybox to sit on the floor (Y = 0) by raising it half of its height
+        this.skyboxMesh.position.set(0, -1, 0);  // Raise it half of the box height (since it's 1000 units tall)
 
-        // Add the mesh to the container
-        this.container.add(this.mesh);
+        // Rotate the skybox if needed
+        this.skyboxMesh.rotation.z = Math.PI; // Adjust rotation around Y-axis for correct orientation
 
-        // Debug
+        // Manually update the matrix to apply position and rotation changes
+        this.skyboxMesh.updateMatrix();
+
+        // Add the skybox to the container
+        this.container.add(this.skyboxMesh);
+
+        // Debug options (if needed)
         if (this.debug) {
-            const folder = this.debug.addFolder('floor');
-            folder.add(this.material, 'needsUpdate').name('Update Material');
+            const folder = this.debug.addFolder('skybox');
+            folder.add(this.skyboxMesh, 'visible').name('Show/Hide Skybox');
         }
     }
 }
