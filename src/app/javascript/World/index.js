@@ -1736,7 +1736,7 @@ export default class
                         car.physics[carKey].vehicle.setSteeringValue(-carSteeringValue, 1);
 
                         if (data.controls.boost) {
-                            car.createNitroEffect(car.physics[carKey].chassis.body.position, car.physics[carKey].chassis.body.quaternion)
+                            car.createNitroEffect(car.physics[carKey].chassis.body.position, car.physics[carKey].chassis.body.quaternion, car.chassis.object)
                         }
         
                         if (data.controls.up) {

@@ -86,13 +86,13 @@ export default class Materials
         this.shades.items.blueGlass.uniforms.matcap.value = this.resources.items.matcapBlueGlassTexture
         this.items.blueGlass = this.shades.items.blueGlass
 
-        // Blue glass
+        // Sky
         this.shades.items.sky = new MatcapMaterial()
         this.shades.items.sky.name = 'shadeSky'
         this.shades.items.sky.uniforms.matcap.value = this.resources.items.matcapSkyTexture
         this.items.sky = this.shades.items.sky
 
-        // Blue glass
+        // Charcoal
         this.shades.items.charcoal = new MatcapMaterial()
         this.shades.items.charcoal.name = 'shadeCharcoal'
         this.shades.items.charcoal.uniforms.matcap.value = this.resources.items.matcapCharcoalTexture
@@ -242,7 +242,91 @@ export default class Materials
         this.shades.items.metal.uniforms.matcap.value = this.resources.items.matcapMetalTexture
         this.items.metal = this.shades.items.metal
 
-        // // Gold
+        // Green Surface
+        this.shades.items.greenSurface = new MatcapMaterial()
+        this.shades.items.greenSurface.name = 'shadeGreenSurface'
+        this.shades.items.greenSurface.uniforms.matcap.value = this.resources.items.matcapGreenSurfaceTexture
+        this.items.greenSurface = this.shades.items.greenSurface
+
+        // Indigo
+        this.shades.items.indigo = new MatcapMaterial()
+        this.shades.items.indigo.name = 'shadeIndigo'
+        this.shades.items.indigo.uniforms.matcap.value = this.resources.items.matcapIndigoTexture
+        this.items.indigo = this.shades.items.indigo
+
+        // Lemon Blue
+        this.shades.items.lemonBlue = new MatcapMaterial()
+        this.shades.items.lemonBlue.name = 'shadeLemonBlue'
+        this.shades.items.lemonBlue.uniforms.matcap.value = this.resources.items.matcapLemonBlue
+        this.items.lemonBlue = this.shades.items.lemonBlue
+
+        // Valakas
+        this.shades.items.valakas = new MatcapMaterial()
+        this.shades.items.valakas.name = 'shadeValakas'
+        this.shades.items.valakas.uniforms.matcap.value = this.resources.items.matcapValakas
+        this.items.valakas = this.shades.items.valakas
+
+        // OffWhite
+         this.shades.items.offWhite = new MatcapMaterial()
+         this.shades.items.offWhite.name = 'shadeOffWhite'
+         this.shades.items.offWhite.uniforms.matcap.value = this.resources.items.matcapOffWhite
+         this.items.offWhite = this.shades.items.offWhite
+
+         // BlackSea
+         this.shades.items.blacksea = new MatcapMaterial()
+         this.shades.items.blacksea.name = 'shadeBlackSea'
+         this.shades.items.blacksea.uniforms.matcap.value = this.resources.items.matcapBlackSea
+         this.items.blacksea = this.shades.items.blacksea
+
+         // Amazon
+         this.shades.items.amazon = new MatcapMaterial()
+         this.shades.items.amazon.name = 'shadeAmazon'
+         this.shades.items.amazon.uniforms.matcap.value = this.resources.items.matcapAmazon
+         this.items.amazon = this.shades.items.amazon
+
+        // White Blue
+        this.shades.items.whiteBlue = new MatcapMaterial()
+        this.shades.items.whiteBlue.name = 'shadeWhiteBlue'
+        this.shades.items.whiteBlue.uniforms.matcap.value = this.resources.items.matcapWhiteBlue
+        this.items.whiteBlue = this.shades.items.whiteBlue
+
+        // Wine
+        this.shades.items.wine = new MatcapMaterial()
+        this.shades.items.wine.name = 'shadeWine'
+        this.shades.items.wine.uniforms.matcap.value = this.resources.items.matcapWine
+        this.items.wine = this.shades.items.wine
+
+        // Sun Earth
+        this.shades.items.sunEarth = new MatcapMaterial()
+        this.shades.items.sunEarth.name = 'shadeSunEarth'
+        this.shades.items.sunEarth.uniforms.matcap.value = this.resources.items.matcapSunEarth
+        this.items.sunEarth = this.shades.items.sunEarth
+
+        // Violet
+        this.shades.items.violet = new MatcapMaterial()
+        this.shades.items.violet.name = 'shadeViolet'
+        this.shades.items.violet.uniforms.matcap.value = this.resources.items.matcapViolet
+        this.items.violet = this.shades.items.violet
+
+        // Mixature
+        this.shades.items.mixature = new MatcapMaterial()
+        this.shades.items.mixature.name = 'shadeMixature'
+        this.shades.items.mixature.uniforms.matcap.value = this.resources.items.matcapMixature
+        this.items.mixature = this.shades.items.mixature
+
+        // Blue Eye
+        this.shades.items.blueEye = new MatcapMaterial()
+        this.shades.items.blueEye.name = 'shadeBlueEye'
+        this.shades.items.blueEye.uniforms.matcap.value = this.resources.items.matcapBlueEye
+        this.items.blueEye = this.shades.items.blueEye
+
+        // Violet Orange
+        this.shades.items.violetOrange = new MatcapMaterial()
+        this.shades.items.violetOrange.name = 'shadeVioletOrange'
+        this.shades.items.violetOrange.uniforms.matcap.value = this.resources.items.matcapVioletOrange
+        this.items.violetOrange = this.shades.items.violetOrange
+
+        // Gold
         this.shades.items.gold = new MatcapMaterial()
         this.shades.items.gold.name = 'shadeGold'
         this.shades.items.gold.uniforms.matcap.value = this.resources.items.matcapGoldTexture
