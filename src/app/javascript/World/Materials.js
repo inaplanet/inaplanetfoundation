@@ -278,7 +278,7 @@ export default class Materials
          this.shades.items.blacksea.uniforms.matcap.value = this.resources.items.matcapBlackSea
          this.items.blacksea = this.shades.items.blacksea
 
-         console.log("This materials", this.resources.items)
+        //  console.log("This materials", this.resources.items)
 
          // Amazon
          this.shades.items.amazon = new MatcapMaterial()

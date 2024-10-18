@@ -8169,7 +8169,7 @@ addWorldBorders() {
                         if (carBody && this.detectCollision(bullet.body, carBody)) {
                             this.handleBulletCollision(bullet, this.bullets.indexOf(bullet));
                             
-                            car.createSparkEffect();
+                            // car.createSparkEffect();
                         }
                     }
                 }
@@ -8209,7 +8209,7 @@ addWorldBorders() {
                         if (carBody && this.shouldCollide(bulletBody.shooterId, playerId) && this.detectCollision(bulletBody, carBody)) {
                             car.lastHitBy = bulletBody.shooterId;
                             this.resolveBulletCollision(bullet, car, index, carBody, event.body);
-                            car.createSparkEffect();
+                            // car.createSparkEffect();
                             return;
                         }
                     }
@@ -8228,7 +8228,7 @@ addWorldBorders() {
 
         car.battery -= 1;
         console.log("Resolving car battery", car)
-        car.createSparkEffect();
+        // car.createSparkEffect();
         console.log("SHOOT -> Battery reduced to:", car.battery);
     
         if (car.battery <= 0) {
@@ -8510,7 +8510,7 @@ addWorldBorders() {
     
                             if (carBody && this.detectCollision(bullet.body, carBody)) {
                                 this.handleBulletCollision(bullet, index);
-                                car.createSparkEffect();
+                                // car.createSparkEffect();
                             }
                         }
                     }

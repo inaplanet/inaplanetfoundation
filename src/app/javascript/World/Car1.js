@@ -497,7 +497,6 @@ export default class Car1
         bulletBody.addEventListener('collide', (event) => {
             const index = this.physics.bullets.findIndex(b => b.body === bulletBody);
             this.physics.handleBulletCollision(bullet, index);
-            console.log("");
         });
 
         this.createFireEffect(bulletBall.position, bulletQuaternion);

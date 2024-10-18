@@ -133,7 +133,7 @@ export default class Car
             texture.needsUpdate = true;
 
             const material = new THREE.PointsMaterial({
-                size: 2.5, // Adjust size for visibility
+                size: 1.5, // Adjust size for visibility
                 map: texture,
                 vertexColors: true,
                 sizeAttenuation: true, // Size decreases with distance
@@ -143,7 +143,7 @@ export default class Car
                 depthWrite: false, // Prevent depth issues
             });
 
-            const particleCount = 100;
+            const particleCount = 150;
             const geometry = new THREE.BufferGeometry();
             const vertices = [];
             const colors = [];
@@ -183,7 +183,7 @@ export default class Car
             this.container.add(particles); // Add particles to the scene
 
             // Calculate the exhaust offset
-            const exhaustOffset = new THREE.Vector3(-1.75, 0, 0);
+            const exhaustOffset = new THREE.Vector3(-1.6, 0, 0);
             exhaustOffset.applyQuaternion(quaternion);
 
             // Set the initial position of the particles
@@ -476,7 +476,7 @@ export default class Car
             bulletPosition = new THREE.Vector3().addVectors(this.physics.car.chassis.body.position, frontOffset);
             bulletQuaternion = this.physics.car.chassis.body.quaternion.clone();
     
-            const baseVelocity = new THREE.Vector3(150, 0, 0);
+            const baseVelocity = new THREE.Vector3(180, 0, 0);
             bulletVelocity = baseVelocity.applyQuaternion(bulletQuaternion);
         }
     
@@ -501,7 +501,6 @@ export default class Car
         bulletBody.addEventListener('collide', (event) => {
             const index = this.physics.bullets.findIndex(b => b.body === bulletBody);
             this.physics.handleBulletCollision(bullet, index);
-            console.log("");
         });
 
         this.createFireEffect(bulletBall.position, bulletQuaternion);
