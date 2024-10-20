@@ -293,7 +293,7 @@ export default class
         const videoPlane = new THREE.Mesh(planeGeometry, planeMaterial);
     
         // Position the plane
-        videoPlane.position.set(0, 10.8, 1.2); // Adjust the position as needed
+        videoPlane.position.set(0, -26.2, 1.2); // Adjust the position as needed
         videoPlane.rotation.x = Math.PI / 2; // Rotate 45 degrees; adjust as needed
     
         // Add the plane to the scene
