@@ -501,8 +501,7 @@ export default class
                             const car = this.otherPlayers[message.carId];
                             if (car) {
                                 car.battery = message.battery;
-                                // car.createSparkEffect();
-                                car.createCrashEffect(car.chassis.object.position, car.chassis.object.quaternion);
+                                car.createSparkEffect();
                                 this.updateScoreStatus(message.score);
                                 console.log("Updating bullet collision score info", message.score)
 
@@ -515,13 +514,13 @@ export default class
                                     // car.physics.car.sleep();
                                 
                                     // Set a timeout to recreate the car after 5 seconds
-                                    setTimeout(() => {
-                                        // Recreate the car
-                                        car.physics.car.recreate();
+                                    // setTimeout(() => {
+                                    //     // Recreate the car
+                                    //     car.physics.car.recreate();
                                 
-                                        // Reset the battery to 100
-                                        car.battery = 100;
-                                    }, 5000); // 5 seconds delay
+                                    //     // Reset the battery to 100
+                                    //     car.battery = 100;
+                                    // }, 5000); // 5 seconds delay
                                 }                                
                             
                                 const twitchForce = new CANNON.Vec3(Math.random() * 10 - 5, Math.random() * 10 - 5, Math.random() * 10 - 5);

@@ -39,6 +39,7 @@ export default class Physics
         this.cars = {}
 
         this.nonCollidablePlayers = new Set();
+        this.nonCollidableCars = new Set();
 
         const ws = this.ws;
 
@@ -236,6 +237,25 @@ addWorldBorders() {
                 const pair2 = `${members[j]}-${members[i]}`;
                 this.nonCollidablePlayers.add(pair1);
                 this.nonCollidablePlayers.add(pair2);
+            }
+        }
+    }
+
+    // Method to update non-collidable cars (e.g., cars waiting for recreation)
+    updateNonCollidableCars(car) {
+        // Retrieve car player IDs from this.cars
+        const carIds = Object.keys(this.cars);
+
+        for (let i = 0; i < carIds.length; i++) {
+            const playerId = carIds[i];
+            const playerCar = this.cars[playerId];
+
+            // Skip adding a car as non-collidable with itself
+            if (car.playerId !== playerCar.playerId) {
+                const pair1 = `${car.playerId}-${playerCar.playerId}`;
+                const pair2 = `${playerCar.playerId}-${car.playerId}`;
+                this.nonCollidableCars.add(pair1); // Add pair to non-collidable cars
+                this.nonCollidableCars.add(pair2); // Add the reverse pair
             }
         }
     }
@@ -8238,7 +8258,13 @@ addWorldBorders() {
                 shooterCar.score += 1;
                 this.updateScoreStatus(shooterCar.score);
             }
-            car.physics.car.recreate();
+            car.physics.car.sleep();
+            car.createSparkEffect();
+
+            setTimeout(() => {
+                car.physics.car.recreate();
+            }, 5000);
+
             car.battery = 100;
         }
     
@@ -8400,8 +8426,21 @@ addWorldBorders() {
             // console.error("Invalid car or carKey:", car, carKey);
             return;
         }
-    
-        car.physics[carKey].recreate();
+
+        // Ensure car has the createCrashEffect method
+        if (typeof car.createCrashEffect === 'function') {
+            car.createCrashEffect(car.chassis.object); // Trigger crash effect
+        } else {
+            console.error("car.createCrashEffect is not a function");
+        }
+
+        this.updateNonCollidableCars(car);
+        car.physics.car.chassis.body.sleep();
+
+            setTimeout(() => {
+                this.nonCollidablePlayers.clear()
+                car.physics.car.recreate();
+            }, 5000);
     
         // if (ws && ws.readyState === WebSocket.OPEN) {
         //     ws.send(JSON.stringify({
