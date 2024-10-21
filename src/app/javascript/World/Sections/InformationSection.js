@@ -12,7 +12,7 @@ export default class InformationSection
         this.tiles = _options.tiles
         this.debug = _options.debug
         this.x = _options.x + 20
-        this.y = _options.y + 20
+        this.y = _options.y + 25
 
         
         // Set up
