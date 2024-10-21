@@ -1,6 +1,6 @@
 import * as THREE from 'three'
 import CANNON from 'cannon'
-import { sparkTexture } from './SparkTexture.js'
+// import { sparkTexture } from './SparkTexture.js'
 // import { fireTexture } from './FireTexture.js'
 import { TransformControls } from 'three/examples/jsm/controls/TransformControls.js'
 
