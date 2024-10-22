@@ -141,6 +141,11 @@ const Application = ({ playerId }) => {
             this.camera.pan.reset();
         }
 
+        // Update the clock hands in each frame
+        if (this.world.clockContainer) {
+            this.world.updateClock();
+        }
+
         this.renderer.render(this.scene, this.camera.instance)
     }
 
@@ -316,7 +321,6 @@ const Application = ({ playerId }) => {
             playerId: this.playerId
         })
         this.scene.add(this.world.container)
-
         console.log("Game World:", this.world)
     }
 

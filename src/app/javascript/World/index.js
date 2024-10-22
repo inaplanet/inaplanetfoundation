@@ -89,6 +89,63 @@ export default class
 
     }
 
+    /**
+     * Clock
+     */
+    setClock() {
+        this.clockContainer = new THREE.Object3D();
+        this.container.add(this.clockContainer);
+
+        // Create transparent clock face
+        const clockFaceGeometry = new THREE.CircleGeometry(1, 32); // Clock face
+        const clockFaceMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0 }); // Transparent clock face
+        const clockFace = new THREE.Mesh(clockFaceGeometry, clockFaceMaterial);
+        this.clockContainer.add(clockFace);
+        this.clockContainer.position.set(0, 1, -2); // Adjust the clock position
+
+        // Create clock hands (scaled 10 times bigger)
+        this.hourHand = this.createHand(5, 0.8, 0xffffff); // Hour hand (10x bigger)
+        this.minuteHand = this.createHand(7, 0.5, 0xffffff); // Minute hand (10x bigger)
+        this.secondHand = this.createHand(9, 0.3, 0xff5733); // Second hand (red, 10x bigger)
+
+        // Attach hands to the clock container (pivot points will now be at the center)
+        this.clockContainer.add(this.hourHand);
+        this.clockContainer.add(this.minuteHand);
+        this.clockContainer.add(this.secondHand);
+
+        // Set position of hands at the center of the clock face
+        this.hourHand.position.set(0, 0, 0.05);
+        this.minuteHand.position.set(0, 0, 0.06);
+        this.secondHand.position.set(0, 0, 0.07);
+    }
+
+    // Helper method to create clock hands with pivot at the bottom
+    createHand(length, width, color) {
+        const geometry = new THREE.BoxGeometry(width, length, 0.05); // Rectangular hand
+        const material = new THREE.MeshBasicMaterial({ color });
+        const hand = new THREE.Mesh(geometry, material);
+
+        // Adjust the hand geometry to have its pivot point at the bottom
+        const pivot = new THREE.Object3D(); // Create a pivot point
+        pivot.add(hand); // Add the hand to the pivot
+        hand.position.y = length / 2; // Move hand up so the bottom is at the pivot point
+
+        return pivot; // Return the pivot with the hand attached
+    }
+
+    // Method to update the clock based on real time
+    updateClock() {
+        const now = new Date();
+        const seconds = now.getSeconds();
+        const minutes = now.getMinutes();
+        const hours = now.getHours() % 12;
+
+        // Update rotation for each hand based on time
+        this.secondHand.rotation.z = -((seconds / 60) * Math.PI * 2); // Full rotation in 60 seconds
+        this.minuteHand.rotation.z = -((minutes / 60) * Math.PI * 2); // Full rotation in 60 minutes
+        this.hourHand.rotation.z = -((hours / 12) * Math.PI * 2 + (minutes / 720) * Math.PI * 2); // 12-hour rotation with minute adjustment
+    }
+
     // Function to add walls visually in Three.js
     addWallsToScene(walls) {
         walls.forEach(wall => {
@@ -97,7 +154,7 @@ export default class
             const mesh = new THREE.Mesh(geometry, material);
 
             mesh.position.set(wall.position.x, wall.position.y, wall.position.z);
-            this.scene.add(mesh);
+            this.container.add(mesh);
         });
     }
 
@@ -230,6 +287,7 @@ export default class
         this.setSections();
         this.createMiniMap();
         this.setReveal();
+        this.setClock();
     }
 
     setCar() {

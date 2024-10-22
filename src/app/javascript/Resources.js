@@ -50,6 +50,10 @@ const matcapBlueEyeSource = '/models/matcaps/blueeye.png'
 const matcapVioletOrangeSource = '/models/matcaps/violetorange.png'
 const matcapIndigoSource = '/models/matcaps/indigo.png'
 
+// Clock
+const clockHourBaseSource = '/models/clock/hourHand.glb'
+const clockMinuteBaseSource = '/models/clock/minutesHand.glb'
+const clockSecondBaseSource = 'models/clock/secondsHand.glb'
 
 // Intro
 const introStaticBaseSource = '/models/intro/static/base.glb'
@@ -268,6 +272,11 @@ export default class Resources extends EventEmitter
             { name: 'introStaticBase', source: introStaticBaseSource },
             { name: 'introStaticCollision', source: introStaticCollisionSource },
             { name: 'introStaticFloorShadow', source: introStaticFloorShadowSource, type: 'texture' },
+
+            // Clock
+            { name: 'clockHourBase', source: clockHourBaseSource },
+            { name: 'clockMinuteBase', source: clockMinuteBaseSource },
+            { name: 'clockSecondBase', source: clockSecondBaseSource },
 
             // Intro Part
             { name: 'introPartStaticBase', source: introPartStaticBaseSource },
