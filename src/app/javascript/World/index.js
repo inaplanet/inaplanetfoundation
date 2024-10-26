@@ -2433,12 +2433,12 @@ export default class
         this.container.add(this.sections.intro.container)
 
         // Intro Part
-        this.sections.introPart = new IntroPartSection({
-            ...options,
-            x: 0,
-            y: 0
-        })
-        this.container.add(this.sections.introPart.container)
+        // this.sections.introPart = new IntroPartSection({
+        //     ...options,
+        //     x: 0,
+        //     y: 0
+        // })
+        // this.container.add(this.sections.introPart.container)
 
         // Intro Guest
         // this.sections.introGuest = new IntroGuestSection({
