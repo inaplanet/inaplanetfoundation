@@ -1533,7 +1533,6 @@ export default class IntroSection
             offset: new THREE.Vector3(0, 0, 0), // Set the desired position
             rotation: new THREE.Euler(0, 0, 0), // Set the desired rotation
             duplicated: false,
-            shadow: { sizeX: 5, sizeY: 2, offsetZ: -0.2, alpha: 0.5 },
             mass: 0, // Static object, no mass
             soundName: 'brick'
         });
@@ -1563,7 +1562,6 @@ export default class IntroSection
             offset: new THREE.Vector3(0, 0, 0), // Set the desired position
             rotation: new THREE.Euler(0, 0, 0), // Set the desired rotation
             duplicated: false,
-            // shadow: { sizeX: 5, sizeY: 2, offsetZ: -0.2, alpha: 0.5 },
             mass: 0, // Static object, no mass
             soundName: 'brick'
         });
@@ -1578,7 +1576,6 @@ export default class IntroSection
             offset: new THREE.Vector3(0, 0, 0), // Set the desired position
             rotation: new THREE.Euler(0, 0, 0), // Set the desired rotation
             duplicated: false,
-            // shadow: { sizeX: 5, sizeY: 2, offsetZ: -0.2, alpha: 0.5 },
             mass: 0, // Static object, no mass
             soundName: 'brick'
         });
@@ -1593,7 +1590,6 @@ export default class IntroSection
             offset: new THREE.Vector3(0, 0, 0), // Set the desired position
             rotation: new THREE.Euler(0, 0, 0), // Set the desired rotation
             duplicated: false,
-            // shadow: { sizeX: 5, sizeY: 2, offsetZ: -0.2, alpha: 0.5 },
             mass: 0, // Static object, no mass
             soundName: 'brick'
         });
@@ -1608,7 +1604,6 @@ export default class IntroSection
             offset: new THREE.Vector3(0, 0, 0), // Set the desired position
             rotation: new THREE.Euler(0, 0, 0), // Set the desired rotation
             duplicated: false,
-            // shadow: { sizeX: 5, sizeY: 2, offsetZ: -0.2, alpha: 0.5 },
             mass: 0, // Static object, no mass
             soundName: 'brick'
         });
@@ -1623,7 +1618,6 @@ export default class IntroSection
             offset: new THREE.Vector3(0, 0, 0), // Set the desired position
             rotation: new THREE.Euler(0, 0, 0), // Set the desired rotation
             duplicated: false,
-            // shadow: { sizeX: 5, sizeY: 2, offsetZ: -0.2, alpha: 0.5 },
             mass: 0, // Static object, no mass
             soundName: 'brick'
         });
@@ -1638,7 +1632,6 @@ export default class IntroSection
             offset: new THREE.Vector3(0, 0, 0), // Set the desired position
             rotation: new THREE.Euler(0, 0, 0), // Set the desired rotation
             duplicated: false,
-            // shadow: { sizeX: 5, sizeY: 2, offsetZ: -0.2, alpha: 0.5 },
             mass: 0, // Static object, no mass
             soundName: 'brick'
         });
@@ -1653,7 +1646,6 @@ export default class IntroSection
             offset: new THREE.Vector3(0, 0, 0), // Set the desired position
             rotation: new THREE.Euler(0, 0, 0), // Set the desired rotation
             duplicated: false,
-            shadow: { sizeX: 5, sizeY: 2, offsetZ: -0.2, alpha: 0.5 },
             mass: 0, // Static object, no mass
             soundName: 'brick'
         });
@@ -1668,7 +1660,6 @@ export default class IntroSection
             offset: new THREE.Vector3(0, 0, 0), // Set the desired position
             rotation: new THREE.Euler(0, 0, 0), // Set the desired rotation
             duplicated: false,
-            // shadow: { sizeX: 5, sizeY: 2, offsetZ: -0.2, alpha: 0.5 },
             mass: 0, // Static object, no mass
             soundName: 'brick'
         });
@@ -1683,7 +1674,6 @@ export default class IntroSection
             offset: new THREE.Vector3(0, 0, 0), // Set the desired position
             rotation: new THREE.Euler(0, 0, 0), // Set the desired rotation
             duplicated: false,
-            // shadow: { sizeX: 5, sizeY: 2, offsetZ: -0.2, alpha: 0.5 },
             mass: 0, // Static object, no mass
             soundName: 'brick'
         });
@@ -1698,7 +1688,6 @@ export default class IntroSection
             offset: new THREE.Vector3(0, 0, 0), // Set the desired position
             rotation: new THREE.Euler(0, 0, 0), // Set the desired rotation
             duplicated: false,
-            // shadow: { sizeX: 5, sizeY: 2, offsetZ: -0.2, alpha: 0.5 },
             mass: 0, // Static object, no mass
             soundName: 'brick'
         });
@@ -1713,7 +1702,6 @@ export default class IntroSection
             offset: new THREE.Vector3(0, 0, 0), // Set the desired position
             rotation: new THREE.Euler(0, 0, 0), // Set the desired rotation
             duplicated: false,
-            // shadow: { sizeX: 5, sizeY: 2, offsetZ: -0.2, alpha: 0.5 },
             mass: 0, // Static object, no mass
             soundName: 'brick'
         });
