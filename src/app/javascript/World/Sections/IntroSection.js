@@ -1566,19 +1566,19 @@ export default class IntroSection
             soundName: 'brick'
         });
 
-        // Add central
-        const centralBaseScene = this.resources.items.introCentralBase.scene; // Ensure this is the correct scene
-        const centralCollisionScene = this.resources.items.introCentralCollision.scene; // Ensure this is the correct collision scene
+        // // Add central
+        // const centralBaseScene = this.resources.items.introCentralBase.scene; // Ensure this is the correct scene
+        // const centralCollisionScene = this.resources.items.introCentralCollision.scene; // Ensure this is the correct collision scene
 
-        this.instructions.central = this.objects.add({
-            base: centralBaseScene, // Replace with your ramp base model
-            collision: centralCollisionScene, // Replace with your ramp collision model
-            offset: new THREE.Vector3(0, 0, 0), // Set the desired position
-            rotation: new THREE.Euler(0, 0, 0), // Set the desired rotation
-            duplicated: false,
-            mass: 0, // Static object, no mass
-            soundName: 'brick'
-        });
+        // this.instructions.central = this.objects.add({
+        //     base: centralBaseScene, // Replace with your ramp base model
+        //     collision: centralCollisionScene, // Replace with your ramp collision model
+        //     offset: new THREE.Vector3(0, 0, 0), // Set the desired position
+        //     rotation: new THREE.Euler(0, 0, 0), // Set the desired rotation
+        //     duplicated: false,
+        //     mass: 0, // Static object, no mass
+        //     soundName: 'brick'
+        // });
 
         // Add crown
         const crownBaseScene = this.resources.items.introCrownBase.scene; // Ensure this is the correct scene
@@ -1623,18 +1623,18 @@ export default class IntroSection
         });
 
         // Add Double Ramp
-        const doubleRampBaseScene = this.resources.items.introDoubleRampBase.scene; // Ensure this is the correct scene
-        const doubleRampCollisionScene = this.resources.items.introDoubleRampCollision.scene; // Ensure this is the correct collision scene
+        // const doubleRampBaseScene = this.resources.items.introDoubleRampBase.scene; // Ensure this is the correct scene
+        // const doubleRampCollisionScene = this.resources.items.introDoubleRampCollision.scene; // Ensure this is the correct collision scene
 
-        this.instructions.doubleramp = this.objects.add({
-            base: doubleRampBaseScene, // Replace with your ramp base model
-            collision: doubleRampCollisionScene, // Replace with your ramp collision model
-            offset: new THREE.Vector3(0, 0, 0), // Set the desired position
-            rotation: new THREE.Euler(0, 0, 0), // Set the desired rotation
-            duplicated: false,
-            mass: 0, // Static object, no mass
-            soundName: 'brick'
-        });
+        // this.instructions.doubleramp = this.objects.add({
+        //     base: doubleRampBaseScene, // Replace with your ramp base model
+        //     collision: doubleRampCollisionScene, // Replace with your ramp collision model
+        //     offset: new THREE.Vector3(0, 0, 0), // Set the desired position
+        //     rotation: new THREE.Euler(0, 0, 0), // Set the desired rotation
+        //     duplicated: false,
+        //     mass: 0, // Static object, no mass
+        //     soundName: 'brick'
+        // });
 
         // Add Hands
         const handsBaseScene = this.resources.items.introHandsBase.scene; // Ensure this is the correct scene
