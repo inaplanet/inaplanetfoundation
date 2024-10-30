@@ -1785,7 +1785,6 @@ export default class
 
                         if (data.controls.boost) {
                             car.createNitroEffect(car.physics[carKey].chassis.body.position, car.physics[carKey].chassis.body.quaternion, car.chassis.object)
-                            car.createSirenEffect()
                         }
 
                         if (data.controls.siren) {
