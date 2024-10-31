@@ -1587,7 +1587,7 @@ export default class
                         updateData.position.x,
                         updateData.position.y,
                         updateData.rotation,
-                        updateData.wheels[0].rotation,
+                        // updateData.wheels[0].rotation,
                         false
                     );
                 });
@@ -1936,27 +1936,28 @@ export default class
             const newPlayerElement = document.createElement('div');
             newPlayerElement.id = `player-${playerId}`;
             newPlayerElement.style.position = 'absolute';
-            newPlayerElement.style.width = '8px'; // Adjust size for visibility
-            newPlayerElement.style.height = '8px'; // Adjust size for visibility
-            newPlayerElement.style.backgroundColor = isOtherPlayer ? 'white' : '#FF5733';
+            newPlayerElement.style.width = '5px'; // Adjust size for visibility
+            newPlayerElement.style.height = '5px'; // Adjust size for visibility
+            newPlayerElement.style.backgroundColor = isOtherPlayer ? '#FF5733' : 'white';
             newPlayerElement.style.transformOrigin = 'center center';
             newPlayerElement.style.display = 'flex';
             newPlayerElement.style.alignItems = 'flex-end'; // Align items to the bottom
-            this.miniMap.appendChild(newPlayerElement);
-            this.miniMapElements[playerId] = newPlayerElement;
-
+            
             // Create the triangle element
             const triangle = document.createElement('div');
             triangle.style.position = 'absolute';
             triangle.style.width = '0';
             triangle.style.height = '0';
-            triangle.style.borderLeft = '8px solid transparent'; // Triangle width
-            triangle.style.borderRight = '8px solid transparent'; // Triangle width
-            triangle.style.borderBottom = '12px solid white'; // Triangle height and color
+            triangle.style.borderLeft = '6px solid transparent'; // Triangle width
+            triangle.style.borderRight = '6px solid transparent'; // Triangle width
+            triangle.style.borderBottom = isOtherPlayer ? '10px solid #FF5733' : '10px solid white' // Triangle height and color
             triangle.style.bottom = '100%'; // Position above the square
             triangle.style.left = '50%'; // Center the triangle
             triangle.style.transform = 'translateX(-50%)'; // Centering
             newPlayerElement.appendChild(triangle);
+
+            this.miniMap.appendChild(newPlayerElement);
+            this.miniMapElements[playerId] = newPlayerElement;
         }
 
         const miniMapSize = 100; // The size of the mini-map in pixels
@@ -1975,8 +1976,11 @@ export default class
             1.0 - 2.0 * (frontWheelQuaternion.y * frontWheelQuaternion.y + frontWheelQuaternion.z * frontWheelQuaternion.z)
         ) * (180 / Math.PI);
 
+        // Adjust angle for top-down view: Invert the angle
+        const adjustedAngle = -angle + 90; // Adjust for camera view
+
         // Apply rotation to the entire mini-map element (including the square and triangle)
-        playerElementToUpdate.style.transform = `rotate(${angle}deg)`;
+        playerElementToUpdate.style.transform = `rotate(${adjustedAngle}deg)`;
     }
 
     // Remove player from the mini-map
