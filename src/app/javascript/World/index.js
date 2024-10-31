@@ -91,6 +91,36 @@ export default class
     /**
      * Clock
      */
+    // setClock() {
+    //     this.clockContainer = new THREE.Object3D();
+    //     this.container.add(this.clockContainer);
+
+    //     // Create transparent clock face
+    //     const clockFaceGeometry = new THREE.CircleGeometry(1, 32); // Clock face
+    //     const clockFaceMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0 }); // Transparent clock face
+    //     const clockFace = new THREE.Mesh(clockFaceGeometry, clockFaceMaterial);
+    //     this.clockContainer.add(clockFace);
+    //     this.clockContainer.position.set(0, 1, -2); // Adjust the clock position
+
+    //     // Create clock hands (scaled 10 times bigger)
+    //     this.hourHand = this.createHand(5, 0.8, 0xffffff); // Hour hand (10x bigger)
+    //     this.minuteHand = this.createHand(7, 0.5, 0xffffff); // Minute hand (10x bigger)
+    //     this.secondHand = this.createHand(9, 0.3, 0xff5733); // Second hand (red, 10x bigger)
+
+    //     // Attach hands to the clock container (pivot points will now be at the center)
+    //     this.clockContainer.add(this.hourHand);
+    //     this.clockContainer.add(this.minuteHand);
+    //     this.clockContainer.add(this.secondHand);
+
+    //     // Set position of hands at the center of the clock face
+    //     this.hourHand.position.set(0, 0, 0.05);
+    //     this.minuteHand.position.set(0, 0, 0.06);
+    //     this.secondHand.position.set(0, 0, 0.07);
+    // }
+
+    /**
+     * Clock
+     */
     setClock() {
         this.clockContainer = new THREE.Object3D();
         this.container.add(this.clockContainer);
@@ -100,23 +130,76 @@ export default class
         const clockFaceMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0 }); // Transparent clock face
         const clockFace = new THREE.Mesh(clockFaceGeometry, clockFaceMaterial);
         this.clockContainer.add(clockFace);
-        this.clockContainer.position.set(0, 1, -2); // Adjust the clock position
+        this.clockContainer.position.set(0, 0, 0); // Set the clock at (0, 0, 0)
 
-        // Create clock hands (scaled 10 times bigger)
-        this.hourHand = this.createHand(5, 0.8, 0xffffff); // Hour hand (10x bigger)
-        this.minuteHand = this.createHand(7, 0.5, 0xffffff); // Minute hand (10x bigger)
-        this.secondHand = this.createHand(9, 0.3, 0xff5733); // Second hand (red, 10x bigger)
+        // Import and apply material to hands, and store them for updating later
+        this.hourHand = this.importAndApplyHandMaterial(
+            this.resources.items.clockHourBase.scene, 
+            5, 0.8, this.materials.shades.items.volcano
+        ); // Hour hand
+        
+        this.minuteHand = this.importAndApplyHandMaterial(
+            this.resources.items.clockMinuteBase.scene, 
+            7, 0.5, this.materials.shades.items.volcano
+        ); // Minute hand
 
-        // Attach hands to the clock container (pivot points will now be at the center)
-        this.clockContainer.add(this.hourHand);
-        this.clockContainer.add(this.minuteHand);
-        this.clockContainer.add(this.secondHand);
+        this.secondHand = this.importAndApplyHandMaterial(
+            this.resources.items.clockSecondBase.scene, 
+            9, 0.3, this.materials.shades.items.blueGlass
+        ); // Second hand
 
-        // Set position of hands at the center of the clock face
+        // Ensure hands start at (0, 0, 0) and rotate around the center
         this.hourHand.position.set(0, 0, 0.05);
         this.minuteHand.position.set(0, 0, 0.06);
         this.secondHand.position.set(0, 0, 0.07);
     }
+
+    /**
+     * Helper method to import hand objects and apply material
+     * @param {THREE.Object3D} handObject - Imported 3D hand model
+     * @param {Number} length - Length of the hand (to scale)
+     * @param {Number} width - Width of the hand (to scale)
+     * @param {THREE.Material} material - Material to apply
+     * @returns {THREE.Object3D} - The hand object with material applied and positioned correctly
+     */
+    importAndApplyHandMaterial(handObject, length, width, material) {
+        const scaleFactor = length / 5; // Scale hand based on length
+        handObject.scale.set(scaleFactor, scaleFactor, scaleFactor); // Scale to match custom hand size
+
+        handObject.traverse((child) => {
+            if (child.isMesh) {
+                child.material = material; // Apply blueGlass material
+            }
+        });
+
+        // Adjust the position for the hand’s pivot to be at the bottom, centered for rotation
+        handObject.position.y = length / 2; // This makes it rotate from the bottom like a real clock hand
+
+        // Add the hand to the clock container
+        this.clockContainer.add(handObject);
+
+        return handObject; // Return the hand object so it can be updated later
+    }
+
+    /**
+     * Method to update the clock based on real time
+     */
+    updateClock() {
+        const now = new Date();
+        const seconds = now.getSeconds();
+        const minutes = now.getMinutes();
+        const hours = now.getHours() % 12;
+
+        // Update rotation for each hand based on time
+        if (this.secondHand && this.minuteHand && this.hourHand) {
+            this.secondHand.rotation.z = -((seconds / 60) * Math.PI * 2); // Full rotation in 60 seconds
+            this.minuteHand.rotation.z = -((minutes / 60) * Math.PI * 2); // Full rotation in 60 minutes
+            this.hourHand.rotation.z = -((hours / 12) * Math.PI * 2 + (minutes / 720) * Math.PI * 2); // 12-hour rotation with minute adjustment
+        } else {
+            console.log("Clock hands are not found");
+        }
+    }
+
 
     // Helper method to create clock hands with pivot at the bottom
     createHand(length, width, color) {
