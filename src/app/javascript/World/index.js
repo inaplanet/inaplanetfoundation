@@ -371,9 +371,9 @@ export default class
         this.setReveal();
         this.setClock();
 
-        setTimeout(() => {
-            this.dropCoinAtPosition()
-        }, 5000)
+        // setTimeout(() => {
+        //     this.dropCoinAtPosition()
+        // }, 8000)
     }
 
     setCar() {
@@ -581,7 +581,7 @@ export default class
                                 this.cars[message.playerId].score = message.score;
                                 this.updateScoreStatus(this.cars[message.playerId].score); // Display updated score
                                 if(this.cars[message.playerId.score] !== 0) {
-                                    dropAirdrop(this.cars[message.playerId]);
+                                    // dropAirdrop(this.cars[message.playerId]);
                                 } else {
                                     console.log("Player score is 0")
                                 }
@@ -615,6 +615,13 @@ export default class
                                 }
                             }
                             break;
+
+                        case 'coinUpdate':
+                                const { position: coinPosition } = message;
+                                if (this.currentCoin) {
+                                    this.currentCoin.container.position.set(coinPosition.x, coinPosition.y, coinPosition.z);
+                                }
+                                break;
 
                         case 'bulletFired':
                                 if (message.shooterId !== this.playerId) {
@@ -780,7 +787,7 @@ export default class
                             break;
 
                         case 'dropKrashcoin':
-                                console.log("Received dropKrashcoin event");
+                                // console.log("Received dropKrashcoin event");
                                 const { position } = message;
                             
                                 // Place the coin at the given position
@@ -1636,6 +1643,8 @@ export default class
                     //     dropAirdrop(playerCar);
                     // }
 
+                    const coinPosition = this.currentCoin ? this.currentCoin.container.position : { x: 0, y: 0, z: 0 }; // Default values
+
                     const updateData = {
                         type: 'update',
                         playerId: this.playerId,
@@ -1684,6 +1693,11 @@ export default class
                         },
                         battery: playerCar.battery,
                         score: playerCar.score,
+                        coinPosition: coinPosition ? {
+                            x: coinPosition.x,
+                            y: coinPosition.y,
+                            z: coinPosition.z
+                        } : null // Add coin position if it exists
                     };
 
                     this.updateBatteryStatus(playerCar.battery);
@@ -2145,18 +2159,39 @@ export default class
         return new THREE.Vector3(x, yHeight, z);
     }
 
-    dropCoinAtPosition() {
-        // Generate random position for the drop
+    dropCoinAtPosition(position = { x: 0, y: 0, z: 0 }) {
+        // Check if there's already a coin in the scene
+        if (this.currentCoin && this.container.children.includes(this.currentCoin.container)) {
+            // console.log("A coin already exists in the scene; skipping new drop.");
+            // Reposition the existing coin
+            this.currentCoin.container.position.set(position.x, position.y, position.z);
+            
+            // Send the updated coin position to other players
+            if (this.ws.readyState === WebSocket.OPEN) {
+                const dropCoinMessage = {
+                    type: 'dropKrashcoin',
+                    position: {
+                        x: position.x,
+                        y: position.y,
+                        z: position.z
+                    }
+                };
+                this.ws.send(JSON.stringify(dropCoinMessage));
+            }
+            
+            return; // Exit if a coin is already present
+        }
+    
+        // Generate a random offset position around the specified position
         const angle = Math.random() * Math.PI * 2;
-        const distance = 10;
-        const x = Math.cos(angle) * distance;
-        const y = Math.sin(angle) * distance;
+        const distance = 10; // Distance from the player
+        const x = position.x + Math.cos(angle) * distance;
+        const y = position.y + Math.sin(angle) * distance;
+        const initialZPosition = 500; // Drop from 500 units above ground level
+        const targetZPosition = position.z;
     
-        const initialZPosition = 200;  // Drop from 20 units above ground
-        const targetZPosition = 0;     // Ground level
-    
-        // Create the original coin with visual and collision components
-        const originalCoin = this.objects.add({
+        // Create a new coin with visual and collision components
+        this.currentCoin = this.objects.add({
             base: this.resources.items.krashCoinBase.scene,
             collision: this.resources.items.krashCoinCollision.scene,
             position: new THREE.Vector3(x, y, initialZPosition), // Start above the ground
@@ -2166,44 +2201,50 @@ export default class
             mass: 0.5,
         });
     
-        // Ensure the originalCoin and its container are defined
-        if (!originalCoin || !originalCoin.container) {
+        if (!this.currentCoin || !this.currentCoin.container) {
             console.error("Coin or coin container is not defined.");
             return;
         }
     
-        // Set the material for the original coin's visual component
-        originalCoin.container.traverse((child) => {
+        // Set material for the visual component
+        this.currentCoin.container.traverse((child) => {
             if (child.isMesh) {
                 child.material = this.materials.shades.items.blueGlass;
             }
         });
     
-        // Set the container's position to the initialZPosition
-        originalCoin.container.position.set(x, y, initialZPosition); // Start position
- 
-        // Add the original coin to the scene
-        this.container.add(originalCoin.container);  // Add the container to the scene
+        // Add the coin container to the scene
+        this.container.add(this.currentCoin.container);
     
         // Animate the drop from initialZPosition to targetZPosition
-        gsap.fromTo(originalCoin.container.position, 50,
-            { z: initialZPosition }, // Starting position
+        gsap.fromTo(
+            this.currentCoin.container.position, 20,
+            { z: initialZPosition },
             {
-                z: targetZPosition,    // Ending position (ground level)
-                ease: "bounce.out",    // Bounce effect
+                z: targetZPosition,
+                ease: "bounce.out",
                 onComplete: () => {
-                    console.log("Coin has reached the ground level:", targetZPosition);
-                    // Optionally, you can remove the coin from the scene after it reaches the ground
-                    // this.container.remove(originalCoin.container);
+                    console.log("Coin has reached ground level:", targetZPosition);
                 }
             }
         );
     
+        // Send the coin drop event to other players
+        if (this.ws.readyState === WebSocket.OPEN) {
+            const dropCoinMessage = {
+                type: 'dropKrashcoin',
+                position: {
+                    x: x,
+                    y: y,
+                    z: targetZPosition
+                }
+            };
+            this.ws.send(JSON.stringify(dropCoinMessage));
+        }
+    
         // Update mini-map with the coin's position
         this.updateMiniMap('coin', x, y, null, false, true); // Pass 'true' for isCoin
-    }
-    
-    
+    }    
     
     // dropCoinAtPosition() {
     //     // Randomly select a coin object
