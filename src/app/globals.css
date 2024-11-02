@@ -34,6 +34,18 @@ body {
 * CSS
 */
 
+@keyframes scalePulse {
+  0% { transform: scale(1); }
+  25% { transform: scale(1.5); }
+  50% { transform: scale(2); } /* Scale up */
+  75% { transform: scale(1.5); } /* Scale up */
+  100% { transform: scale(1); } /* Scale down */
+}
+
+.pulsing {
+  animation: scalePulse 1.5s ease-in-out infinite; /* Adjust duration and easing as necessary */
+}
+
 #switch-container {
   position: fixed;
   bottom: 190px;

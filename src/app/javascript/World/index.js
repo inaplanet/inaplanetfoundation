@@ -67,6 +67,7 @@ export default class
         this.bullets = [];
         
         this.lastKnownPositions = {};
+        this.coinActive = false;
 
         // Debug
         if(this.debug)
@@ -370,10 +371,6 @@ export default class
         this.createMiniMap();
         this.setReveal();
         this.setClock();
-
-        // setTimeout(() => {
-        //     this.dropCoinAtPosition()
-        // }, 8000)
     }
 
     setCar() {
@@ -619,7 +616,9 @@ export default class
                         case 'coinUpdate':
                                 const { position: coinPosition } = message;
                                 if (this.currentCoin) {
-                                    this.currentCoin.container.position.set(coinPosition.x, coinPosition.y, coinPosition.z);
+                                    this.currentCoin.position.set(coinPosition.x, coinPosition.y, coinPosition.z);
+                                } else {
+                                    console.log('Coin is not defined')
                                 }
                                 break;
 
@@ -788,24 +787,31 @@ export default class
 
                         case 'dropKrashcoin':
                                 // console.log("Received dropKrashcoin event");
+
+                                // Check if a coin is already active
+                                if (this.coinActive) {
+                                    console.log("Coin is already active, skipping drop.");
+                                    return; // Exit the function to prevent multiple coins
+                                }
+
                                 const { position } = message;
                             
                                 // Place the coin at the given position
                                 this.dropCoinAtPosition(position);
+
+                                // Set the coinActive flag to true
+                                this.coinActive = true;
                             
                                 // Check collision with playerCar
-                                // this.checkCoinCollision(playerCar, position, () => {
-                                //     // Update score by 1
-                                //     this.updateScoreStatus(playerCar.score);
+                                this.checkCoinCollision(playerCar, position, () => {
+                                    // Update score by 1
+                                    // this.updateScoreStatus(playerCar.score += 1);
                                     
-                                //     // Hide the coin
-                                //     this.hideCoin();
-                            
-                                //     // Set a timeout to reappear after 2 minutes (120,000 ms)
-                                //     setTimeout(() => {
-                                //         this.dropCoinAtPosition(this.generateNewPosition()); // Optionally generate a new position for reappearance
-                                //     }, 120000);
-                                // });
+                                    // // Hide the coin
+                                    this.hideCoin();
+                                    // Reset the coinActive flag
+                                    this.coinActive = false;
+                                });
                                 break;                            
         
                         default:
@@ -1642,9 +1648,9 @@ export default class
                     //     lastAirdropScore += 5;
                     //     dropAirdrop(playerCar);
                     // }
-
-                    const coinPosition = this.currentCoin ? this.currentCoin.container.position : { x: 0, y: 0, z: 0 }; // Default values
-
+                    
+                    const coinPosition = this.currentCoin ? this.currentCoin.position : null; // Default values
+                    
                     const updateData = {
                         type: 'update',
                         playerId: this.playerId,
@@ -1699,6 +1705,17 @@ export default class
                             z: coinPosition.z
                         } : null // Add coin position if it exists
                     };
+
+                    if (coinPosition) {
+                        // Check for collision with the coin
+                        this.checkCoinCollision(playerCar, coinPosition, () => {
+                            // Collision logic, e.g., increase score or collect the coin
+                            playerCar.score += 10; // Example action for collision
+                            this.updateScoreStatus(playerCar.score)
+                        });
+                    } else {
+                        console.log("No coin to check for collision.");
+                    }
 
                     this.updateBatteryStatus(playerCar.battery);
                     this.updateScoreStatus(playerCar.score);
@@ -2081,56 +2098,148 @@ export default class
     //     playerElementToUpdate.style.transform = `rotate(${adjustedAngle}deg)`;
     // }
 
+    // // Update the mini-map with player positions and coin position
+    // updateMiniMap(playerId, x, y, frontWheelQuaternion, isOtherPlayer, isCoin = false) {
+    //     if (!this.miniMapElements[playerId]) {
+    //         const newElement = document.createElement('div');
+    //         newElement.id = isCoin ? 'coin' : `player-${playerId}`;
+    //         newElement.style.position = 'absolute';
+    //         newElement.style.width = '5px'; // Adjust for visibility; coin is larger to stand out
+    //         newElement.style.height = '5px';
+    //         newElement.style.backgroundColor = isCoin ? 'red' : isOtherPlayer ? '#FF5733' : 'white';
+    //         newElement.style.borderRadius = isCoin ? '50%' : '0'; // Coin is circular
+    //         newElement.style.transformOrigin = 'center center';
+
+    //         if (!isCoin) {
+    //             // Player arrow display code
+    //             const triangle = document.createElement('div');
+    //             triangle.style.position = 'absolute';
+    //             triangle.style.width = '0';
+    //             triangle.style.height = '0';
+    //             triangle.style.borderLeft = '6px solid transparent';
+    //             triangle.style.borderRight = '6px solid transparent';
+    //             triangle.style.borderBottom = isOtherPlayer ? '10px solid #FF5733' : '10px solid white';
+    //             triangle.style.bottom = '100%';
+    //             triangle.style.left = '50%';
+    //             triangle.style.transform = 'translateX(-50%)';
+    //             newElement.appendChild(triangle);
+    //         }
+
+    //         this.miniMap.appendChild(newElement);
+    //         this.miniMapElements[playerId] = newElement;
+    //     }
+
+    //     const miniMapSize = 100; // The size of the mini-map in pixels
+    //     const mapScale = 0.05; // Scale factor to convert world coordinates to mini-map coordinates
+
+    //     const mapX = miniMapSize / 2 + x * mapScale;
+    //     const mapY = miniMapSize / 2 - y * mapScale;
+
+    //     const elementToUpdate = this.miniMapElements[playerId];
+    //     elementToUpdate.style.left = `${mapX}px`;
+    //     elementToUpdate.style.top = `${mapY}px`;
+
+    //     if (!isCoin && frontWheelQuaternion) {
+    //         // Convert front wheel quaternion rotation to degrees
+    //         const angle = Math.atan2(
+    //             2.0 * (frontWheelQuaternion.w * frontWheelQuaternion.z + frontWheelQuaternion.x * frontWheelQuaternion.y),
+    //             1.0 - 2.0 * (frontWheelQuaternion.y * frontWheelQuaternion.y + frontWheelQuaternion.z * frontWheelQuaternion.z)
+    //         ) * (180 / Math.PI);
+
+    //         const adjustedAngle = -angle + 90;
+    //         elementToUpdate.style.transform = `rotate(${adjustedAngle}deg)`;
+    //     }
+    // }
+
     // Update the mini-map with player positions and coin position
     updateMiniMap(playerId, x, y, frontWheelQuaternion, isOtherPlayer, isCoin = false) {
-        if (!this.miniMapElements[playerId]) {
+        // Handle player updates
+        if (!isCoin && !this.miniMapElements[playerId]) {
             const newElement = document.createElement('div');
-            newElement.id = isCoin ? 'coin' : `player-${playerId}`;
+            newElement.id = `player-${playerId}`;
             newElement.style.position = 'absolute';
-            newElement.style.width = '5px'; // Adjust for visibility; coin is larger to stand out
+            newElement.style.width = '5px'; // Adjust for visibility
             newElement.style.height = '5px';
-            newElement.style.backgroundColor = isCoin ? 'red' : isOtherPlayer ? '#FF5733' : 'white';
-            newElement.style.borderRadius = isCoin ? '50%' : '0'; // Coin is circular
+            newElement.style.backgroundColor = isOtherPlayer ? '#FF5733' : 'white';
+            newElement.style.borderRadius = '0'; // Player is not circular
             newElement.style.transformOrigin = 'center center';
 
-            if (!isCoin) {
-                // Player arrow display code
-                const triangle = document.createElement('div');
-                triangle.style.position = 'absolute';
-                triangle.style.width = '0';
-                triangle.style.height = '0';
-                triangle.style.borderLeft = '6px solid transparent';
-                triangle.style.borderRight = '6px solid transparent';
-                triangle.style.borderBottom = isOtherPlayer ? '10px solid #FF5733' : '10px solid white';
-                triangle.style.bottom = '100%';
-                triangle.style.left = '50%';
-                triangle.style.transform = 'translateX(-50%)';
-                newElement.appendChild(triangle);
-            }
+            // Player arrow display code
+            const triangle = document.createElement('div');
+            triangle.style.position = 'absolute';
+            triangle.style.width = '0';
+            triangle.style.height = '0';
+            triangle.style.borderLeft = '6px solid transparent';
+            triangle.style.borderRight = '6px solid transparent';
+            triangle.style.borderBottom = isOtherPlayer ? '10px solid #FF5733' : '10px solid white';
+            triangle.style.bottom = '100%';
+            triangle.style.left = '50%';
+            triangle.style.transform = 'translateX(-50%)';
+            newElement.appendChild(triangle);
 
             this.miniMap.appendChild(newElement);
             this.miniMapElements[playerId] = newElement;
         }
 
+        // Update position of the player on the mini-map
         const miniMapSize = 100; // The size of the mini-map in pixels
         const mapScale = 0.05; // Scale factor to convert world coordinates to mini-map coordinates
 
         const mapX = miniMapSize / 2 + x * mapScale;
         const mapY = miniMapSize / 2 - y * mapScale;
 
-        const elementToUpdate = this.miniMapElements[playerId];
-        elementToUpdate.style.left = `${mapX}px`;
-        elementToUpdate.style.top = `${mapY}px`;
+        if (!isCoin) {
+            const elementToUpdate = this.miniMapElements[playerId];
+            elementToUpdate.style.left = `${mapX}px`;
+            elementToUpdate.style.top = `${mapY}px`;
 
-        if (!isCoin && frontWheelQuaternion) {
-            // Convert front wheel quaternion rotation to degrees
-            const angle = Math.atan2(
-                2.0 * (frontWheelQuaternion.w * frontWheelQuaternion.z + frontWheelQuaternion.x * frontWheelQuaternion.y),
-                1.0 - 2.0 * (frontWheelQuaternion.y * frontWheelQuaternion.y + frontWheelQuaternion.z * frontWheelQuaternion.z)
-            ) * (180 / Math.PI);
+            // Rotate player icon if quaternion is provided
+            if (frontWheelQuaternion) {
+                const angle = Math.atan2(
+                    2.0 * (frontWheelQuaternion.w * frontWheelQuaternion.z + frontWheelQuaternion.x * frontWheelQuaternion.y),
+                    1.0 - 2.0 * (frontWheelQuaternion.y * frontWheelQuaternion.y + frontWheelQuaternion.z * frontWheelQuaternion.z)
+                ) * (180 / Math.PI);
 
-            const adjustedAngle = -angle + 90;
-            elementToUpdate.style.transform = `rotate(${adjustedAngle}deg)`;
+                const adjustedAngle = -angle + 90;
+                elementToUpdate.style.transform = `rotate(${adjustedAngle}deg)`;
+            }
+        }
+
+        // Handle coin updates
+        if (isCoin) {
+            let coinElement = this.miniMapElements['coin'];
+            if (!coinElement) {
+                // Create the coin element as a gun sight (crosshair) using Feather icons
+                coinElement = document.createElement('div');
+                coinElement.id = 'coin';
+                coinElement.style.position = 'absolute';
+                coinElement.style.width = '5px'; // Set the width
+                coinElement.style.height = '5px'; // Set the height
+                coinElement.style.color = 'red'; // Set the height
+                coinElement.style.transform = 'translate(-50%, -50%)'; // Center the element
+                coinElement.innerHTML = `${feather.icons['crosshair'].toSvg({ width: 5, height: 5 })}`; // Set the SVG as innerHTML
+                coinElement.classList.add('pulsing'); // Add pulsing class for animation
+                
+                feather.replace();
+                this.miniMap.appendChild(coinElement);
+                this.miniMapElements['coin'] = coinElement; // Store the coin element
+            }
+
+            // Update coin position
+            const coinMapX = miniMapSize / 2 + x * mapScale; // x for the coin position
+            const coinMapY = miniMapSize / 2 - y * mapScale; // y for the coin position
+
+            coinElement.style.left = `${coinMapX}px`;
+            coinElement.style.top = `${coinMapY}px`;
+        }
+    }
+
+    // To remove the coin from the mini-map when collected
+    removeCoinFromMiniMap() {
+        if (this.miniMapElements['coin']) {
+            const coinElement = this.miniMapElements['coin'];
+            this.miniMap.removeChild(coinElement);
+            delete this.miniMapElements['coin']; // Remove it from the tracking object
         }
     }
 
@@ -2159,91 +2268,172 @@ export default class
         return new THREE.Vector3(x, yHeight, z);
     }
 
-    dropCoinAtPosition(position = { x: 0, y: 0, z: 0 }) {
+    // dropCoinAtPosition(position = { x: 0, y: 0, z: 0 }) {
+    //     // Check if there's already a coin in the scene
+    //     if (this.currentCoin && this.container.children.includes(this.currentCoin.container)) {
+    //         // console.log("A coin already exists in the scene; skipping new drop.");
+    //         // Reposition the existing coin
+    //         this.currentCoin.container.position.set(position.x, position.y, position.z);
+            
+    //         // Send the updated coin position to other players
+    //         if (this.ws.readyState === WebSocket.OPEN) {
+    //             const dropCoinMessage = {
+    //                 type: 'dropKrashcoin',
+    //                 position: {
+    //                     x: position.x,
+    //                     y: position.y,
+    //                     z: position.z
+    //                 }
+    //             };
+    //             this.ws.send(JSON.stringify(dropCoinMessage));
+    //         }
+            
+    //         return; // Exit if a coin is already present
+    //     }
+    
+    //     // Generate a random offset position around the specified position
+    //     const angle = Math.random() * Math.PI * 2;
+    //     const distance = 10; // Distance from the player
+    //     const x = position.x + Math.cos(angle) * distance;
+    //     const y = position.y + Math.sin(angle) * distance;
+    //     const initialZPosition = 20; // Drop from 500 units above ground level
+    //     const targetZPosition = position.z;
+    
+    //     // Create a new coin with visual and collision components
+    //     this.currentCoin = this.objects.add({
+    //         base: this.resources.items.krashCoinBase.scene,
+    //         collision: this.resources.items.krashCoinCollision.scene,
+    //         offset: new THREE.Vector3(x, y, initialZPosition),
+    //         position: new THREE.Vector3(x, y, initialZPosition),
+    //         rotation: new THREE.Euler(0, 0, 0),
+    //         duplicated: true,
+    //         shadow: { sizeX: 1, sizeY: 1, offsetZ: -0.2, alpha: 0.5 },
+    //         mass: 0.5,
+    //     });
+
+    //     console.log("Current coin", this.currentCoin)
+    
+    //     if (!this.currentCoin || !this.currentCoin.container) {
+    //         console.error("Coin or coin container is not defined.");
+    //         return;
+    //     }
+    
+    //     // Set material for the visual component
+    //     this.currentCoin.container.traverse((child) => {
+    //         if (child.isMesh) {
+    //             child.material = this.materials.shades.items.blueGlass;
+    //         }
+    //     });
+    
+    //     // Add the coin container to the scene
+    //     this.container.add(this.currentCoin.container);
+    
+    //     // Animate the drop from initialZPosition to targetZPosition
+    //     gsap.fromTo(
+    //         this.currentCoin.container.position, 2, // Reduced duration for the demo
+    //         { z: initialZPosition },
+    //         {
+    //             z: targetZPosition,
+    //             ease: "bounce.out",
+    //             onComplete: () => {
+    //                 console.log("Coin has reached ground level:", targetZPosition);
+
+    //                 // Set the offset using this.objects to ensure the correct final position
+    //                 const offsetPosition = this.currentCoin.offset || new THREE.Vector3(x, y, targetZPosition);
+    //                 this.currentCoin.container.position.set(offsetPosition.x, offsetPosition.y, offsetPosition.z);
+
+    //                 // Broadcast the final position to other players
+    //                 if (this.ws.readyState === WebSocket.OPEN) {
+    //                     const dropCoinMessage = {
+    //                         type: 'dropKrashcoin',
+    //                         position: { x: offsetPosition.x, y: offsetPosition.y, z: offsetPosition.z }
+    //                     };
+    //                     this.ws.send(JSON.stringify(dropCoinMessage));
+    //                 }
+    //             }
+    //         }
+    //     );
+    
+    //     // Send the coin drop event to other players
+    //     if (this.ws.readyState === WebSocket.OPEN) {
+    //         const dropCoinMessage = {
+    //             type: 'dropKrashcoin',
+    //             position: {
+    //                 x: x,
+    //                 y: y,
+    //                 z: targetZPosition
+    //             }
+    //         };
+    //         this.ws.send(JSON.stringify(dropCoinMessage));
+    //     }
+    
+    //     // Update mini-map with the coin's position
+    //     this.updateMiniMap('coin', x, y, null, false, true); // Pass 'true' for isCoin
+    // }    
+
+    dropCoinAtPosition(position) {
         // Check if there's already a coin in the scene
-        if (this.currentCoin && this.container.children.includes(this.currentCoin.container)) {
-            // console.log("A coin already exists in the scene; skipping new drop.");
+        if (this.currentCoin && this.container.children.includes(this.currentCoin)) {
             // Reposition the existing coin
-            this.currentCoin.container.position.set(position.x, position.y, position.z);
-            
-            // Send the updated coin position to other players
-            if (this.ws.readyState === WebSocket.OPEN) {
-                const dropCoinMessage = {
-                    type: 'dropKrashcoin',
-                    position: {
-                        x: position.x,
-                        y: position.y,
-                        z: position.z
-                    }
-                };
-                this.ws.send(JSON.stringify(dropCoinMessage));
-            }
-            
-            return; // Exit if a coin is already present
-        }
+            this.currentCoin.position.set(position.x, position.y, position.z);
+        } else {
+            // Generate a random offset position around the specified position
+            const angle = Math.random() * Math.PI * 2;
+            const distance = 10; // Distance from the player
+            const x = position.x + Math.cos(angle) * distance;
+            const y = position.y + Math.sin(angle) * distance;
+            const initialZPosition = 20; // Start above ground level
+            const targetZPosition = 0;
     
-        // Generate a random offset position around the specified position
-        const angle = Math.random() * Math.PI * 2;
-        const distance = 10; // Distance from the player
-        const x = position.x + Math.cos(angle) * distance;
-        const y = position.y + Math.sin(angle) * distance;
-        const initialZPosition = 500; // Drop from 500 units above ground level
-        const targetZPosition = position.z;
+            // Define the visual and collision components
+            const coinVisual = this.resources.items.krashCoinBase.scene.clone();
+            const coinCollision = this.resources.items.krashCoinCollision.scene.clone();
     
-        // Create a new coin with visual and collision components
-        this.currentCoin = this.objects.add({
-            base: this.resources.items.krashCoinBase.scene,
-            collision: this.resources.items.krashCoinCollision.scene,
-            position: new THREE.Vector3(x, y, initialZPosition), // Start above the ground
-            rotation: new THREE.Euler(0, 0, 0),
-            duplicated: true,
-            shadow: { sizeX: 1, sizeY: 1, offsetZ: -0.2, alpha: 0.5 },
-            mass: 0.5,
-        });
+            // Create a group and add both components to it
+            const coinGroup = new THREE.Group();
+            coinGroup.add(coinVisual);
+            coinGroup.add(coinCollision);
     
-        if (!this.currentCoin || !this.currentCoin.container) {
-            console.error("Coin or coin container is not defined.");
-            return;
-        }
+            // Set initial position of the group
+            coinGroup.position.set(x, y, initialZPosition);
+            this.currentCoin = coinGroup;
     
-        // Set material for the visual component
-        this.currentCoin.container.traverse((child) => {
-            if (child.isMesh) {
-                child.material = this.materials.shades.items.blueGlass;
-            }
-        });
-    
-        // Add the coin container to the scene
-        this.container.add(this.currentCoin.container);
-    
-        // Animate the drop from initialZPosition to targetZPosition
-        gsap.fromTo(
-            this.currentCoin.container.position, 20,
-            { z: initialZPosition },
-            {
-                z: targetZPosition,
-                ease: "bounce.out",
-                onComplete: () => {
-                    console.log("Coin has reached ground level:", targetZPosition);
+            // Apply material to the visual component only
+            coinVisual.traverse((child) => {
+                if (child.isMesh) {
+                    child.material = this.materials.shades.items.blueGlass;
                 }
-            }
-        );
+            });
     
-        // Send the coin drop event to other players
+            // Add the coin group to the scene
+            this.container.add(coinGroup);
+    
+            // Animate the drop from initialZPosition to targetZPosition
+            gsap.fromTo(
+                coinGroup.position, 2,
+                { z: initialZPosition },
+                {
+                    z: targetZPosition,
+                    ease: "bounce.out",
+                    onComplete: () => {
+                        console.log("Coin has reached ground level:", targetZPosition);
+                        coinGroup.position.set(x, y, targetZPosition);
+                    }
+                }
+            );
+        }
+    
+        // After setting the position, broadcast the updated coin position
         if (this.ws.readyState === WebSocket.OPEN) {
             const dropCoinMessage = {
                 type: 'dropKrashcoin',
-                position: {
-                    x: x,
-                    y: y,
-                    z: targetZPosition
-                }
+                position: { x: this.currentCoin.position.x, y: this.currentCoin.position.y, z: this.currentCoin.position.z }
             };
             this.ws.send(JSON.stringify(dropCoinMessage));
         }
     
         // Update mini-map with the coin's position
-        this.updateMiniMap('coin', x, y, null, false, true); // Pass 'true' for isCoin
+        this.updateMiniMap('coin', position.x, position.y, null, false, true); // Pass 'true' for isCoin
     }    
     
     // dropCoinAtPosition() {
@@ -2310,30 +2500,60 @@ export default class
     //     this.updateMiniMap('coin', x, y, null, false, true); // Pass 'true' for isCoin
     // }
     
-    
     checkCoinCollision(playerCar, coinPosition, onCollision) {
+        // Retrieve player position
+        const playerPosition = playerCar?.physics?.car?.chassis?.body?.position;
+    
+        if (!playerPosition || typeof playerPosition !== 'object' || !('x' in playerPosition) || !('y' in playerPosition) || !('z' in playerPosition)) {
+            console.error("Invalid player position: playerCar position is not defined or is not a valid object", playerPosition);
+            return;
+        }
+    
+        if (!coinPosition || typeof coinPosition !== 'object' || !('x' in coinPosition) || !('y' in coinPosition) || !('z' in coinPosition)) {
+            console.error("Invalid coin position: coinPosition is not defined or is not a valid object", coinPosition);
+            return;
+        }
+    
         // Define a collision threshold based on game scale
         const collisionThreshold = 1.5;
     
         // Calculate distance between player car and coin
-        const distance = playerCar.position.distanceTo(coinPosition);
+        const distance = Math.sqrt(
+            Math.pow(playerPosition.x - coinPosition.x, 2) +
+            Math.pow(playerPosition.y - coinPosition.y, 2) +
+            Math.pow(playerPosition.z - coinPosition.z, 2)
+        );
+    
+        // console.log("Distance between player car and coin:", distance);
     
         // If distance is within threshold, trigger collision logic
         if (distance <= collisionThreshold) {
             console.log("Collision detected with coin!");
             onCollision();  // Execute the callback for when collision is detected
+            this.hideCoin();
         }
     }
     
     hideCoin() {
-        if (this.coin) {
-            this.coin.visible = false;  // Hide the coin visually
+        if (this.currentCoin) {
+            // Hide the coin visually
+            this.currentCoin.visible = false;
     
-            // Optional: Remove the coin object entirely if needed
-            this.objects.remove(this.coin);
-            this.coin = null;
-    
+            // Remove the coin from the container
+            this.container.remove(this.currentCoin);
+
+            // Remove from mini-map
+            this.removeCoinFromMiniMap();
+            
+            // Set currentCoin to null after removing
+            this.currentCoin = null;
+
+            // Mark the coin as inactive
+            this.coinActive = false; // Reset this flag
+
             console.log("Coin hidden from scene.");
+        } else {
+            console.warn("No current coin to hide.");
         }
     }
 
