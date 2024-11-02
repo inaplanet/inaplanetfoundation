@@ -802,17 +802,23 @@ export default class
                                 // Set the coinActive flag to true
                                 this.coinActive = true;
                             
-                                // Check collision with playerCar
-                                this.checkCoinCollision(playerCar, position, () => {
-                                    // Update score by 1
-                                    // this.updateScoreStatus(playerCar.score += 1);
+                                // // Check collision with playerCar
+                                // this.checkCoinCollision(playerCar, position, () => {
+                                //     // Update score by 1
+                                //     // this.updateScoreStatus(playerCar.score += 1);
                                     
-                                    // // Hide the coin
-                                    this.hideCoin();
-                                    // Reset the coinActive flag
-                                    this.coinActive = false;
-                                });
-                                break;                            
+                                //     // // Hide the coin
+                                //     this.hideCoin();
+                                //     // Reset the coinActive flag
+                                //     this.coinActive = false;
+                                // });
+                                break;  
+                                
+                            case 'hideCoin':
+                                // Hide the coin locally when picked up
+                                this.hideCoin();
+                                this.coinActive = false;
+                                break;
         
                         default:
                             // console.error('Unknown message type:', message.type);
@@ -2530,6 +2536,11 @@ export default class
         if (distance <= collisionThreshold) {
             console.log("Collision detected with coin!");
             onCollision();  // Execute the callback for when collision is detected
+
+            // Notify the server that the coin has been picked up
+            this.ws.send(JSON.stringify({
+                type: 'coinPickedUp'
+            }));
             this.hideCoin();
         }
     }

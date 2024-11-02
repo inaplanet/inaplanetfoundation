@@ -36,14 +36,20 @@ body {
 
 @keyframes scalePulse {
   0% { transform: scale(1); }
-  25% { transform: scale(1.5); }
-  50% { transform: scale(2); } /* Scale up */
-  75% { transform: scale(1.5); } /* Scale up */
-  100% { transform: scale(1); } /* Scale down */
+  10% { transform: scale(1.25); }
+  20% { transform: scale(1.5); }
+  30% { transform: scale(1.75); }
+  40% { transform: scale(2); } /* Scale up */
+  50% { transform: scale(2.5); }
+  60% { transform: scale(2); } /* Scale up */
+  70% { transform: scale(1.75); } /* Scale down */
+  80% { transform: scale(1.5); } /* Scale down */
+  90% { transform: scale(1.25); } /* Scale down */
+  1000% { transform: scale(1); } /* Scale down */
 }
 
 .pulsing {
-  animation: scalePulse 1.5s ease-in-out infinite; /* Adjust duration and easing as necessary */
+  animation: scalePulse 3s ease-in-out infinite; /* Adjust duration and easing as necessary */
 }
 
 #switch-container {
