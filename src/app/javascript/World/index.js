@@ -786,7 +786,6 @@ export default class
                             break;
 
                         case 'dropKrashcoin':
-                                // console.log("Received dropKrashcoin event");
 
                                 // Check if a coin is already active
                                 if (this.coinActive) {
@@ -802,22 +801,14 @@ export default class
                                 // Set the coinActive flag to true
                                 this.coinActive = true;
                             
-                                // // Check collision with playerCar
-                                // this.checkCoinCollision(playerCar, position, () => {
-                                //     // Update score by 1
-                                //     // this.updateScoreStatus(playerCar.score += 1);
-                                    
-                                //     // // Hide the coin
-                                //     this.hideCoin();
-                                //     // Reset the coinActive flag
-                                //     this.coinActive = false;
-                                // });
                                 break;  
                                 
                             case 'hideCoin':
                                 // Hide the coin locally when picked up
-                                this.hideCoin();
-                                this.coinActive = false;
+                                if (this.worldId === message.worldId) {
+                                    this.hideCoin();
+                                }
+                                // this.coinActive = false;
                                 break;
         
                         default:
@@ -1655,28 +1646,34 @@ export default class
                     //     dropAirdrop(playerCar);
                     // }
                     
-                    const coinPosition = this.currentCoin ? this.currentCoin.position : null; // Default values
+                    // const coinPosition = this.currentCoin ? this.currentCoin.position : null; // Default values
+
+                    const playerPosition = {
+                        x: playerCar.physics.car.chassis.body.position.x,
+                        y: playerCar.physics.car.chassis.body.position.y,
+                        z: playerCar.physics.car.chassis.body.position.z
+                    };
+
+                    const playerRotation = {
+                        x: playerCar.physics.car.chassis.body.quaternion.x,
+                        y: playerCar.physics.car.chassis.body.quaternion.y,
+                        z: playerCar.physics.car.chassis.body.quaternion.z,
+                        w: playerCar.physics.car.chassis.body.quaternion.w
+                    }
+
+                    const playerVelocity = {
+                        x: playerCar.physics.car.chassis.body.velocity.x,
+                        y: playerCar.physics.car.chassis.body.velocity.y,
+                        z: playerCar.physics.car.chassis.body.velocity.z
+                    }
                     
                     const updateData = {
                         type: 'update',
                         playerId: this.playerId,
                         worldId: this.worldId,
-                        position: {
-                            x: playerCar.physics.car.chassis.body.position.x,
-                            y: playerCar.physics.car.chassis.body.position.y,
-                            z: playerCar.physics.car.chassis.body.position.z
-                        },
-                        rotation: {
-                            x: playerCar.physics.car.chassis.body.quaternion.x,
-                            y: playerCar.physics.car.chassis.body.quaternion.y,
-                            z: playerCar.physics.car.chassis.body.quaternion.z,
-                            w: playerCar.physics.car.chassis.body.quaternion.w
-                        },
-                        velocity: {
-                            x: playerCar.physics.car.chassis.body.velocity.x,
-                            y: playerCar.physics.car.chassis.body.velocity.y,
-                            z: playerCar.physics.car.chassis.body.velocity.z
-                        },
+                        position: playerPosition,
+                        rotation: playerRotation,
+                        velocity: playerVelocity,
                         wheels: playerCar.physics.car.vehicle.wheelInfos.map(wheelInfo => ({
                             position: {
                                 x: wheelInfo.worldTransform.position.x,
@@ -1705,19 +1702,35 @@ export default class
                         },
                         battery: playerCar.battery,
                         score: playerCar.score,
-                        coinPosition: coinPosition ? {
-                            x: coinPosition.x,
-                            y: coinPosition.y,
-                            z: coinPosition.z
-                        } : null // Add coin position if it exists
+                        // coinPosition: coinPosition ? {
+                        //     x: coinPosition.x,
+                        //     y: coinPosition.y,
+                        //     z: coinPosition.z
+                        // } : null // Add coin position if it exists
                     };
 
-                    if (coinPosition) {
-                        // Check for collision with the coin
+                    // if (coinPosition) {
+                    //     // Check for collision with the coin
+                    //     this.checkCoinCollision(playerCar, coinPosition, () => {
+                    //         // Collision logic, e.g., increase score or collect the coin
+                    //         playerCar.score += 10; // Example action for collision
+                    //         this.updateScoreStatus(playerCar.score)
+                    //     });
+                    // } else {
+                    //     console.log("No coin to check for collision.");
+                    // }
+
+                    // Handle collision check if a coin is active
+                    if (this.currentCoin) {
+                        const coinPosition = this.currentCoin.position;
                         this.checkCoinCollision(playerCar, coinPosition, () => {
                             // Collision logic, e.g., increase score or collect the coin
                             playerCar.score += 10; // Example action for collision
-                            this.updateScoreStatus(playerCar.score)
+                            this.updateScoreStatus(playerCar.score);
+                            // Reset coin visibility or position after pickup
+                            this.currentCoin = null; // Remove the coin locally
+                            // Notify server to hide the coin for other players
+                            this.ws.send(JSON.stringify({ type: 'coinPickedUp', worldId: this.worldId }));
                         });
                     } else {
                         console.log("No coin to check for collision.");
@@ -2388,7 +2401,7 @@ export default class
             const distance = 10; // Distance from the player
             const x = position.x + Math.cos(angle) * distance;
             const y = position.y + Math.sin(angle) * distance;
-            const initialZPosition = 20; // Start above ground level
+            const initialZPosition = 50; // Start above ground level
             const targetZPosition = 0;
     
             // Define the visual and collision components
@@ -2533,15 +2546,23 @@ export default class
         // console.log("Distance between player car and coin:", distance);
     
         // If distance is within threshold, trigger collision logic
-        if (distance <= collisionThreshold) {
+        if (distance <= collisionThreshold && !this.collisionLock) {
             console.log("Collision detected with coin!");
-            onCollision();  // Execute the callback for when collision is detected
+            // onCollision();  // Execute the callback for when collision is detected
+
+            this.collisionLock = true;
 
             // Notify the server that the coin has been picked up
             this.ws.send(JSON.stringify({
-                type: 'coinPickedUp'
+                type: 'coinPickedUp',
+                worldId: this.worldId
             }));
+
+            // Hide the coin locally
             this.hideCoin();
+
+            // Run the optional onCollision callback if provided
+            if (onCollision) onCollision();
         }
     }
     
