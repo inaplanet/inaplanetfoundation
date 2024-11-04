@@ -47,7 +47,7 @@ const Application = ({ playerId }) => {
 
           // Resize canvas when window size changes
           this.sizes.on('resize', this.resizeCanvas.bind(this));
-          this.resizeCanvas(); // Set initial size
+          this.resizeCanvas(); // Set initial size        
         }
 
     /**

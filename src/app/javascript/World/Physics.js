@@ -41,8 +41,6 @@ export default class Physics
         this.nonCollidablePlayers = new Set();
         this.nonCollidableCars = new Set();
 
-        const ws = this.ws;
-
         // Set up
         if(this.debug)
         {
@@ -134,7 +132,7 @@ export default class Physics
 
         // Wall dimensions (adjust these according to your world size)
         const wallThickness = 5;
-        const wallHeight = 25;
+        const wallHeight = 40;
         const worldSize = 1200;
 
         // Four walls surrounding the world

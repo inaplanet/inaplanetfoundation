@@ -54,7 +54,7 @@ export default function Home() {
 
       console.log('Wallet disconnected, refreshing the page...');
       // window.location.reload(); // Refresh the page when the user disconnects
-      window.location.href = 'https://krashboxfoundation.netlify.app'
+      window.location.href = 'https://krashbox.world'
     }
   }, [isConnected, hasAppInitialized]);
 
@@ -63,8 +63,31 @@ export default function Home() {
       setCurrentTime(new Date());  // Update time every second
     }, 1000);
 
+    // Populate the world list once the component is mounted
+    if (isMounted) {
+      const worldList = document.getElementById('world-list');
+
+      if (worldList) {
+        const predefinedWorldIds = [
+          'Bangkok', 'New York', 'New Delhi', 'Mumbai', 'Tokyo',
+          'Munich', 'Florence', 'Hong Kong', 'Seoul', 'Los Angeles'
+        ];
+
+        // Clear any existing list items
+        worldList.innerHTML = '';
+
+        // Create list items for each predefined world ID
+        predefinedWorldIds.forEach(worldId => {
+          const listItem = document.createElement('li');
+          listItem.textContent = worldId;
+          listItem.onclick = () => console.log(`World selected: ${worldId}`);
+          worldList.appendChild(listItem);
+        });
+      }
+    }
+
     return () => clearInterval(interval);  // Cleanup on component unmount
-  }, []);
+  }, [isMounted]);
 
   if (!isMounted) {
     // Return null on the server (or before the component is mounted on the client)
@@ -133,6 +156,11 @@ export default function Home() {
               
                 {new Date().toLocaleString()}
                 </h1>
+            </div>
+
+            <div id="world-layer">
+                <h2>Select a World</h2>
+                <ul id="world-list"></ul>
             </div>
         </div>
       )}

@@ -61,6 +61,7 @@ export default class
         this.renderer = _options.renderer
         this.passes = _options.passes
 
+        this.ws = _options.ws
         this.playerId = _options.playerId;
         this.worldId = _options.worldId;
         this.otherPlayers = [];
@@ -1720,7 +1721,7 @@ export default class
                             this.ws.send(JSON.stringify({ type: 'coinPickedUp', worldId: this.worldId }));
                         });
                     } else {
-                        console.log("No coin to check for collision.");
+                        // console.log("No coin to check for collision.");
                     }
 
                     this.updateBatteryStatus(playerCar.battery);
@@ -2341,10 +2342,10 @@ export default class
 
     dropCoinAtPosition(position) {
 
-            // Set the position of the group based on the provided position
-            const initialZPosition = 50; // Start above ground level
-            const targetZPosition = 0;
-            
+        // Set the position of the group based on the provided position
+        const initialZPosition = 50; // Start above ground level
+        const targetZPosition = 0;
+
         // Check if there's already a coin in the scene
         if (this.currentCoin && this.container.children.includes(this.currentCoin)) {
             // Reposition the existing coin
@@ -2365,7 +2366,7 @@ export default class
             // Apply material to the visual component only
             coinVisual.traverse((child) => {
                 if (child.isMesh) {
-                    child.material = this.materials.shades.items.blueGlass;
+                    child.material = this.materials.shades.items.volcano;
                 }
             });
     
@@ -2434,7 +2435,7 @@ export default class
     
         // If distance is within threshold, trigger collision logic
         if (distance <= collisionThreshold && !this.collisionLock) {
-            console.log("Collision detected with coin!");
+            // console.log("Collision detected with coin!");
             // onCollision();  // Execute the callback for when collision is detected
 
             this.collisionLock = true;
@@ -2799,6 +2800,7 @@ export default class
 
             const loadingLayer = document.getElementById('loading-layer');
             const w3mLayer = document.getElementById('w3m-layer');
+            const worldLayer = document.getElementById('world-layer');
 
             if (loadingLayer) {
                 loadingLayer.style.display = 'none';
@@ -2806,6 +2808,10 @@ export default class
 
             if (w3mLayer) {
                 w3mLayer.style.display = 'none';
+            }
+
+            if (worldLayer) {
+                worldLayer.style.display = 'none';
             }
 
             this.startingScreen.area.deactivate()
