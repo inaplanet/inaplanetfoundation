@@ -436,6 +436,33 @@ opacity: 0;
   font-family: 'Orbitron', sans-serif;
 }
 
+.pulsing-message {
+  z-index: 100; /* Higher z-index to display on top */
+  position: fixed; /* Center the message on the screen */
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.pulsing-message h2 {
+  animation: pulse 1.5s infinite;
+  color: #ffffff;
+  font-size: 24px;
+  text-align: center;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
 @media (max-width: 767px) {
   #world-layer {
     position: absolute;
@@ -469,10 +496,10 @@ opacity: 0;
 #world-list li {
   padding: 10px;
   margin: 6px 0;
-  background-color: hsla(240, 100%, 50%, 0.645);
+  background-color: hsla(240, 100%, 50%, 0.99);
   color: #fff;
   cursor: pointer;
-  border-radius: 4px;
+  border-radius: 5px;
   text-align: center;
   transition: background-color 0.2s ease;
 }

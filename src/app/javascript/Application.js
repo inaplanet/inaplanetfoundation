@@ -16,7 +16,7 @@ import BlurPass from './Passes/Blur.js'
 import GlowsPass from './Passes/Glows.js'
 
 // Main Application as a React component
-const Application = ({ playerId }) => {
+const Application = ({ playerId, selectedWorldId, token }) => {
     const canvasRef = useRef(null);
     const appInstanceRef = useRef(null);
   
@@ -33,6 +33,8 @@ const Application = ({ playerId }) => {
         constructor(_options) {
           this.$canvas = _options.$canvas;
           this.playerId = _options.playerId;
+          this.worldId = selectedWorldId;
+          this.token = token;
   
           this.time = new Time();
           this.sizes = new Sizes();
@@ -42,29 +44,12 @@ const Application = ({ playerId }) => {
           this.setRenderer();
           this.setCamera();
           this.setPasses();
-          this.initialize();
+          this.setWorld(this.worldId);
           this.animate();
 
           // Resize canvas when window size changes
           this.sizes.on('resize', this.resizeCanvas.bind(this));
           this.resizeCanvas(); // Set initial size        
-        }
-
-        async initialize() {
-            // Set up WebSocket and retrieve worldId here
-            await this.setWorld(); // This initializes `this.world` with `ws`
-            
-            // Make sure `worldId` and `ws` are available after setup
-            this.worldId = this.world?.worldId;
-            this.ws = this.world?.ws;
-        }
-
-        getWorldId() {
-            return this.worldId;
-        }
-    
-        getWebSocket() {
-            return this.ws;
         }
 
     /**
@@ -320,7 +305,7 @@ const Application = ({ playerId }) => {
     /**
      * Set world
      */
-    setWorld()
+    setWorld(worldId)
     {
         this.world = new World({
             config: this.config,
@@ -336,6 +321,8 @@ const Application = ({ playerId }) => {
             passes: this.passes,
             canvas: this.$canvas,
             playerId: this.playerId,
+            token: this.token,
+            worldId,
             ws: this.ws
         })
         this.scene.add(this.world.container)

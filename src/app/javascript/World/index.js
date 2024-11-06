@@ -64,6 +64,7 @@ export default class
         this.ws = _options.ws
         this.playerId = _options.playerId;
         this.worldId = _options.worldId;
+        this.token = _options.token;
         this.otherPlayers = [];
         this.bullets = [];
         
@@ -352,7 +353,7 @@ export default class
     }
 
     start() {
-        this.signIn(this.playerId);
+        this.signIn(this.playerId, this.token);
 
         if (typeof window !== 'undefined') {
             window.setTimeout(() => {
@@ -369,6 +370,9 @@ export default class
         this.setTiles();
         this.setWalls();
         this.setSections();
+
+        this.setupMultiplayer(this.playerId, this.token);
+
         this.createMiniMap();
         this.setReveal();
         this.setClock();
@@ -524,7 +528,7 @@ export default class
                 const ws = new WebSocket(serverAddress)
                 this.ws = ws;  // Store the WebSocket connection
 
-                this.worldId = "world-1"
+                // this.worldId = "world-1"
 
                 this.playerId = playerId;
                 this.otherPlayers = {};
@@ -2561,7 +2565,7 @@ export default class
     //     }
     // }
 
-    async signIn(playerId) {
+    async signIn(playerId, token) {
 
         // Use playerId passed in or fallback to the one stored in class
         const id = playerId || this.playerId;
@@ -2603,27 +2607,27 @@ export default class
             }
     
             // Request token from your server using `playerId`
-            const response = await fetch('https://krashbox.glitch.me/getToken', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ playerId }),
-            });
+            // const response = await fetch('https://krashbox.glitch.me/getToken', {
+            //     method: 'POST',
+            //     headers: {
+            //         'Content-Type': 'application/json',
+            //     },
+            //     body: JSON.stringify({ playerId }),
+            // });
     
-            if (!response.ok) {
-                throw new Error('Failed to get token from server');
-            }
+            // if (!response.ok) {
+            //     throw new Error('Failed to get token from server');
+            // }
     
-            const { token } = await response.json();  // Extract token from response
-            localStorage.setItem('token', token);  // Store token in localStorage
+            // const { token } = await response.json();  // Extract token from response
+            // localStorage.setItem('token', token);  // Store token in localStorage
     
-            // Retrieve the token from localStorage for WebSocket connection
-            const savedToken = localStorage.getItem('token');
-            console.log('Token:', savedToken);
+            // // Retrieve the token from localStorage for WebSocket connection
+            // const savedToken = localStorage.getItem('token');
+            // console.log('Token:', savedToken);
     
             // Call setupMultiplayer and pass playerId and token
-            await this.setupMultiplayer(playerId, savedToken);
+            // await this.setupMultiplayer(playerId, token);
     
             return playerId;
         } catch (error) {

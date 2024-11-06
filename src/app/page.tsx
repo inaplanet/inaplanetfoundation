@@ -18,6 +18,32 @@ export default function Home() {
   const [showWalletButton, setShowWalletButton] = useState(false); 
   const [isMounted, setIsMounted] = useState(false); // Track when the component is mounted
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [selectedWorldId, setSelectedWorldId] = useState<string | null>(null); // New state for selected world ID
+  const [token, setToken] = useState<string | null>(null); // State to store the token
+
+  // Function to get token from the server
+  const getToken = async (playerId: string) => {
+    try {
+      const response = await fetch('https://krashbox.glitch.me/getToken', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ playerId }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to get token from server');
+      }
+
+      const { token } = await response.json(); // Extract token from response
+      localStorage.setItem('token', token); // Store token in localStorage
+      setToken(token); // Set token in state
+      console.log('Token received and stored:', token);
+    } catch (error) {
+      console.error('Error fetching token:', error);
+    }
+  };
 
   // Initialize the application only when the wallet connects
   useEffect(() => {
@@ -25,11 +51,14 @@ export default function Home() {
 
     if (isConnected && address && !hasAppInitialized) {
       setPlayerId(address);
-      localStorage.setItem('playerId', address);
+      // localStorage.setItem('playerId', address);
       console.log('Wallet connected:', address);
 
       // Show the loading layer when the wallet connects
       setShowLoadingLayer(true);
+
+      // Fetch the token for the connected player
+      getToken(address);
 
       // Set a flag to ensure the Application only initializes once
       setHasAppInitialized(true);
@@ -68,9 +97,14 @@ export default function Home() {
       const worldList = document.getElementById('world-list');
 
       if (worldList) {
+        // const predefinedWorldIds = [
+        //   'Bangkok', 'New York', 'New Delhi', 'Mumbai', 'Tokyo',
+        //   'Munich', 'Florence', 'Hong Kong', 'Seoul', 'Los Angeles'
+        // ];
+
         const predefinedWorldIds = [
-          'Bangkok', 'New York', 'New Delhi', 'Mumbai', 'Tokyo',
-          'Munich', 'Florence', 'Hong Kong', 'Seoul', 'Los Angeles'
+          'world-1', 'world-2', 'world-3', 'world-4', 'world-5',
+          'world-6', 'world-7', 'world-8', 'world-9', 'world-10'
         ];
 
         // Clear any existing list items
@@ -80,7 +114,13 @@ export default function Home() {
         predefinedWorldIds.forEach(worldId => {
           const listItem = document.createElement('li');
           listItem.textContent = worldId;
-          listItem.onclick = () => console.log(`World selected: ${worldId}`);
+          listItem.onclick = () => {
+            console.log(`World selected: ${worldId}`);
+            setSelectedWorldId(worldId); // Set selected world ID
+            localStorage.removeItem('worldId')
+            localStorage.setItem('worldId', worldId)
+            console.log('Local storage', localStorage)
+          };
           worldList.appendChild(listItem);
         });
       }
@@ -154,14 +194,15 @@ export default function Home() {
             <w3m-button />
               <h1 style={{ paddingTop: '20px', paddingLeft: '15px', fontWeight: '700', fontFamily: 'Orbitron, sans-serif', opacity: '0.8', color: '#B4B4B8'}}>
               
-                W3 {new Date().toLocaleString()}
+                {new Date().toLocaleString()}
                 </h1>
-                <div id="world-layer">
-                <h2>Select a World</h2>
-                <ul id="world-list"></ul>
-            </div>
+                
             </div>
 
+            <div id="world-layer">
+                    {/* <h2>Select a World</h2> */}
+                    <ul id="world-list"></ul>
+                </div>
             
         </div>
       )}
@@ -176,9 +217,16 @@ export default function Home() {
 
         <br />
 
+      {/* Pulsing "Select World" message */}
+      {isConnected && !selectedWorldId && (
+              <div className="pulsing-message">
+                <h2>Select World</h2>
+              </div>
+            )}
+
         {/* Conditionally render the Application only once */}
-        {isConnected && playerId && hasAppInitialized && !isCanvasInitialized && (
-          <Application playerId={playerId} />
+        {isConnected && playerId && selectedWorldId && hasAppInitialized && !isCanvasInitialized && (
+          <Application playerId={playerId} selectedWorldId={selectedWorldId} token={token}/>
         )}
 
         {/* Once connected, display the game UI */}
