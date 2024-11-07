@@ -489,25 +489,42 @@ opacity: 0;
 #world-list {
   list-style-type: none;
   padding: 0;
-  margin-top: 15px; /* Add margin to separate from the heading */
+  margin-top: 15px;
   font-size: 10px;
 }
 
 #world-list li {
   padding: 10px;
   margin: 6px 0;
-  background-color: hsla(240, 100%, 50%, 0.99);
+  background-color: hsla(240, 100%, 50%, 0.5);
   color: #fff;
   cursor: pointer;
   border-radius: 5px;
   text-align: center;
   transition: background-color 0.2s ease;
+  backdrop-filter: blur(5px);
 }
 
-#world-list li:hover {
+/* Hover effect for selectable worlds */
+#world-list li:hover:not(.selected):not(.disabled) {
   background-color: #8CFF80;
   color: black;
 }
+
+/* Style for selected world */
+#world-list li.selected {
+  background-color: #8CFF80;
+  color: black;
+  cursor: default; /* Disable pointer */
+}
+
+/* Style for disabled worlds */
+#world-list li.disabled {
+  background-color: hsl(239, 100%, 37%);
+  color: #777;
+  cursor: not-allowed;
+}
+
 
 .loading-layer {
   background-image: url('/images/mobile/worldmap.png'); 

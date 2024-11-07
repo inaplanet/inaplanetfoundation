@@ -118,21 +118,31 @@ export default function Home() {
         worldList.innerHTML = '';
 
         // Create list items for each predefined world ID
-        predefinedWorldIds.forEach(worldId => {
-          const listItem = document.createElement('li');
-          listItem.textContent = worldId;
-          listItem.onclick = () => {
-            console.log(`World selected: ${worldId}`);
-            
-            if (selectedWorldId !== worldId) { // Reset Application if new world is selected
-              setSelectedWorldId(worldId);
-              setIsCanvasInitialized(false); // Clear current Application state
-              setApplication(false);
+      predefinedWorldIds.forEach(worldId => {
+        const listItem = document.createElement('li');
+        listItem.textContent = worldId;
 
-              setTimeout(() => setApplication(true), 200); // Reinitialize Application with new worldId
-            }
-          };
-          worldList.appendChild(listItem);
+        // If a world is already selected, add .disabled class to others
+        if (selectedWorldId && selectedWorldId !== worldId) {
+          listItem.classList.add('disabled');
+        }
+
+        // Add .selected class to the currently selected world
+        if (selectedWorldId === worldId) {
+          listItem.classList.add('selected');
+        }
+
+        // Only allow selection if no world is already selected
+        listItem.onclick = () => {
+          if (!selectedWorldId) {
+            setSelectedWorldId(worldId);
+            setIsCanvasInitialized(false);
+            setApplication(false);
+            setTimeout(() => setApplication(true), 0);
+          }
+        };
+
+        worldList.appendChild(listItem);
         });
       }
     }

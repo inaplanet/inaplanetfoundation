@@ -553,16 +553,16 @@ export default class Controls extends EventEmitter
                 switchButton.style.backdropFilter = 'blur(5px)';
 
                 // Hide elements
-                targetPlayerId.style.display = 'none';
-                inviteButton.style.display = 'none';
-                touchRadio.style.display = 'none';
-                touchMute.style.display = 'none';
-                touchSlider.style.display = 'none';
-                touchPrevious.style.display = 'none';
-                touchNext.style.display = 'none';
-                if (partyInfo) {
-                    partyInfo.style.display = 'none';
-                }
+                // targetPlayerId.style.display = 'none';
+                // inviteButton.style.display = 'none';
+                // touchRadio.style.display = 'none';
+                // touchMute.style.display = 'none';
+                // touchSlider.style.display = 'none';
+                // touchPrevious.style.display = 'none';
+                // touchNext.style.display = 'none';
+                // if (partyInfo) {
+                //     partyInfo.style.display = 'none';
+                // }
 
             }
         });
