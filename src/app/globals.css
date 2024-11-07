@@ -419,19 +419,26 @@ opacity: 0;
     justify-content: center;
 }
 
+.world-layer-container {
+  position: relative; /* Make sure this container is relative to the rest of the layout */
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
 #world-layer {
-  position: absolute;
-  top: 20%;
+  position: fixed;
+  top: 12%;
   left: 20px;
   width: 20%;
   background-color: rgba(255, 255, 255, 0.01); /* Semi-transparent background */
   padding: 20px;
-  border-radius: 10px;
+  border-radius: 20px;
   z-index: 100; /* Higher z-index to display on top */
   display: block; /* Initially hidden */
   box-shadow: 1px 1px 1px 1px rgba(255, 255, 255, 0.05);
   text-align: center;
-  max-height: 70%; /* Maximum height */
+  max-height: 60%;
   overflow-y: auto; /* Vertical scrolling */
   font-family: 'Orbitron', sans-serif;
 }
@@ -523,8 +530,15 @@ opacity: 0;
   background-color: hsla(239, 100%, 37%, 0.236);
   color: #777;
   cursor: not-allowed;
+  pointer-events: none;
 }
 
+#loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding-left: 10px; /* You can adjust the padding as needed */
+}
 
 .loading-layer {
   background-image: url('/images/mobile/worldmap.png'); 

@@ -305,7 +305,7 @@ const Application = ({ playerId, selectedWorldId, token }) => {
     /**
      * Set world
      */
-    setWorld(worldId)
+    setWorld(worldId, ws)
     {
         this.world = new World({
             config: this.config,
