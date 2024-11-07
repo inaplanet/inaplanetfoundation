@@ -129,7 +129,7 @@ export default function Home() {
               setIsCanvasInitialized(false); // Clear current Application state
               setApplication(false);
 
-              setTimeout(() => setApplication(true), 0); // Reinitialize Application with new worldId
+              setTimeout(() => setApplication(true), 200); // Reinitialize Application with new worldId
             }
           };
           worldList.appendChild(listItem);
