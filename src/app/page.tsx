@@ -278,7 +278,10 @@ export default function Home() {
           console.log("Invalid counts in worldCounts message:", message.counts);
           return;
       }
-        updateWorldList(message.counts);
+        // Only update the world list if no world has been selected
+        if (!selectedWorldId) {
+          updateWorldList(message.counts);
+        }
         console.log("Received world counts:", message.counts);
 
       }
@@ -313,22 +316,25 @@ export default function Home() {
           listItem.classList.add('selected');
         }
 
-        // Allow selection if no world is already selected
+        // Allow selection only if no world is currently selected
         listItem.onclick = () => {
-          if (!selectedWorldId && !listItem.classList.contains('disabled')) {
-            setSelectedWorldId(worldId);
-            setIsCanvasInitialized(false);
-            setApplication(false);
-            setTimeout(() => setApplication(true), 50);
-            // Assuming wsRef is your WebSocket reference
-            if (wsRef.current && application) {
-              // Close the WebSocket connection when the application is initialized
-              console.log("Closing WebSocket as application is initialized");
-              wsRef.current.close();
-            }
-          }
-        };
+          if (!selectedWorldId) {
+              setSelectedWorldId(worldId);
+              setIsCanvasInitialized(false);
+              setApplication(false);
+              setTimeout(() => setApplication(true), 50);
 
+              // Disable all other items visually and clear their onclick events
+              Array.from(worldList.children).forEach((item) => {
+                  item.classList.add('disabled');
+                  item.classList.remove('selected');
+                  (item as HTMLElement).onclick = null; // Prevent further clicks
+              });
+
+              // Apply 'selected' class to the clicked item
+              listItem.classList.add('selected');
+          }
+      };
         worldList.appendChild(listItem);
       });
     }
@@ -346,6 +352,13 @@ export default function Home() {
       if (wsRef.current) wsRef.current.close(); // Clean up WebSocket connection on unmount
     };
   }, []); // Initialize once on mount
+
+  useEffect(() => {
+    if (selectedWorldId && wsRef.current) {
+      console.log("Closing WebSocket early due to world selection.");
+      wsRef.current.close();
+    }
+  }, [selectedWorldId]); // Close WebSocket as soon as a world is selected
 
   if (!isMounted) {
     // Return null on the server (or before the component is mounted on the client)
@@ -415,7 +428,7 @@ export default function Home() {
             </div>
 
             <div id="world-layer" className="world-layer-container">
-            <h1 style={{ paddingLeft: '15px', fontWeight: '700', fontFamily: 'Orbitron, sans-serif', opacity: '0.8', color: '#fff'}}>
+            <h1 style={{ paddingLeft: '15px', fontWeight: '500', fontFamily: 'Orbitron, sans-serif', color: '#fff'}}>
               
               {new Date().toLocaleString()}
               </h1>

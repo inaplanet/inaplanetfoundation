@@ -436,11 +436,12 @@ opacity: 0;
   border-radius: 20px;
   z-index: 100; /* Higher z-index to display on top */
   display: block; /* Initially hidden */
-  box-shadow: 1px 1px 1px 1px rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.05);
   text-align: center;
   max-height: 60%;
   overflow-y: auto; /* Vertical scrolling */
   font-family: 'Orbitron', sans-serif;
+  backdrop-filter: blur(5px);
 }
 
 .pulsing-message {
@@ -486,6 +487,7 @@ opacity: 0;
     max-height: 35%; /* Maximum height */
     overflow-y: auto; /* Vertical scrolling */
     font-family: 'Orbitron', sans-serif;
+    backdrop-filter: blur(5px);
   }
 }
 
@@ -510,6 +512,8 @@ opacity: 0;
   text-align: center;
   transition: background-color 0.2s ease;
   backdrop-filter: blur(5px);
+  box-shadow: 1px 0px 1px 0px rgba(255, 255, 255, 0.05);
+
 }
 
 /* Hover effect for selectable worlds */
