@@ -21,6 +21,7 @@ export default function Home() {
   const [isMounted, setIsMounted] = useState(false); // Track when the component is mounted
   const [currentTime, setCurrentTime] = useState(new Date());
   const [selectedWorldId, setSelectedWorldId] = useState<string | null>(null); // New state for selected world ID
+  const [isWorldSelected, setIsWorldSelected] = useState(false);
   const [token, setToken] = useState<string | null>(null); // State to store the token
   const [playerCount, setPlayerCount] = useState(0);
   const [ws, setWs] = useState<WebSocket | null>(null);
@@ -80,6 +81,9 @@ export default function Home() {
       // Set a flag to ensure the Application only initializes once
       setHasAppInitialized(true);
 
+      // Only initialize WebSocket once after wallet connects and app initializes
+      initializeWebSocket();
+
       // Fetch the token for the connected player
       getToken(address);
     }
@@ -107,158 +111,13 @@ export default function Home() {
     }
   }, [isConnected, hasAppInitialized]);
 
-  // useEffect(() => {
-  //   const interval = setInterval(() => {
-  //     setCurrentTime(new Date());  // Update time every second
-  //   }, 1000);
-
-  //   // Populate the world list once the component is mounted
-  //   if (isMounted) {
-  //     const worldList = document.getElementById('world-list');
-
-  //     if (worldList) {
-  //       const predefinedWorldIds = [
-  //         'Bangkok', 'New York', 'New Delhi', 'Mumbai', 'Tel Aviv',
-  //         'Tokyo', 'Munich', 'Florence', 'Beijing', 'Hong Kong',
-  //         'Seoul', 'Los Angeles', 'Paris', 'Las Vegas', 'Istanbul',
-  //         'Reykjavik', 'Doha', 'Lima', 'Singapore', 'Jakarta',
-  //         'Mexico', 'Madrid', 'Prague', 'Oslo', 'Buenos Aires',
-  //         'Budapest', 'Rio', 'Copenhagen', 'London', 'Dubai',
-  //         'Sydney', 'Accra', 'Hellsinki', 'Dublin', 'Lisbon',
-  //         'Zurich', 'Bogota', 'Melbourne', 'Nairobi', 'Stockholm',
-  //         'Vienna', 'Brussels', 'San Francisco', 'Geneva', 'Cannes',
-  //         'Berlin', 'Havana', 'Montreal', 'Antananarivo', 'Cape Town',
-  //         'Boston', 'Milan', 'Baku', 'Rome', 'Barcelona',
-  //         'Amsterdam', 'Athens', 'Monaco', 'Venice', 'Peru',
-  //         'Munchen'
-  //       ];
-
-  //       // Clear any existing list items
-  //       worldList.innerHTML = '';
-
-  //       // Create list items for each predefined world ID
-  //     predefinedWorldIds.forEach(worldId => {
-  //       const listItem = document.createElement('li');
-  //       listItem.textContent = worldId;
-
-  //       // If a world is already selected, add .disabled class to others
-  //       if (selectedWorldId && selectedWorldId !== worldId) {
-  //         listItem.classList.add('disabled');
-  //       }
-
-  //       // Add .selected class to the currently selected world
-  //       if (selectedWorldId === worldId) {
-  //         listItem.classList.add('selected');
-  //       }
-
-  //       // Only allow selection if no world is already selected
-  //       listItem.onclick = () => {
-  //         if (!selectedWorldId) {
-  //           setSelectedWorldId(worldId);
-  //           setIsCanvasInitialized(false);
-  //           setApplication(false);
-  //           setTimeout(() => setApplication(true), 0);
-  //         }
-  //       };
-
-  //       worldList.appendChild(listItem);
-  //       });
-  //     }
-  //   }
-
-  //   return () => clearInterval(interval);  // Cleanup on component unmount
-  // }, [isMounted, selectedWorldId]);
-
-  // useEffect(() => {
-  //   const interval = setInterval(() => {
-  //     setCurrentTime(new Date()); // Update time every second
-  //   }, 1000);
-  
-  //   const predefinedWorldIds = [
-  //     'Bangkok', 'New York', 'New Delhi', 'Mumbai', 'Tel Aviv',
-  //     'Tokyo', 'Munich', 'Florence', 'Beijing', 'Hong Kong',
-  //     'Seoul', 'Los Angeles', 'Paris', 'Las Vegas', 'Istanbul',
-  //     'Reykjavik', 'Doha', 'Lima', 'Singapore', 'Jakarta',
-  //     'Mexico', 'Madrid', 'Prague', 'Oslo', 'Buenos Aires',
-  //     'Budapest', 'Rio', 'Copenhagen', 'London', 'Dubai',
-  //     'Sydney', 'Accra', 'Hellsinki', 'Dublin', 'Lisbon',
-  //     'Zurich', 'Bogota', 'Melbourne', 'Nairobi', 'Stockholm',
-  //     'Vienna', 'Brussels', 'San Francisco', 'Geneva', 'Cannes',
-  //     'Berlin', 'Havana', 'Montreal', 'Antananarivo', 'Cape Town',
-  //     'Boston', 'Milan', 'Baku', 'Rome', 'Barcelona',
-  //     'Amsterdam', 'Athens', 'Monaco', 'Venice', 'Peru',
-  //     'Munchen'
-  //   ];
-  
-  //   const token = localStorage.getItem('token');
-  //   // Initialize WebSocket to fetch player count per world
-  //   const serverAddress = `wss://krashbox.glitch.me?token=${token}`;
-  //   const ws = new WebSocket(serverAddress)
-  
-  //   ws.onopen = () => {
-  //     console.log('WebSocket connected');
-  //     // Request player count for all worlds
-  //     ws.send(JSON.stringify({ type: 'worldCounts' }));
-  //   };
-
-  //   ws.onerror = (error) => {
-  //     console.error('WebSocket error:', error);
-  //   };
-  
-  //   ws.onmessage = (event) => {
-  //     const message = JSON.parse(event.data);
-  //     if (message.type === 'worldCounts') {
-  //       const { counts } = message; // e.g., { "Bangkok": 5, "New York": 8, ... }
-  //       const worldList = document.getElementById('world-list');
-  
-  //       if (worldList) {
-  //         // Clear existing list items
-  //         worldList.innerHTML = '';
-  
-  //         // Populate world list with player counts
-  //         predefinedWorldIds.forEach((worldId) => {
-  //           const listItem = document.createElement('li');
-  //           const playerCount = counts[worldId] || 0; // Default to 0 if no count available
-  
-  //           listItem.textContent = `${worldId} - ${playerCount}/20`;
-  
-  //           // If a world is already selected, add .disabled class to others
-  //           if (selectedWorldId && selectedWorldId !== worldId) {
-  //             listItem.classList.add('disabled');
-  //           }
-  
-  //           // Add .selected class to the currently selected world
-  //           if (selectedWorldId === worldId) {
-  //             listItem.classList.add('selected');
-  //           }
-  
-  //           // Only allow selection if no world is already selected
-  //           listItem.onclick = () => {
-  //             if (!selectedWorldId) {
-  //               setSelectedWorldId(worldId);
-  //               setIsCanvasInitialized(false);
-  //               setApplication(false);
-  //               setTimeout(() => setApplication(true), 50);
-  //             }
-  //           };
-  
-  //           worldList.appendChild(listItem);
-  //         });
-  //       }
-  //     }
-  //   };
-  
-  //   ws.onclose = () => {
-  //     console.log('WebSocket closed');
-  //   };
-  
-  //   return () => {
-  //     clearInterval(interval); // Cleanup interval on unmount
-  //     ws.close(); // Close WebSocket on component unmount
-  //   };
-  // }, [isMounted, selectedWorldId]);  
-
   const initializeWebSocket = () => {
+    if (wsRef.current) {
+      // Avoid reinitializing if already connected
+      console.log("WebSocket already initialized");
+      return;
+    }
+
     const token = localStorage.getItem('token');
     const serverAddress = `wss://krashbox.glitch.me?token=${token}`;
     wsRef.current = new WebSocket(serverAddress);
@@ -269,8 +128,6 @@ export default function Home() {
         wsRef.current?.send(JSON.stringify({ type: 'worldCounts' }));
       }, 1000);
     };
-
-    localStorage.removeItem('token');
 
     wsRef.current.onmessage = (event) => {
       const message = JSON.parse(event.data);
@@ -296,12 +153,17 @@ export default function Home() {
     wsRef.current.onclose = () => {
       console.log('WebSocket closed');
     };
+
+    localStorage.removeItem('token');
+
   };
 
   const updateWorldList = (counts: Record<string, number>) => {
     const worldList = document.getElementById('world-list');
     if (worldList) {
       worldList.innerHTML = ''; // Clear existing list items
+
+      console.log("Selected World ID:", selectedWorldId); // Log to verify it's set
 
       predefinedWorldIds.forEach((worldId) => {
         const listItem = document.createElement('li');
@@ -315,6 +177,7 @@ export default function Home() {
 
         // Highlight the selected world
         if (selectedWorldId === worldId) {
+          console.log(`Applying 'selected' class to world ID: ${worldId}`);
           listItem.classList.add('selected');
         }
 
@@ -322,19 +185,26 @@ export default function Home() {
         listItem.onclick = () => {
           if (!selectedWorldId) {
               setSelectedWorldId(worldId);
+              setIsWorldSelected(true); // Mark as selected by user
               setIsCanvasInitialized(false);
               setApplication(false);
-              setTimeout(() => setApplication(true), 50);
+              setTimeout(() => setApplication(true), 500);
 
               // Disable all other items visually and clear their onclick events
               Array.from(worldList.children).forEach((item) => {
                   item.classList.add('disabled');
-                  item.classList.remove('selected');
+                  item.classList.remove('selected'); // Remove 'selected' class from all other items
                   (item as HTMLElement).onclick = null; // Prevent further clicks
               });
 
               // Apply 'selected' class to the clicked item
               listItem.classList.add('selected');
+
+              // Close WebSocket on world selection
+              if (wsRef.current) {
+                console.log("Closing WebSocket as world is selected");
+                wsRef.current.close();
+              }
           }
       };
         worldList.appendChild(listItem);
@@ -347,18 +217,15 @@ export default function Home() {
       setCurrentTime(new Date());
     }, 1000);
 
-    initializeWebSocket(); // Initialize WebSocket when component mounts
-
     return () => {
       clearInterval(interval);
-      if (wsRef.current) wsRef.current.close(); // Clean up WebSocket connection on unmount
     };
   }, []); // Initialize once on mount
 
   useEffect(() => {
     if (selectedWorldId && wsRef.current) {
       console.log("Closing WebSocket early due to world selection.");
-      wsRef.current.close();
+      // wsRef.current.close();
     }
   }, [selectedWorldId]); // Close WebSocket as soon as a world is selected
 

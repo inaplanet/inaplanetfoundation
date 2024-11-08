@@ -526,7 +526,7 @@ opacity: 0;
 #world-list li.selected {
   background-color: #8CFF80;
   color: black;
-  cursor: default; /* Disable pointer */
+  /* cursor: default; Disable pointer */
 }
 
 /* Style for disabled worlds */
@@ -534,7 +534,7 @@ opacity: 0;
   background-color: hsla(239, 100%, 37%, 0.236);
   color: #777;
   cursor: not-allowed;
-  pointer-events: none;
+  /* pointer-events: none; */
 }
 
 #loading-container {
