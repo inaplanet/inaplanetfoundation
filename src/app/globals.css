@@ -517,20 +517,28 @@ opacity: 0;
 .content-container {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
+  gap: 10px;
 }
 
 /* Player count on the left with smaller font */
 .player-count {
   font-size: 12px;
   flex: 1;
-  text-align: left;
+  text-align: center;
+}
+
+/* Flag in the center */
+.flag {
+  font-size: 16px;
+  flex-shrink: 0;
+  text-align: center;
 }
 
 /* World ID in the center */
 .world-id {
   flex: 1;
-  text-align: right;
+  text-align: left;
   /* padding-right: 80px; */
   font-size: 15px;
 }
