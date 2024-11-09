@@ -25,6 +25,7 @@ export default function Home() {
   const [token, setToken] = useState<string | null>(null); // State to store the token
   const [playerCount, setPlayerCount] = useState(0);
   const [ws, setWs] = useState<WebSocket | null>(null);
+  const [isWebSocketReady, setIsWebSocketReady] = useState(false);
 
   const predefinedWorldIds = [
     'Bangkok', 'New York', 'New Delhi', 'Mumbai', 'Tel Aviv',
@@ -100,6 +101,8 @@ export default function Home() {
       // Only initialize WebSocket once after wallet connects and app initializes
       initializeWebSocket();
 
+      setIsWebSocketReady(true);
+
       // Fetch the token for the connected player
       getToken(address);
     }
@@ -172,80 +175,6 @@ export default function Home() {
     localStorage.removeItem('token');
 
   };
-
-  // const updateWorldList = (counts: Record<string, number>) => {
-  //   const worldList = document.getElementById('world-list');
-  //   if (worldList) {
-  //     worldList.innerHTML = ''; // Clear existing list items
-
-  //     predefinedWorldIds.forEach((worldId) => {
-  //       const listItem = document.createElement('li');
-
-  //       const playerCount = counts[worldId] || 0; // Default to 0 if no count available
-
-  //       // Create a container div for world ID and player count
-  //       const contentContainer = document.createElement('div');
-  //       contentContainer.classList.add('content-container');
-
-  //       // Create and style player count div
-  //       const playerCountDiv = document.createElement('div');
-  //       playerCountDiv.textContent = `${playerCount}/20`;
-  //       playerCountDiv.classList.add('player-count');
-
-  //       // Create and style world ID div
-  //       const worldIdDiv = document.createElement('div');
-  //       worldIdDiv.textContent = worldId;
-  //       worldIdDiv.classList.add('world-id');
-
-  //       // Append playerCountDiv and worldIdDiv to the container
-  //       contentContainer.appendChild(playerCountDiv);
-  //       contentContainer.appendChild(worldIdDiv);
-
-  //       // Append the container to the list item
-  //       listItem.appendChild(contentContainer);
-
-  //       // Disable other worlds if one is already selected
-  //       if (selectedWorldId && selectedWorldId !== worldId) {
-  //         listItem.classList.add('disabled');
-  //       }
-
-  //       // Highlight the selected world
-  //       if (selectedWorldId === worldId) {
-  //         console.log(`Applying 'selected' class to world ID: ${worldId}`);
-  //         listItem.classList.add('selected');
-  //       }
-
-  //       // Allow selection only if no world is currently selected
-  //       listItem.onclick = () => {
-  //         if (!selectedWorldId) {
-  //             setSelectedWorldId(worldId);
-  //             setIsWorldSelected(true); // Mark as selected by user
-  //             setIsCanvasInitialized(false);
-  //             setApplication(false);
-  //             setTimeout(() => setApplication(true), 500);
-
-  //             // Disable all other items visually and clear their onclick events
-  //             Array.from(worldList.children).forEach((item) => {
-  //                 item.classList.add('disabled');
-  //                 item.classList.remove('selected'); // Remove 'selected' class from all other items
-  //                 (item as HTMLElement).onclick = null; // Prevent further clicks
-  //             });
-
-  //             // Apply 'selected' class to the clicked item
-  //             listItem.classList.remove('disabled');
-  //             listItem.classList.add('selected');
-
-  //             // Close WebSocket on world selection
-  //             if (wsRef.current) {
-  //               console.log("Closing WebSocket as world is selected");
-  //               wsRef.current.close();
-  //             }
-  //         }
-  //     };
-  //       worldList.appendChild(listItem);
-  //     });
-  //   }
-  // };
 
   const updateWorldList = (counts: Record<string, number>) => {
     const worldList = document.getElementById('world-list');
@@ -407,7 +336,13 @@ export default function Home() {
               
                 
             </div>
-
+            {/* Show pulsing message while setting up WebSocket */}
+            {!isWebSocketReady ? (
+              <div id="world-layer">
+                  <h1 className="server-message">Setting up servers...</h1>
+                </div>
+            ) : (
+            <>
             <div id="world-layer">
             <h1 style={{ fontSize: '15px', fontWeight: '500', fontFamily: 'Orbitron, sans-serif', color: '#fff', textAlign: 'center'}}>
               {new Date().toLocaleString()}
@@ -417,6 +352,8 @@ export default function Home() {
                       <ul id="world-list"></ul>
                     </div>
                     </div>
+                    </>
+                        )}
         </div>
       )}
 

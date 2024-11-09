@@ -821,20 +821,23 @@ export default class
                                 break;
 
                             case 'checkBattery':
-                                const car = this.otherPlayers[message.carId];
+                                // const car = this.otherPlayers[message.carId];
+                                const car = playerCar
                         
                                 if (car && message.battery <= 0) {
                                     // Update non-collidable cars since battery is zero
                                     this.physics.updateNonCollidableCars(car, Object.values(this.otherPlayers));
+                                    console.log("Non collidable cars", this.physics.nonCollidableCars)
                         
                                     // Trigger crash effect and put the car to sleep (optional, based on desired behavior)
-                                    car.createCrashEffect(car.chassis.object.position, car.chassis.object.quaternion);
-                        
+                                    if (typeof car.createCrashEffect === 'function') {
+                                        car.createCrashEffect(car.chassis.object.position, car.chassis.object.quaternion);
+                                    }
                                     // Set a timeout to recreate the car after 5 seconds
                                     setTimeout(() => {
                                         car.recreate(); // Recreate the car
                                         car.battery = 100; // Reset battery after recreation
-                                    }, 5000); // 5 seconds delay
+                                    }, 15000); // 5 seconds delay
                                 }
                                 break;
         

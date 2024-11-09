@@ -430,6 +430,13 @@ opacity: 0;
   align-items: center;
 }
 
+.server-message {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  animation: pulse 1.5s infinite;
+}
+
 .pulsing-message h2 {
   animation: pulse 1.5s infinite;
   color: #ffffff;
