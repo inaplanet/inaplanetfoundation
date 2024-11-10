@@ -822,7 +822,7 @@ export default class
 
                             case 'checkBattery':
                                 // const car = this.otherPlayers[message.carId];
-                                const car = playerCar
+                                const car = this.otherPlayers[message.playerId]
                         
                                 if (car && message.battery <= 0) {
                                     // Update non-collidable cars since battery is zero
