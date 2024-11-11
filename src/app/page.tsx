@@ -31,24 +31,24 @@ export default function Home() {
   const retryDelay = 2000; // Delay between retries (ms)
 
   const predefinedWorldIds = [
-    'Bangkok', 'New York', 'New Delhi', 'Mumbai', 'Tel Aviv',
-    'Tokyo', 'Munich', 'Florence', 'Beijing', 'Hong Kong',
+    'Baku', 'New York', 'Tokyo', 'Rome', 'Tel Aviv',
+    'New Delhi', 'Munich', 'Florence', 'Beijing', 'Hong Kong',
     'Seoul', 'Los Angeles', 'Paris', 'Las Vegas', 'Istanbul',
-    'Reykjavik', 'Doha', 'Lima', 'Singapore', 'Jakarta',
+    'Reykjavik', 'Doha', 'Moscow', 'Singapore', 'Jakarta',
     'Mexico', 'Madrid', 'Prague', 'Oslo', 'Buenos Aires',
     'Budapest', 'Rio', 'Copenhagen', 'London', 'Dubai',
     'Sydney', 'Accra', 'Hellsinki', 'Dublin', 'Lisbon',
     'Zurich', 'Bogota', 'Melbourne', 'Nairobi', 'Stockholm',
     'Vienna', 'Brussels', 'San Francisco', 'Geneva', 'Cannes',
     'Berlin', 'Havana', 'Montreal', 'Antananarivo', 'Cape Town',
-    'Boston', 'Milan', 'Baku', 'Rome', 'Barcelona',
+    'Boston', 'Milan', 'Bangkok', 'Mumbai', 'Barcelona',
     'Amsterdam', 'Athens', 'Monaco', 'Venice', 'Peru',
-    'Munchen'
+    'Kyiv'
   ];
 
   const worldIcons = [
-    '🇹🇭', '🇺🇸', '🇮🇳', '🇮🇳', '🇮🇱',
-    '🇯🇵', '🇩🇪', '🇮🇹', '🇨🇳', '🇨🇳',
+    '🇦🇿', '🇺🇸', '🇯🇵', '🇮🇹', '🇮🇱',
+    '🇮🇳', '🇩🇪', '🇮🇹', '🇨🇳', '🇨🇳',
     '🇰🇷', '🇺🇸', '🇫🇷', '🇺🇸', '🇹🇷',
     '🇮🇸', '🇶🇦', '🇷🇺', '🇸🇬', '🇮🇩',
     '🇲🇽', '🇪🇸', '🇨🇿', '🇳🇴', '🇦🇷',
@@ -57,9 +57,9 @@ export default function Home() {
     '🇨🇭', '🇨🇴', '🇦🇺', '🇰🇪', '🇸🇪',
     '🇦🇹', '🇧🇪', '🇺🇸', '🇨🇭', '🇫🇷',
     '🇩🇪', '🇨🇺', '🇨🇦', '🇲🇬', '🇿🇦',
-    '🇺🇸', '🇮🇹', '🇦🇿', '🇮🇹', '🇪🇸',
+    '🇺🇸', '🇮🇹', '🇹🇭', '🇮🇳', '🇪🇸',
     '🇳🇱', '🇬🇷', '🇲🇨', '🇮🇹', '🇵🇪',
-    '🇩🇪'
+    '🇺🇦'
   ];
 
   // Function to get token from the server
