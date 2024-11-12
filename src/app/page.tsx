@@ -420,19 +420,8 @@ export default function Home() {
                             <div id="garage-popup" className="garage-popup">
                               {/* Close Button */}
                               <button className="close-button" onClick={() => setPopupGarage(false)}>X</button>
-
-                                <div className="circle-menu">
-                                    <div className="menu-section section1">Chassis</div>
-                                    <div className="menu-section section2">Window</div>
-                                    <div className="menu-section section3">Tire</div>
-                                    <div className="menu-section section4">Plate</div>
-                                    <div className="menu-section section5">Wiper</div>
-                                    <div className="menu-section section6">Weapon</div>
-                                    <div className="menu-section section7">Armor</div>
-                                    <div className="menu-section section8">Headlight</div>
-                                </div>
                                 <div className="car-model">
-                                    <div id="car-model-placeholder">3D Model</div>
+                                    <div id="car-model-placeholder">Cybertruck</div>
                                 </div>
                             </div>
                         )}
