@@ -455,7 +455,7 @@ opacity: 0;
 
 #world-layer {
   position: fixed;
-  top: 11%;
+  top: 20%;
   left: 20px;
   width: 22%;
   /* background-color: rgba(255, 255, 255, 0.01); */
@@ -464,7 +464,7 @@ opacity: 0;
   z-index: 100; /* Higher z-index to display on top */
   display: block; /* Initially hidden */
   text-align: center;
-  max-height: 81%;
+  max-height: 75%;
   overflow-y: auto; /* Vertical scrolling */
   font-family: 'Orbitron', sans-serif;
   backdrop-filter: blur(5px);
@@ -603,9 +603,42 @@ opacity: 0;
   box-shadow: 0px 5px 10px -4px rgba(0,0,0,0.2);
 }
 
+#worldclock {
+  position: fixed;
+  top: 14%;
+  left: 20px;
+  width: 22%;
+  /* background-color: rgba(255, 255, 255, 0.01); */
+  padding: 0 20px 0 20px;
+  border-radius: 20px;
+  z-index: 100; /* Higher z-index to display on top */
+  display: block; /* Initially hidden */
+  text-align: center;
+  overflow-y: auto; /* Vertical scrolling */
+  font-family: 'Orbitron', sans-serif;
+  box-sizing: border-box;
+}
+@media (max-width: 767px) {
+  #worldclock {
+    position: fixed;
+    top: 11%;
+    left: 0px;
+    width: 100%;
+    /* background-color: rgba(255, 255, 255, 0.01); */
+    padding: 0 20px 0 20px;
+    border-radius: 20px;
+    z-index: 100; /* Higher z-index to display on top */
+    display: block; /* Initially hidden */
+    text-align: center;
+    overflow-y: auto; /* Vertical scrolling */
+    font-family: 'Orbitron', sans-serif;
+    box-sizing: border-box;
+  }
+}
+
 #world-list {
   list-style-type: none;
-  margin-top: 15px;
+  /* margin-top: 15px; */
   font-size: 12px;
   max-height: calc(62% - 40px); /* Adjusted to account for header height */
   overflow-y: auto; /* Enables scrolling */
