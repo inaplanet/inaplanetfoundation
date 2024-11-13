@@ -15,11 +15,5 @@ const config: Config = {
     },
   },
   plugins: [],
-    "compilerOptions": {
-      "skipLibCheck": true,
-      "moduleResolution": "node",
-      "esModuleInterop": true,
-      "allowSyntheticDefaultImports": true
-    }
 };
 export default config;
