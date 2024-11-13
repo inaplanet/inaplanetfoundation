@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import { SVGLoader } from 'three/examples/jsm/loaders/SVGLoader';
 
 export default function GaragePage() {
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -67,7 +68,7 @@ export default function GaragePage() {
                     
                     if (partName === 'chassis') {
                         applyMatcap(part, 'elevator');
-                        addCustomizationPoint(part, partName);
+                        addArrowCustomizationPoint(part, '/garage/arrow.svg');
                     }
 
                     carGroupRef.current.add(part);
@@ -91,23 +92,52 @@ export default function GaragePage() {
 
         loadCar(currentCarIndex);
 
-        const addCustomizationPoint = (part: THREE.Object3D, partName: string) => {
-            const sphere = new THREE.Mesh(
-                new THREE.SphereGeometry(0.1, 16, 16),
-                new THREE.MeshBasicMaterial({ color: 0xff0000 })
-            )
-            sphere.position.set(0, 0, 1.5);
-            sphere.name = `${partName}_customization`;
-
-            const animatePulsate = () => {
-                requestAnimationFrame(animatePulsate);
-                sphere.scale.setScalar(Math.sin(Date.now() * 0.005) * 0.3 + 1);
-            };
-            animatePulsate();
-
-            sphere.userData = { partName };
-            part.add(sphere);
-            customizationPoints.current.push(sphere);
+        const addArrowCustomizationPoint = (part: THREE.Object3D, svgPath: string) => {
+            const loader = new SVGLoader();
+        
+            loader.load(svgPath, (data) => {
+                const paths = data.paths;
+                const group = new THREE.Group();
+        
+                // Extrusion settings for depth
+                const extrudeSettings = {
+                    depth: 2,
+                    bevelEnabled: false,
+                };
+        
+                paths.forEach((path) => {
+                    const shapes = SVGLoader.createShapes(path);
+                    shapes.forEach((shape) => {
+                        const material = new THREE.MeshBasicMaterial({
+                            color: 0xffffff,
+                            wireframe: true,
+                            side: THREE.DoubleSide,
+                        });
+        
+                        const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+                        const mesh = new THREE.Mesh(geometry, material);
+        
+                        // Set position and scale for visibility
+                        mesh.position.set(0, 0, 0.1);
+                        mesh.scale.set(0.02, 0.02, 0.02);
+        
+                        mesh.userData.partName = part.name; // Set partName based on part
+                        customizationPoints.current.push(mesh);
+                        group.add(mesh);
+                    });
+                });
+        
+                group.position.set(0, 0, 1.5);
+                group.rotation.y = Math.PI / 2;
+                part.add(group);
+        
+                const animatePulsate = () => {
+                    requestAnimationFrame(animatePulsate);
+                    const scale = Math.sin(Date.now() * 0.003) * 0.3 + 0.7;
+                    group.scale.set(scale, scale, scale);
+                };
+                animatePulsate();
+            });
         };
 
         const animate = () => {
@@ -126,16 +156,16 @@ export default function GaragePage() {
 
         const handleMouseClick = (event: MouseEvent) => {
             if (!canvasRef.current) return;
-
+        
             mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
             mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-
+        
             raycaster.setFromCamera(mouse, camera);
             const intersects = raycaster.intersectObjects(customizationPoints.current);
-
+        
             if (intersects.length > 0) {
                 const clickedPoint = intersects[0].object;
-                const partName = clickedPoint.userData.partName;
+                const partName = clickedPoint.userData.partName; // Fetch part name from userData
                 console.log("Customization point clicked for:", partName); // Debugging log
                 setSelectedPart(partName);
                 setShowMatcapMenu(true);
@@ -172,7 +202,6 @@ export default function GaragePage() {
 
     const handlePartCustomization = (matcapName: string) => {
         const texture = matcapTextures.current[matcapName];
-        
         if (!texture) {
             console.warn("Matcap texture not found:", matcapName);
             return;
@@ -193,8 +222,8 @@ export default function GaragePage() {
                     console.log(`Applying matcap texture to ${child.name}`); // Confirm specific part
     
                     child.material = new THREE.MeshMatcapMaterial({ matcap: texture });
-                    child.material.needsUpdate = true; // Ensure the material is updated
-                    console.log(`Updated ${child.name} with ${matcapName} matcap`); // Final confirmation
+                    child.material.needsUpdate = true;
+                    console.log(`Updated ${child.name} with ${matcapName} matcap`);
                 }
             }
         });
@@ -203,7 +232,7 @@ export default function GaragePage() {
     };
 
     return (
-        <div style={{ position: 'relative', width: '100vw', height: '100vh' }}>
+        <div style={{ position: 'relative', width: '100%', height: '100%' }}>
             <canvas ref={canvasRef} style={{ width: '100%', height: '100%' }} />
 
             <div style={{ position: 'absolute', top: '50%', left: '10%', transform: 'translateY(-50%)' }}>
