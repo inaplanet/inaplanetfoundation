@@ -252,7 +252,7 @@ export default function GaragePage() {
                     color: '#fff',
                 }}
             >
-                <h3>Car {currentCarIndex + 1}</h3>
+                <h3>Cybertruck {currentCarIndex + 1}</h3>
                 <button onClick={handleCarClick}>Customize</button>
             </div>
 
