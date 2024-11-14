@@ -17,10 +17,14 @@ export default function GaragePage() {
 
     const carModels = [
         { 
-            chassis: '/models/car/default/chassis.glb', 
+            chassisbottom: '/models/car/default/chassisbottom.glb',
+            chassis: '/models/car/default/chassisbody.glb',
+            bumper: '/models/car/default/bumper.glb',
+            spoiler: '/models/car/default/spoiler.glb',
+            window: '/models/car/default/window.glb',
             wheels: '/models/car/default/wheels.glb', 
             tire: '/models/car/default/tire.glb', 
-            antena: '/models/car/default/antena.glb' 
+            antena: '/models/car/default/antena.glb'
         },
     ];
 
@@ -29,11 +33,12 @@ export default function GaragePage() {
     const mouse = new THREE.Vector2();
     const customizationPoints = useRef<THREE.Mesh[]>([]);
     const matcapTextures = useRef<{ [key: string]: THREE.Texture }>({});
-    const svgIcons: { chassis: string; wheels: string; tire: string } = {
+    const svgIcons = {
         chassis: '/garage/chassis.svg',
         wheels: '/garage/wheel.svg',
-        tire: '/garage/rocket.svg'
+        tire: '/garage/rocket.svg',
     };
+    
 
     // Load matcap textures
     useEffect(() => {
@@ -101,13 +106,18 @@ export default function GaragePage() {
                     
                     if (partName === 'chassis') {
                         applyMatcap(part, 'elevator');
-                        // addArrowCustomizationPoint(part, '/garage/chassis.svg');
                     } else if (partName === 'wheels') {
                         applyMatcap(part, 'elevator');
-                        // addWheelCustomizationPoint(part, '/garage/arrow.svg'); 
                     } else if (partName === 'tire') {
                         applyMatcap(part, 'black');
-                        // addTireCustomizationPoint(part, '/garage/arrow.svg')
+                    } else if (partName === 'chassisbottom') {
+                        applyMatcap(part, 'black');
+                    } else if (partName === 'bumper') {
+                        applyMatcap(part, 'black');
+                    } else if (partName === 'spoiler') {
+                        applyMatcap(part, 'black');
+                    } else if (partName === 'window') {
+                        applyMatcap(part, 'black');
                     }
     
                     carGroupRef.current.add(part);
@@ -259,10 +269,10 @@ export default function GaragePage() {
         <div style={{ position: 'relative', width: '100%', height: '100%' }}>
             <canvas ref={canvasRef} style={{ width: '100%', height: '100%' }} />
 
-            <div style={{ position: 'absolute', bottom: '21%', left: '10%', transform: 'translateY(-50%)' }}>
+            <div style={{ position: 'absolute', bottom: '15%', left: '10%', transform: 'translateY(-50%)' }}>
                 <button onClick={handlePreviousCar}>←</button>
             </div>
-            <div style={{ position: 'absolute', bottom: '21%', right: '10%', transform: 'translateY(-50%)' }}>
+            <div style={{ position: 'absolute', bottom: '15%', right: '10%', transform: 'translateY(-50%)' }}>
                 <button onClick={handleNextCar}>→</button>
             </div>
 
