@@ -33,12 +33,22 @@ export default function GaragePage() {
     const mouse = new THREE.Vector2();
     const customizationPoints = useRef<THREE.Mesh[]>([]);
     const matcapTextures = useRef<{ [key: string]: THREE.Texture }>({});
-    const svgIcons = {
+    // const svgIcons = {
+    //     chassis: '/garage/chassis.svg',
+    //     wheels: '/garage/wheel.svg',
+    //     tire: '/garage/rocket.svg',
+    // };
+
+    const svgIcons: { [key: string]: string } = {
+        chassisbottom: '/garage/chassisbottom.svg',
         chassis: '/garage/chassis.svg',
+        bumper: '/garage/chassisbottom.svg',
+        spoiler: '/garage/chassisbottom.svg',
+        window: '/garage/chassisbottom.svg',
         wheels: '/garage/wheel.svg',
-        tire: '/garage/rocket.svg',
-    };
-    
+        tire: '/garage/chassisbottom.svg',
+        antena: '/garage/chassisbottom.svg',
+    };    
 
     // Load matcap textures
     useEffect(() => {
@@ -105,7 +115,7 @@ export default function GaragePage() {
                     part.name = partName;
                     
                     if (partName === 'chassis') {
-                        applyMatcap(part, 'elevator');
+                        applyMatcap(part, 'blueGlass');
                     } else if (partName === 'wheels') {
                         applyMatcap(part, 'elevator');
                     } else if (partName === 'tire') {
@@ -217,7 +227,7 @@ export default function GaragePage() {
             // Apply the texture only to chassis
             carGroupRef.current.traverse((child) => {
                 console.log("Checking child for chassis:", child.name); // Debugging log
-                if (child instanceof THREE.Mesh && child.name === 'shadeelevator') {
+                if (child instanceof THREE.Mesh && child.name === 'shadeTransparentLand003') {
                     console.log(`Applying matcap texture to chassis: ${child.name}`);
                     child.material = new THREE.MeshMatcapMaterial({ matcap: texture });
                     child.material.needsUpdate = true;
@@ -296,14 +306,17 @@ export default function GaragePage() {
                 <div
                     style={{
                         position: 'absolute',
-                        bottom: '10%',
+                        bottom: '7%',
                         left: '50%',
                         transform: 'translateX(-50%)',
                         display: 'flex',
                         gap: '20px',
-                        backgroundColor: '#333',
+                        backgroundColor: '#0213f7',
                         padding: '10px',
                         borderRadius: '8px',
+                        overflowX: 'auto',
+                        maxWidth: '90%', // Restrict the menu width and make it scrollable
+                        alignItems: 'center',
                     }}
                 >
                     {Object.keys(svgIcons).map((partName) => (
@@ -322,8 +335,8 @@ export default function GaragePage() {
                                 padding: '5px',
                             }}
                         >
-                        <img src={svgIcons[partName as keyof typeof svgIcons]} alt={`${partName} icon`} style={{ width: '100%' }} />
-                        </button>
+                    <img src={svgIcons[partName]} alt={`${partName} icon`} style={{ width: '50%' }} />
+                    </button>
                     ))}
                 </div>
             )}
