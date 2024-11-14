@@ -72,20 +72,20 @@ export default function GaragePage() {
         };
     
         // Load and add the static gas station model
-        const loader = new GLTFLoader();
-        loader.load('/garage/gasstation.glb', (gltf) => {
-            const gasStation = gltf.scene;
+        // const loader = new GLTFLoader();
+        // loader.load('/garage/gasstation.glb', (gltf) => {
+        //     const gasStation = gltf.scene;
 
-            gasStation.position.set(1.5, 0, -0.1);
-            gasStation.rotation.x = Math.PI / 2;
-            gasStation.rotation.y = Math.PI;
-            // gasStation.rotation.z = Math.PI;
+        //     gasStation.position.set(1.5, 0, -0.1);
+        //     gasStation.rotation.x = Math.PI / 2;
+        //     gasStation.rotation.y = Math.PI;
+        //     // gasStation.rotation.z = Math.PI;
 
-            gasStation.scale.set(1, 1, 1);
+        //     gasStation.scale.set(1, 1, 1);
 
-            // Add gas station directly to the scene so it stays fixed
-            scene.add(gasStation);
-        });
+        //     // Add gas station directly to the scene so it stays fixed
+        //     scene.add(gasStation);
+        // });
     
         // Initialize carGroup and load car parts
         carGroupRef.current = new THREE.Group();
