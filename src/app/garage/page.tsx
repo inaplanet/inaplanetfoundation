@@ -46,12 +46,12 @@ export default function GaragePage() {
     const svgIcons: { [key: string]: string } = {
         chassis: '/garage/chassis.svg',
         chassisbottom: '/garage/chassisbottom.svg',
-        bumper: '/garage/frame.svg',
-        spoiler: '/garage/frame.svg',
+        // bumper: '/garage/frame.svg',
+        spoiler: '/garage/spoiler.svg',
         window: '/garage/window.svg',
         wheels: '/garage/wheel.svg',
-        tire: '/garage/frame.svg',
-        antena: '/garage/frame.svg',
+        // tire: '/garage/frame.svg',
+        // antena: '/garage/frame.svg',
     };    
 
     // Load matcap textures
@@ -121,7 +121,7 @@ export default function GaragePage() {
                     if (partName === 'chassis') {
                         applyMatcap(part, 'blueGlass');
                     } else if (partName === 'wheels') {
-                        applyMatcap(part, 'elevator');
+                        applyMatcap(part, 'metal');
                     } else if (partName === 'tire') {
                         applyMatcap(part, 'black');
                     } else if (partName === 'chassisbottom') {

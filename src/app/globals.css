@@ -1382,7 +1382,7 @@ opacity: 0;
 /* Customization Menu Container */
 .customization-menu {
   position: absolute;
-  bottom: 5%;
+  bottom: 7%;
   left: 50%;
   transform: translateX(-50%);
   width: 100%;
