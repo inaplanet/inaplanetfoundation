@@ -22,12 +22,31 @@ export default function GaragePage() {
     const [currentCarIndex, setCurrentCarIndex] = useState(0);
     const [isOrbitEnabled, setIsOrbitEnabled] = useState(false);
     const [showCustomizationMenu, setShowCustomizationMenu] = useState(false);
-    const [view, setView] = useState<'car' | 'rocket'>('car'); // Default to 'car'
+    const [view, setView] = useState<'car' | 'rocket' | 'showroom'>('car');
     const [showMatcapMenu, setShowMatcapMenu] = useState(false);
     const [selectedPart, setSelectedPart] = useState<string | null>(null);
     const cameraRef = useRef<THREE.PerspectiveCamera | null>(null); // Reference for camera
 
-    const toggleView = (selectedView: 'car' | 'rocket') => {
+    const cars = [
+        {
+            name: 'Kybertruck',
+            price: 1000,
+            parts: {
+                chassisbottom: '/models/car/default/chassisbottom.glb',
+                chassis: '/models/car/default/chassisbody.glb',
+                bumper: '/models/car/default/bumper.glb',
+                spoiler: '/models/car/default/spoiler.glb',
+                window: '/models/car/default/window.glb',
+                wheels: '/models/car/default/wheels.glb',
+                tire: '/models/car/default/tire.glb',
+                antena: '/models/car/default/antena.glb',
+                rocket: '/models/rocket/base.glb',
+            },
+        },
+        // Add more cars here later
+    ];    
+
+    const toggleView = (selectedView: 'car' | 'rocket' | 'showroom') => {
         console.log('Toggling view to:', selectedView);
     
         setView(selectedView); // Update the state
@@ -59,6 +78,9 @@ export default function GaragePage() {
                     child.visible = true; // Show the rocket
                 }
             });
+        } else if (selectedView === 'showroom') {
+            // Handle showroom-specific logic if needed
+            console.log('Entering showroom view');
         }
     
         console.log('Rocket group visibility:', rocketGroupRef.current.children.map((c) => c.visible)); // Debug log
@@ -75,7 +97,7 @@ export default function GaragePage() {
         }
     }, [searchParams]); // Run when searchParams change
 
-    const carModels = [
+    const kybertruck = [
         { 
             chassisbottom: '/models/car/default/chassisbottom.glb',
             chassis: '/models/car/default/chassisbody.glb',
@@ -169,7 +191,7 @@ export default function GaragePage() {
             rocketGroupRef.current.clear();
 
             const loader = new GLTFLoader();
-            const carParts = carModels[index];
+            const carParts = kybertruck[index];
             const loadingPromises: Promise<THREE.Object3D>[] = [];
     
             Object.entries(carParts).forEach(([partName, partPath]) => {
@@ -291,12 +313,12 @@ export default function GaragePage() {
     }, [isOrbitEnabled]);
 
     const handleNextCar = () => {
-        setCurrentCarIndex((prevIndex) => (prevIndex + 1) % carModels.length);
+        setCurrentCarIndex((prevIndex) => (prevIndex + 1) % kybertruck.length);
         setIsOrbitEnabled(false);
     };
 
     const handlePreviousCar = () => {
-        setCurrentCarIndex((prevIndex) => (prevIndex - 1 + carModels.length) % carModels.length);
+        setCurrentCarIndex((prevIndex) => (prevIndex - 1 + kybertruck.length) % kybertruck.length);
         setIsOrbitEnabled(false);
     };
 
@@ -451,7 +473,7 @@ export default function GaragePage() {
                 {playerBalance} KRASH
             </div>
 
-            <div style={{ position: 'absolute', bottom: '100px', left: '50%', transform: 'translateX(-50%)', textAlign: 'center', color: '#fff', fontFamily: 'Orbitron' }}>
+            <div style={{ position: 'absolute', bottom: '50px', left: '50%', transform: 'translateX(-50%)', textAlign: 'center', color: '#fff', fontFamily: 'Orbitron' }}>
                 {view === 'car' && (
                     <h3 style={{ fontSize: '30px', textShadow: '2px 2px 4px rgba(0, 0, 0, 0.9)' }}>
                         Kybertruck
@@ -461,6 +483,12 @@ export default function GaragePage() {
                     <h3 style={{ fontSize: '30px', textShadow: '2px 2px 4px rgba(0, 0, 0, 0.9)' }}>
                         Venerium
                     </h3>
+                )}
+                {view === 'showroom' && (
+                    <h3 style={{ fontSize: '30px', textShadow: '2px 2px 4px rgba(0, 0, 0, 0.9)' }}>
+                        Showroom
+                    </h3>
+
                 )}
                 <div style={{ display: 'flex', gap: '20px', justifyContent: 'center' }}>
                     <button
@@ -494,8 +522,71 @@ export default function GaragePage() {
                     >
                         WEAPON
                     </button>
+                    <button
+                        style={{
+                            padding: '20px 0',
+                            animation: 'pulse 1.5s infinite',
+                            textShadow: '2px 2px 4px rgba(0, 0, 0, 0.9)',
+                            color: '#fff',
+                            borderRadius: '8px',
+                            cursor: 'pointer',
+                        }}
+                        // onClick={() => toggleView('showroom')}
+                    >
+                        SHOWROOM
+                    </button>
                 </div>
             </div>
+
+            {view === 'showroom' && (
+                <div
+                    style={{
+                        position: 'absolute',
+                        top: '20%',
+                        left: '50%',
+                        transform: 'translateX(-50%)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: '20px',
+                        color: '#fff',
+                        fontFamily: 'Orbitron, sans-serif',
+                    }}
+                >
+                    {cars.map((car) => (
+                        <div
+                            key={car.name}
+                            style={{
+                                background: 'rgba(255, 255, 255, 0.2)',
+                                padding: '20px',
+                                borderRadius: '10px',
+                                boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
+                                backdropFilter: 'blur(10px)',
+                                border: '1px solid rgba(255, 255, 255, 0.3)',
+                                width: '300px',
+                                textAlign: 'center',
+                            }}
+                        >
+                            <h4>{car.name}</h4>
+                            <p>Price: {car.price} KRASH</p>
+                            <button
+                                style={{
+                                    marginTop: '10px',
+                                    padding: '10px 20px',
+                                    borderRadius: '8px',
+                                    background: '#18ff00',
+                                    color: '#000',
+                                    fontWeight: 'bold',
+                                    cursor: 'pointer',
+                                }}
+                                onClick={() => console.log(`Car selected: ${car.name}`)}
+                            >
+                                SELECT
+                            </button>
+                        </div>
+                    ))}
+                </div>
+            )}
 
             {/* Customization Menu */}
             {showCustomizationMenu && (
