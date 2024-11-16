@@ -26,13 +26,29 @@ export default function GaragePage() {
     const [view, setView] = useState<'menu' | 'car' | 'rocket' | 'showroom' | 'customize'>('menu');
     const [showMatcapMenu, setShowMatcapMenu] = useState(false);
     const [selectedPart, setSelectedPart] = useState<string | null>(null);
+    const [selectedCar, setSelectedCar] = useState<Car | null>(null);
+
     const cameraRef = useRef<THREE.PerspectiveCamera | null>(null); // Reference for camera
 
-    const cars = [
+    type Car = {
+        name: string;
+        price: number;
+        parts: {
+            chassisbottom: string;
+            chassis: string;
+            bumper: string;
+            spoiler: string;
+            window: string;
+            wheels: string;
+            tire: string;
+            antena: string;
+        };
+    };    
+
+    const cars: Car[] = [
         {
             name: 'Kybertruck',
             price: 1000,
-            image: '/garage/kybertruck.png',
             parts: {
                 chassisbottom: '/models/car/default/chassisbottom.glb',
                 chassis: '/models/car/default/chassisbody.glb',
@@ -42,13 +58,11 @@ export default function GaragePage() {
                 wheels: '/models/car/default/wheels.glb',
                 tire: '/models/car/default/tire.glb',
                 antena: '/models/car/default/antena.glb',
-                // rocket: '/models/rocket/base.glb',
             },
         },
         {
             name: 'Aventador',
             price: 500000,
-            image: '/garage/Aventador.png',
             parts: {
                 chassisbottom: '/models/car/default/chassisbottom.glb',
                 chassis: '/models/car/default/chassisbody.glb',
@@ -58,7 +72,6 @@ export default function GaragePage() {
                 wheels: '/models/car/default/wheels.glb',
                 tire: '/models/car/default/tire.glb',
                 antena: '/models/car/default/antena.glb',
-                // rocket: '/models/rocket/base.glb',
             },
         },
         // Add more cars here later
@@ -117,7 +130,7 @@ export default function GaragePage() {
             setView('rocket');
         } else if (selectedView === 'showroom') {
             // Clear previous showroom content and load fresh showroom cars
-            console.log('Loading showroom cars...');
+            console.log('Loading showroom cars...', showroomGroupRef.current );
 
             setIsOrbitEnabled(true);
     
@@ -212,7 +225,7 @@ export default function GaragePage() {
         scene.background = new THREE.Color('#0213f7'); // Updated background color
         cameraRef.current = new THREE.PerspectiveCamera(1.2, window.innerWidth / window.innerHeight, 0.1, 1000);
         cameraRef.current.position.set(0, -200, 1);
-    
+
         const renderer = new THREE.WebGLRenderer({ antialias: true, canvas: canvasRef.current });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(window.devicePixelRatio);
@@ -243,6 +256,12 @@ export default function GaragePage() {
 
         // Load assets
         const loadAssets = async () => {
+
+            if (!scene) {
+                console.error('Scene is not initialized yet.');
+                return;
+            }
+
             await Promise.all([loadCar(currentCarIndex), loadShowroomCar(cars), loadRocket()]);
             scene.add(carGroupRef.current);
             scene.add(rocketGroupRef.current);
@@ -418,7 +437,6 @@ export default function GaragePage() {
                     loader.load(partPath, (gltf) => {
                         const part = gltf.scene;
                         part.name = partName;
-
                         
                         if (partName === 'chassis') {
                             applyMatcap(part, 'volcano');
@@ -443,30 +461,91 @@ export default function GaragePage() {
             );
         
             await Promise.all(loadingPromises);
+
+            // Position the car in the center
+            carGroupRef.current.position.set(0, 0, -0.5);
+            // carGroupRef.current.scale.set(0.5, 0.5, 0.5); // Scale down the car if needed
+
+             // Adjust camera to look at the car
+            if (cameraRef.current) {
+                cameraRef.current.position.set(0, -200, 5); // Pull camera twice the distance out
+                cameraRef.current.lookAt(carGroupRef.current.position);
+            }
         };
     
-        const loadShowroomCar = async (cars: Array<{ name: string; parts: Record<string, string>; price: number }>) => {
-            showroomGroupRef.current.clear();
+        // const loadShowroomCar = async (cars: Array<{ name: string; parts: Record<string, string>; price: number }>) => {
+        //     showroomGroupRef.current.clear();
+        
+        //     const loader = new GLTFLoader();
+        
+        //     await Promise.all(
+        //         cars.map((car, i) =>
+        //             new Promise<void>((resolve) => {
+        //                 const carGroup = new THREE.Group();
+        //                 Object.entries(car.parts).forEach(([partName, partPath]) => {
+        //                     loader.load(partPath, (gltf) => {
+        //                         const part = gltf.scene;
+        //                         carGroup.add(part);
+        //                     });
+        //                 });
+        //                 carGroup.position.set(i * 10, 0, 0); // Position cars side by side
+        //                 showroomGroupRef.current.add(carGroup);
+        //                 resolve();
+        //             })
+        //         )
+        //     );
+        // };      
+
+        const loadShowroomCar = async (
+            cars: Array<{ name: string; parts: Record<string, string>; price: number }>
+        ) => {
+            showroomGroupRef.current.clear(); // Clear existing cars from the showroom
+
+            if (!scene) {
+                console.error('Scene is not initialized.');
+                return;
+            }
         
             const loader = new GLTFLoader();
         
             await Promise.all(
-                cars.map((car, i) =>
-                    new Promise<void>((resolve) => {
-                        const carGroup = new THREE.Group();
-                        Object.entries(car.parts).forEach(([partName, partPath]) => {
-                            loader.load(partPath, (gltf) => {
-                                const part = gltf.scene;
-                                carGroup.add(part);
+                cars.map(async (car, i) => {
+                    const carGroup = new THREE.Group(); // Create a group for the car
+        
+                    // Load all parts of the car
+                    await Promise.all(
+                        Object.entries(car.parts).map(([partName, partPath]) => {
+                            return new Promise<void>((resolve, reject) => {
+                                loader.load(
+                                    partPath,
+                                    (gltf) => {
+                                        const part = gltf.scene;
+                                        part.name = `${car.name}_${partName}`; // Set a unique name for each part
+                                        carGroup.add(part); // Add the part to the car group
+                                        resolve();
+                                    },
+                                    undefined,
+                                    (error) => {
+                                        console.error(`Failed to load ${partName} for ${car.name}:`, error);
+                                        reject(error);
+                                    }
+                                );
                             });
-                        });
-                        carGroup.position.set(i * 10, 0, 0); // Position cars side by side
-                        showroomGroupRef.current.add(carGroup);
-                        resolve();
-                    })
-                )
+                        })
+                    );
+        
+                    // Position the car group within the showroom
+                    carGroup.position.set(i * 10, 0, 0); // Position cars side-by-side
+                    carGroup.visible = i === 0; // Initially, only show the first car
+        
+                    // Add the car group to the showroom group
+                    showroomGroupRef.current.add(carGroup);
+                })
             );
-        };      
+        
+            // Add the showroom group to the scene
+            scene.add(showroomGroupRef.current);
+        };        
         
         const loadRocket = async () => {
             rocketGroupRef.current.clear();
@@ -490,15 +569,34 @@ export default function GaragePage() {
             });
         };
         
+        // const handleSliderChange = (index: number) => {
+        //     const selectedCar = cars[index];
+        //     if (selectedCar) {
+        //         setCurrentCarIndex(index); // Update the selected car index
+        //         renderCarInShowroom(selectedCar); // Dynamically render the selected car
+        //     }
+        // }; 
+        
+        const handleSliderChange = (index: number) => {
+            switchShowroomCar(index); // Toggle visibility of cars
+            setCurrentCarIndex(index); // Update the selected car index
+        };
 
     useEffect(() => {
         const loadAssets = async () => {
             await loadCar(currentCarIndex); // Load the dynamically selected car
             await loadShowroomCar(cars);   // Load all cars in the showroom
+            switchShowroomCar(0);
         };
 
         loadAssets();
     }, [currentCarIndex]);
+
+    const switchShowroomCar = (index: number) => {
+        showroomGroupRef.current.children.forEach((carGroup, i) => {
+            carGroup.visible = i === index; // Show the selected car, hide others
+        });
+    };    
 
     useEffect(() => {
         if (controlsRef.current) {
@@ -521,18 +619,32 @@ export default function GaragePage() {
         setShowCustomizationMenu(true);
     };
 
+    // const handleCarSelection = (carName: string) => {
+    //     const selectedCar = cars.find((car) => car.name === carName);
+    //     if (selectedCar) {
+    //         // loadCarParts(selectedCar.parts); // Load the selected car's parts
+    //         const carIndex = cars.indexOf(selectedCar);
+    //         setCurrentCarIndex(carIndex);
+    //         toggleView('car'); // Switch back to the car view
+    //     } else {
+    //         console.warn(`Car not found for name: ${carName}. Defaulting to Kybertruck.`);
+    //         setCurrentCarIndex(0); // Default to Kybertruck
+    //     }
+    // };
+
     const handleCarSelection = (carName: string) => {
         const selectedCar = cars.find((car) => car.name === carName);
         if (selectedCar) {
-            // loadCarParts(selectedCar.parts); // Load the selected car's parts
-            const carIndex = cars.indexOf(selectedCar);
-            setCurrentCarIndex(carIndex);
-            toggleView('car'); // Switch back to the car view
-        } else {
-            console.warn(`Car not found for name: ${carName}. Defaulting to Kybertruck.`);
-            setCurrentCarIndex(0); // Default to Kybertruck
+            setCurrentCarIndex(cars.indexOf(selectedCar));
+            renderCarInShowroom(selectedCar); // Render in showroom
         }
     };
+
+    const renderCarInShowroom = (car: Car) => {
+        setSelectedCar(car);
+        loadShowroomCar([car]); // Load only the selected car for showroom view
+    };
+    
 
     // Smooth camera transition function
     const smoothCameraTransition = (position: THREE.Vector3, lookAt: THREE.Vector3) => {
@@ -643,8 +755,10 @@ export default function GaragePage() {
 
     const sliderSettings = {
         arrows: true,         // No navigation dots
+        dots: false,
         infinite: true,      // Disable infinite loop
         speed: 500,           // Transition speed
+        lazyload: true,
         slidesToShow: 3,      // Show 3 icons per slide
         slidesToScroll: 1,    // Scroll 1 icon at a time
         responsive: [
@@ -668,9 +782,12 @@ export default function GaragePage() {
     const showroomSliderSettings = {
         arrows: true,         // No navigation dots
         infinite: true,      // Disable infinite loop
-        speed: 500,           // Transition speed
+        fade: true,
+        dots: false,
+        speed: 1000,           // Transition speed
         slidesToShow: 1,      // Show 3 icons per slide
         slidesToScroll: 1,    // Scroll 1 icon at a time
+        afterChange: handleSliderChange,
         responsive: [
             {
                 breakpoint: 768,
@@ -701,7 +818,7 @@ export default function GaragePage() {
             </div> */}
 
             <div className="coin-layer">
-                ❖ {playerBalance} ❖
+                {playerBalance} KRASH
             </div>
 
             <div
@@ -960,7 +1077,7 @@ export default function GaragePage() {
             )} */}
 
             {view === 'showroom' && (
-                <div
+                <div className='showroom-layer'
                     style={{
                         position: 'absolute',
                         bottom: '0',
@@ -970,11 +1087,11 @@ export default function GaragePage() {
                         boxShadow: "0px 0px 10px rgb(0, 0, 0, 0.5)",
                         padding: '30px',
                         backdropFilter: 'blur(5px)',
-                        borderRadius: '20px',
+                        borderRadius: '0px',
                         color: '#fff',
                         textAlign: 'center',
                         zIndex: 1000,
-                        width: '80%',
+                        maxWidth: '30%',
                     }}
                 >
                     <Slider {...showroomSliderSettings}>
@@ -992,7 +1109,6 @@ export default function GaragePage() {
                                     boxShadow: '0px 0px 10px rgba(255, 255, 255, 0.5)',
                                     cursor: 'pointer',
                                 }}
-                                onClick={() => handleCarSelection(car.name)}
                             >
                                 {/* Car Name and Price */}
                                 <h4 style={{ fontFamily: 'Orbitron', fontSize: '24px', marginBottom: '10px' }}>
@@ -1002,33 +1118,6 @@ export default function GaragePage() {
                                     {car.price} ❖
                                 </p>
                                 
-                                {/* Render Car in Slider */}
-                                {/* <div
-                                    style={{
-                                        width: '300px',
-                                        height: '200px',
-                                        backgroundColor: 'transparent',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        borderRadius: '10px',
-                                        backdropFilter: 'blur(5px)',
-                                        overflow: 'hidden',
-                                    }}
-                                > */}
-                                    {/* Render car image */}
-                                    {/* <img
-                                        src={car.image} // Use the car's image property
-                                        alt={car.name} // Set the alt text to the car's name
-                                        style={{
-                                            width: '100%',
-                                            height: '100%',
-                                            marginLeft: '25px',
-                                            objectFit: 'cover', // Ensure the image fits nicely within the container
-                                        }}
-                                    />
-                                </div> */}
-                                
                                 {/* Select Button */}
                                 <button
                                     style={{
@@ -1037,10 +1126,11 @@ export default function GaragePage() {
                                         color: '#fff',
                                         fontFamily: 'Orbitron',
                                         fontSize: '16px',
-                                        marginTop: '20px',
+                                        marginTop: '0px',
                                         cursor: 'pointer',
                                         animation: 'pulse 1.5s infinite'
                                     }}
+                                    onClick={() => handleCarSelection(car.name)}
                                 >
                                     SELECT
                                 </button>
