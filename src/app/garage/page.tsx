@@ -645,7 +645,7 @@ export default function GaragePage() {
             await loadCar(currentCarIndex); // Load the dynamically selected car
             await loadShowroomCar(cars);   // Load all cars in the showroom
             await loadCoinModel();
-            switchShowroomCar(1);
+            // switchShowroomCar(1);
         };
 
         loadAssets();
@@ -658,6 +658,22 @@ export default function GaragePage() {
     //     });
     // };   
     
+    // const switchShowroomCar = (index: number) => {
+    //     const selectedCar = cars[index]; // Get the car associated with the current slide
+    //     if (!selectedCar) {
+    //         console.error(`No car found for index ${index}`);
+    //         return;
+    //     }
+    
+    //     showroomGroupRef.current.children.forEach((carGroup) => {
+    //         if (carGroup instanceof THREE.Object3D) {
+    //             // Match carGroup name with the selected car's name
+    //             carGroup.visible = carGroup.name === selectedCar.name;
+    //             console.log(`CarGroup ${carGroup.name}: visible = ${carGroup.visible}`);
+    //         }
+    //     });
+    // };    
+
     const switchShowroomCar = (index: number) => {
         const selectedCar = cars[index]; // Get the car associated with the current slide
         if (!selectedCar) {
@@ -665,14 +681,95 @@ export default function GaragePage() {
             return;
         }
     
+        const outDuration = 1; // Duration for the outgoing animation in seconds
+        const inDuration = 0.5; // Duration for the incoming animation in seconds
+        const clock = new THREE.Clock();
+    
+        let currentAnimatingCar: THREE.Object3D | null = null;
+    
         showroomGroupRef.current.children.forEach((carGroup) => {
             if (carGroup instanceof THREE.Object3D) {
-                // Match carGroup name with the selected car's name
-                carGroup.visible = carGroup.name === selectedCar.name;
-                console.log(`CarGroup ${carGroup.name}: visible = ${carGroup.visible}`);
+                if (carGroup.visible) {
+                    // Animate the currently visible car out
+                    console.log(`Animating out car: ${carGroup.name}`);
+                    currentAnimatingCar = carGroup;
+    
+                    const startPosition = new THREE.Vector3(0, 0, 0); // Current position (center)
+                    const endPosition = new THREE.Vector3(-5, 0, 0); // End position (off-screen left)
+                    const startRotation = carGroup.rotation.clone();
+                    const endRotation = new THREE.Euler(
+                        startRotation.x + Math.PI,
+                        startRotation.y + Math.PI,
+                        startRotation.z + Math.PI
+                    );
+    
+                    let elapsed = 0;
+    
+                    const animateOut = () => {
+                        elapsed += clock.getDelta();
+                        const progress = Math.min(elapsed / outDuration, 1);
+    
+                        // Update position and rotation
+                        carGroup.position.lerpVectors(startPosition, endPosition, progress);
+                        carGroup.rotation.x = THREE.MathUtils.lerp(startRotation.x, endRotation.x, progress);
+                        carGroup.rotation.y = THREE.MathUtils.lerp(startRotation.y, endRotation.y, progress);
+                        carGroup.rotation.z = THREE.MathUtils.lerp(startRotation.z, endRotation.z, progress);
+    
+                        if (progress < 1) {
+                            requestAnimationFrame(animateOut);
+                        } else {
+                            carGroup.visible = false; // Hide after animation completes
+                            console.log(`Car ${carGroup.name} is now hidden.`);
+                        }
+                    };
+    
+                    animateOut();
+                }
+    
+                if (carGroup.name === selectedCar.name) {
+                    // Animate the selected car in with a delay
+                    console.log(`Animating in car: ${carGroup.name}`);
+                    const startPosition = new THREE.Vector3(5, 0, 0); // Start position (off-screen right)
+                    const endPosition = new THREE.Vector3(0, 0, 0); // End position (center)
+                    const startRotation = new THREE.Euler(
+                        carGroup.rotation.x - Math.PI,
+                        carGroup.rotation.y - Math.PI,
+                        carGroup.rotation.z - Math.PI
+                    );
+                    const endRotation = carGroup.rotation.clone();
+    
+                    const animateIn = () => {
+                        let elapsed = 0;
+    
+                        const animate = () => {
+                            elapsed += clock.getDelta();
+                            const progress = Math.min(elapsed / inDuration, 1);
+    
+                            // Update position and rotation
+                            carGroup.position.lerpVectors(startPosition, endPosition, progress);
+                            carGroup.rotation.x = THREE.MathUtils.lerp(startRotation.x, endRotation.x, progress);
+                            carGroup.rotation.y = THREE.MathUtils.lerp(startRotation.y, endRotation.y, progress);
+                            carGroup.rotation.z = THREE.MathUtils.lerp(startRotation.z, endRotation.z, progress);
+    
+                            if (progress < 1) {
+                                requestAnimationFrame(animate);
+                            } else {
+                                console.log(`Animation complete for car: ${carGroup.name}`);
+                            }
+                        };
+    
+                        // Ensure the car is visible before animating
+                        carGroup.visible = true;
+                        animate();
+                    };
+    
+                    // Delay the incoming car animation until the outgoing animation completes
+                    setTimeout(() => animateIn(), outDuration * 1000);
+                }
             }
         });
-    };    
+    };
+    
 
     useEffect(() => {
         if (controlsRef.current) {
@@ -933,6 +1030,8 @@ export default function GaragePage() {
         infinite: true,      // Disable infinite loop
         fade: true,
         dots: false,
+        autoplay: true,
+        autoplaySpeed: 5000,
         speed: 1000,           // Transition speed
         slidesToShow: 1,      // Show 3 icons per slide
         slidesToScroll: 1,    // Scroll 1 icon at a time
