@@ -375,11 +375,20 @@ export default function GaragePage() {
                     loader.load(partPath, (gltf) => {
                         const part = gltf.scene;
                         part.name = partName;
+
+                        // Apply a random matcap from the available options
+                        const randomMatcap = () => {
+                            const matcapKeys = Object.keys(matcapTextures.current);
+                            const randomIndex = Math.floor(Math.random() * matcapKeys.length);
+                            return matcapKeys[randomIndex];
+                        };
+
+                        const randomMatcapName = randomMatcap();
                         
                         if (partName === 'chassis') {
-                            applyMatcap(part, 'volcano');
+                            applyMatcap(part, randomMatcapName);
                         } else if (partName === 'wheels') {
-                            applyMatcap(part, 'green');
+                            applyMatcap(part, randomMatcapName);
                         } else if (partName === 'tire') {
                             applyMatcap(part, 'black');
                         } else if (partName === 'chassisbottom') {
