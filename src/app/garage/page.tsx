@@ -61,17 +61,17 @@ export default function GaragePage() {
             },
         },
         {
-            name: 'Aventador',
+            name: 'Truck',
             price: 500000,
             parts: {
-                chassisbottom: '/models/car/default/chassisbottom.glb',
-                chassis: '/models/car/default/chassisbody.glb',
-                bumper: '/models/car/default/bumper.glb',
-                spoiler: '/models/car/default/spoiler.glb',
-                window: '/models/car/default/window.glb',
-                wheels: '/models/car/default/wheels.glb',
-                tire: '/models/car/default/tire.glb',
-                antena: '/models/car/default/antena.glb',
+                chassisbottom: '/models/car/truck/chassisbottom.glb',
+                chassis: '/models/car/truck/chassis.glb',
+                bumper: '/models/car/truck/chromes.glb',
+                spoiler: '/models/car/truck/headlights.glb',
+                window: '/models/car/truck/empty.glb',
+                wheels: '/models/car/truck/wheels.glb',
+                tire: '/models/car/truck/empty.glb',
+                antena: '/models/car/truck/empty.glb',
             },
         },
         // Add more cars here later
@@ -133,6 +133,10 @@ export default function GaragePage() {
             console.log('Loading showroom cars...', showroomGroupRef.current );
 
             setIsOrbitEnabled(true);
+
+            if (showroomGroupRef.current && showroomGroupRef.current.children.length > 0) {
+                switchShowroomCar(0); // Ensure only the first car is visible in showroom view
+            }
     
             carGroupRef.current.traverse((child) => {
                 if (child instanceof THREE.Object3D) {
@@ -263,6 +267,7 @@ export default function GaragePage() {
             }
 
             await Promise.all([loadCar(currentCarIndex), loadShowroomCar(cars), loadRocket()]);
+            switchShowroomCar(0);
             scene.add(carGroupRef.current);
             scene.add(rocketGroupRef.current);
             scene.add(showroomGroupRef.current);
@@ -535,8 +540,8 @@ export default function GaragePage() {
                     );
         
                     // Position the car group within the showroom
-                    carGroup.position.set(i * 10, 0, 0); // Position cars side-by-side
-                    carGroup.visible = i === 0; // Initially, only show the first car
+                    // carGroup.position.set(i * 10, 0, 0); // Position cars side-by-side
+                    carGroup.visible = false;
         
                     // Add the car group to the showroom group
                     showroomGroupRef.current.add(carGroup);
@@ -545,6 +550,9 @@ export default function GaragePage() {
         
             // Add the showroom group to the scene
             scene.add(showroomGroupRef.current);
+            
+            // Initially show the first car
+            switchShowroomCar(0);
         };        
         
         const loadRocket = async () => {
@@ -593,6 +601,16 @@ export default function GaragePage() {
     }, [currentCarIndex]);
 
     const switchShowroomCar = (index: number) => {
+        
+        showroomGroupRef.current.children.forEach((carGroup, i) => {
+            carGroup.visible = false; // Hide all cars
+        });
+    
+        // Explicitly show the car at the current index
+        if (showroomGroupRef.current.children[index]) {
+            showroomGroupRef.current.children[index].visible = true;
+        }
+
         showroomGroupRef.current.children.forEach((carGroup, i) => {
             carGroup.visible = i === index; // Show the selected car, hide others
         });
@@ -787,7 +805,9 @@ export default function GaragePage() {
         speed: 1000,           // Transition speed
         slidesToShow: 1,      // Show 3 icons per slide
         slidesToScroll: 1,    // Scroll 1 icon at a time
-        afterChange: handleSliderChange,
+        afterChange: (index: number) => {
+            switchShowroomCar(index); // Update visible car based on slider index
+        },
         responsive: [
             {
                 breakpoint: 768,
