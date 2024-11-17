@@ -1635,7 +1635,7 @@ opacity: 0;
 
 @media (max-width: 768px) {
   .showroom-layer {
-    max-width: 80% !important;
+    max-width: 100% !important;
   }
 }
 

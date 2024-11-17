@@ -920,7 +920,7 @@ export default function GaragePage() {
                     cursor: "pointer",
                     position: "absolute",
                     top: "50%",
-                    right: "10px",
+                    right: "-20px",
                     transform: "translateY(-50%)",
                     zIndex: 2,
                 }}
@@ -950,7 +950,7 @@ export default function GaragePage() {
                     cursor: "pointer",
                     position: "absolute",
                     top: "50%",
-                    left: "10px",
+                    left: "-20px",
                     transform: "translateY(-50%)",
                     zIndex: 2,
                 }}
@@ -1172,7 +1172,7 @@ export default function GaragePage() {
                 )}
 
                 {/* Back to Menu button for all other views */}
-                {view !== 'menu' && (
+                {view !== 'menu' && view !== 'showroom' && (
                     <button
                         style={{
                             padding: '20px 0',
@@ -1187,6 +1187,23 @@ export default function GaragePage() {
                         BACK TO MENU
                     </button>
                 )}
+
+                {/* {view === 'showroom' && (
+                    <button
+                        style={{
+                            padding: '230px 0',
+                            animation: 'pulse 1.5s infinite',
+                            textShadow: '2px 2px 4px rgba(0, 0, 0, 0.9)',
+                            color: '#fff',
+                            borderRadius: '8px',
+                            cursor: 'pointer',
+                            zIndex: '10000',
+                            }}
+                            onClick={() => toggleView('menu')}
+                            >
+                                BACK TO MENU
+                            </button>
+                                )} */}
             </div>
 
             {view === 'showroom' && (
@@ -1194,17 +1211,19 @@ export default function GaragePage() {
                     style={{
                         position: 'absolute',
                         bottom: '0',
-                        marginBottom: '100px',
+                        // marginBottom: '0px',
                         left: '50%',
                         transform: 'translateX(-50%)',
-                        boxShadow: "0px 0px 10px rgb(0, 0, 0, 0.5)",
+                        // boxShadow: "0px 0px 10px rgb(0, 0, 0, 0.5)",
                         padding: '30px',
+                        paddingTop: '70px',
                         backdropFilter: 'blur(5px)',
                         borderRadius: '0px',
                         color: '#fff',
                         textAlign: 'center',
                         zIndex: 1000,
-                        maxWidth: '30%',
+                        maxWidth: '100%',
+                        height: '30%',
                     }}
                 >
                     <Slider {...showroomSliderSettings}>
@@ -1213,23 +1232,24 @@ export default function GaragePage() {
                                 key={car.name}
                                 style={{
                                     display: 'flex',
+                                    textAlign: 'left',
                                     flexDirection: 'column',
                                     alignItems: 'center',
                                     justifyContent: 'center',
                                     padding: '20px',
                                     background: 'rgba(0, 0, 0, 0.5)',
                                     borderRadius: '10px',
-                                    boxShadow: '0px 0px 10px rgba(255, 255, 255, 0.5)',
+                                    // boxShadow: '0px 0px 10px rgba(255, 255, 255, 0.5)',
                                     cursor: 'pointer',
                                 }}
                             >
+                                {/* <p style={{ fontFamily: 'Orbitron', fontSize: '20px', marginTop: '10px', textShadow: '2px 2px 4px rgba(0, 0, 0, 0.9)'}}>
+                                    {car.price} ❖
+                                </p> */}
                                 {/* Car Name and Price */}
-                                <h4 style={{ fontFamily: 'Orbitron', fontSize: '24px', marginBottom: '10px', textShadow: '2px 2px 4px rgba(0, 0, 0, 0.9)' }}>
+                                <h4 style={{ fontFamily: 'Orbitron', fontSize: '24px', marginBottom: '0px', textShadow: '2px 2px 4px rgba(0, 0, 0, 0.9)' }}>
                                     {car.name}
                                 </h4>
-                                <p style={{ fontFamily: 'Orbitron', fontSize: '20px', marginTop: '10px', textShadow: '2px 2px 4px rgba(0, 0, 0, 0.9)'}}>
-                                    {car.price}❖
-                                </p>
                                 
                                 {/* Select Button */}
                                 <button
