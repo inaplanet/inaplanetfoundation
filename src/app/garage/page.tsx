@@ -64,14 +64,14 @@ export default function GaragePage() {
             name: 'Truck',
             price: 500000,
             parts: {
-                chassisbottom: '/models/car/truck/chassisbottom.glb',
-                chassis: '/models/car/truck/chassis.glb',
-                bumper: '/models/car/truck/chromes.glb',
-                spoiler: '/models/car/truck/headlights.glb',
-                window: '/models/car/truck/empty.glb',
-                wheels: '/models/car/truck/wheels.glb',
-                tire: '/models/car/truck/empty.glb',
-                antena: '/models/car/truck/empty.glb',
+                chassisbottom: '/models/car/kyber/chassisbottom.glb',
+                chassis: '/models/car/kyber/chassisbody.glb',
+                bumper: '/models/car/kyber/empty.glb',
+                spoiler: '/models/car/kyber/spoiler.glb',
+                window: '/models/car/kyber/window.glb',
+                wheels: '/models/car/kyber/wheels.glb',
+                tire: '/models/car/kyber/tire.glb',
+                antena: '/models/car/kyber/antena.glb',
             },
         },
         // Add more cars here later
@@ -601,16 +601,6 @@ export default function GaragePage() {
     }, [currentCarIndex]);
 
     const switchShowroomCar = (index: number) => {
-        
-        showroomGroupRef.current.children.forEach((carGroup, i) => {
-            carGroup.visible = false; // Hide all cars
-        });
-    
-        // Explicitly show the car at the current index
-        if (showroomGroupRef.current.children[index]) {
-            showroomGroupRef.current.children[index].visible = true;
-        }
-
         showroomGroupRef.current.children.forEach((carGroup, i) => {
             carGroup.visible = i === index; // Show the selected car, hide others
         });
