@@ -36,6 +36,12 @@ export default function GaragePage() {
         name: string;
         price: number;
         parts: {
+            accessories: string;
+            backlights: string;
+            chassisinside: string;
+            engine: string;
+            headlights: string;
+            saloon: string;
             chassisbottom: string;
             chassis: string;
             bumper: string;
@@ -52,6 +58,12 @@ export default function GaragePage() {
             name: 'Kybertruck V2',
             price: 378000,
             parts: {
+                accessories: '/models/car/default/empty.glb',
+                backlights: '/models/car/default/empty.glb',
+                chassisinside: '/models/car/default/empty.glb',
+                engine: '/models/car/default/empty.glb',
+                headlights: '/models/car/default/empty.glb',
+                saloon: '/models/car/default/empty.glb',
                 chassisbottom: '/models/car/default/chassisbottom.glb',
                 chassis: '/models/car/default/chassisbody.glb',
                 bumper: '/models/car/default/bumper.glb',
@@ -66,14 +78,40 @@ export default function GaragePage() {
             name: 'Banger VFX',
             price: 542000,
             parts: {
+                accessories: '/models/car/monster/empty.glb',
+                backlights: '/models/car/monster/empty.glb',
+                chassisinside: '/models/car/monster/empty.glb',
+                engine: '/models/car/monster/empty.glb',
+                headlights: '/models/car/monster/empty.glb',
+                saloon: '/models/car/monster/empty.glb',
                 chassisbottom: '/models/car/monster/chassisbottom.glb',
                 chassis: '/models/car/monster/chassis.glb',
                 bumper: '/models/car/monster/empty.glb',
                 spoiler: '/models/car/monster/empty.glb',
                 window: '/models/car/monster/window.glb',
                 wheels: '/models/car/monster/wheels.glb',
-                tire: '/models/car/monster/empty.glb',
+                tire: '/models/car/monster/tire.glb',
                 antena: '/models/car/monster/antena.glb',
+            },
+        },
+        {
+            name: 'Charger TRX',
+            price: 998000,
+            parts: {
+                accessories: '/models/car/charger/accessories.glb',
+                backlights: '/models/car/charger/backlights.glb',
+                chassisinside: '/models/car/charger/chassisinside.glb',
+                engine: '/models/car/charger/engine.glb',
+                headlights: '/models/car/charger/headlights.glb',
+                saloon: '/models/car/charger/saloon.glb',
+                chassisbottom: '/models/car/charger/chassisbottom.glb',
+                chassis: '/models/car/charger/chassis.glb',
+                bumper: '/models/car/charger/empty.glb',
+                spoiler: '/models/car/charger/empty.glb',
+                window: '/models/car/charger/windows.glb',
+                wheels: '/models/car/charger/wheels.glb',
+                tire: '/models/car/charger/tire.glb',
+                antena: '/models/car/charger/empty.glb',
             },
         },
         // Add more cars here later
@@ -445,6 +483,32 @@ export default function GaragePage() {
                                     (gltf) => {
                                         const part = gltf.scene;
                                         part.name = `${car.name}_${partName}`; // Set a unique name for each part
+
+                                        // Apply a random matcap from the available options
+                                        const randomMatcap = () => {
+                                            const matcapKeys = Object.keys(matcapTextures.current);
+                                            const randomIndex = Math.floor(Math.random() * matcapKeys.length);
+                                            return matcapKeys[randomIndex];
+                                        };
+
+                                        const randomMatcapName = randomMatcap();
+                                        
+                                        if (partName === 'chassis') {
+                                            applyMatcap(part, randomMatcapName);
+                                        } else if (partName === 'wheels') {
+                                            applyMatcap(part, randomMatcapName);
+                                        } else if (partName === 'tire') {
+                                            applyMatcap(part, 'black');
+                                        } else if (partName === 'chassisbottom') {
+                                            applyMatcap(part, 'black');
+                                        } else if (partName === 'bumper') {
+                                            applyMatcap(part, 'black');
+                                        } else if (partName === 'spoiler') {
+                                            applyMatcap(part, 'black');
+                                        } else if (partName === 'window') {
+                                            applyMatcap(part, 'black');
+                                        }
+
                                         carGroup.add(part); // Add the part to the car group
                                         resolve();
                                     },
