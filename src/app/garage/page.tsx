@@ -164,24 +164,22 @@ export default function GaragePage() {
                 wheels: '/models/chevy1957/wheels.glb',
             },
         },
-        // {
-        //     name: 'Suzuke',
-        //     price: 5500000,
-        //     parts: {
-        //         backlights: '/models/suzuki/backlights.glb',
-        //         chassis: '/models/suzuki/chassis.glb',
-        //         chassisbottom: '/models/suzuki/chassisbottom.glb',
-        //         doors: '/models/suzuki/doors.glb',
-        //         headlights1: '/models/suzuki/headlights1.glb',
-        //         headlights2: '/models/suzuki/headlights2.glb',
-        //         mirrors: '/models/suzuki/mirrors.glb',
-        //         salon: '/models/suzuki/salon.glb',
-        //         spoiler: '/models/suzuki/spoiler.glb',
-        //         tire: '/models/suzuki/tire.glb',
-        //         wheels: '/models/suzuki/wheels.glb',
-        //         windows: '/models/suzuki/windows.glb',
-        //     },
-        // },
+        {
+            name: 'Suzuke',
+            price: 5500000,
+            parts: {
+                backlights: '/models/suzuki/backlights.glb',
+                chassis: '/models/suzuki/chassis.glb',
+                headlights1: '/models/suzuki/headlights1.glb',
+                headlights2: '/models/suzuki/headlights2.glb',
+                mirrors: '/models/suzuki/mirrors.glb',
+                salon: '/models/suzuki/salon.glb',
+                spoiler: '/models/suzuki/spoiler.glb',
+                tire: '/models/suzuki/tire.glb',
+                wheels: '/models/suzuki/wheels.glb',
+                windows: '/models/suzuki/windows.glb',
+            },
+        },
         // Add more cars here later
     ];
 
