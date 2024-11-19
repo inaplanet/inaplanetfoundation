@@ -33,26 +33,32 @@ export default function GaragePage() {
     const cameraRef = useRef<THREE.PerspectiveCamera | null>(null); // Reference for camera
     const coinCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
+    // type Car = {
+    //     name: string;
+    //     price: number;
+    //     parts: {
+    //         accessories: string;
+    //         backlights: string;
+    //         chassisinside: string;
+    //         engine: string;
+    //         headlights: string;
+    //         saloon: string;
+    //         chassisbottom: string;
+    //         chassis: string;
+    //         bumper: string;
+    //         spoiler: string;
+    //         window: string;
+    //         wheels: string;
+    //         tire: string;
+    //         antena: string;
+    //     };
+    // };    
+
     type Car = {
         name: string;
         price: number;
-        parts: {
-            accessories: string;
-            backlights: string;
-            chassisinside: string;
-            engine: string;
-            headlights: string;
-            saloon: string;
-            chassisbottom: string;
-            chassis: string;
-            bumper: string;
-            spoiler: string;
-            window: string;
-            wheels: string;
-            tire: string;
-            antena: string;
-        };
-    };    
+        parts: Record<string, string>;
+    };
 
     const cars: Car[] = [
         {
@@ -79,42 +85,103 @@ export default function GaragePage() {
             name: 'Banger VFX',
             price: 542000,
             parts: {
-                accessories: '/models/car/monster/empty.glb',
-                backlights: '/models/car/monster/empty.glb',
-                chassisinside: '/models/car/monster/empty.glb',
-                engine: '/models/car/monster/empty.glb',
-                headlights: '/models/car/monster/empty.glb',
-                saloon: '/models/car/monster/empty.glb',
-                chassisbottom: '/models/car/monster/chassisbottom.glb',
-                chassis: '/models/car/monster/chassis.glb',
-                bumper: '/models/car/monster/empty.glb',
-                spoiler: '/models/car/monster/empty.glb',
-                window: '/models/car/monster/window.glb',
-                wheels: '/models/car/monster/wheels.glb',
-                tire: '/models/car/monster/tire.glb',
-                antena: '/models/car/monster/antena.glb',
+                accessories: '/models/monster/empty.glb',
+                backlights: '/models/monster/empty.glb',
+                chassisinside: '/models/monster/empty.glb',
+                engine: '/models/monster/empty.glb',
+                headlights: '/models/monster/empty.glb',
+                saloon: '/models/monster/empty.glb',
+                chassisbottom: '/models/monster/chassisbottom.glb',
+                chassis: '/models/monster/chassis.glb',
+                bumper: '/models/monster/empty.glb',
+                spoiler: '/models/monster/empty.glb',
+                window: '/models/monster/window.glb',
+                wheels: '/models/monster/wheels.glb',
+                tire: '/models/monster/tire.glb',
+                antena: '/models/monster/antena.glb',
             },
         },
         {
             name: 'Charger TRX',
             price: 998000,
             parts: {
-                accessories: '/models/car/charger/accessories.glb',
-                backlights: '/models/car/charger/backlights.glb',
-                chassisinside: '/models/car/charger/chassisinside.glb',
-                engine: '/models/car/charger/engine.glb',
-                headlights: '/models/car/charger/headlights.glb',
-                saloon: '/models/car/charger/saloon.glb',
-                chassisbottom: '/models/car/charger/chassisbottom.glb',
-                chassis: '/models/car/charger/chassis.glb',
-                bumper: '/models/car/charger/empty.glb',
-                spoiler: '/models/car/charger/empty.glb',
-                window: '/models/car/charger/windows.glb',
-                wheels: '/models/car/charger/wheels.glb',
-                tire: '/models/car/charger/tire.glb',
-                antena: '/models/car/charger/empty.glb',
+                accessories: '/models/charger/accessories.glb',
+                backlights: '/models/charger/backlights.glb',
+                chassisinside: '/models/charger/chassisinside.glb',
+                engine: '/models/charger/engine.glb',
+                headlights: '/models/charger/headlights.glb',
+                saloon: '/models/charger/saloon.glb',
+                chassisbottom: '/models/charger/chassisbottom.glb',
+                chassis: '/models/charger/chassis.glb',
+                bumper: '/models/charger/empty.glb',
+                spoiler: '/models/charger/empty.glb',
+                window: '/models/charger/windows.glb',
+                wheels: '/models/charger/wheels.glb',
+                tire: '/models/charger/tire.glb',
+                antena: '/models/charger/empty.glb',
             },
         },
+        {
+            name: 'Cannavaro',
+            price: 1500000,
+            parts: {
+                backhood: '/models/cannavaro/backhood.glb',
+                backlights: '/models/cannavaro/backlights.glb',
+                bumper: '/models/cannavaro/bumper.glb',
+                chassisbody: '/models/cannavaro/chassisbody.glb',
+                chassisbottom: '/models/cannavaro/chassisbottom.glb',
+                doors: '/models/cannavaro/doors.glb',
+                frontlights: '/models/cannavaro/frontlights.glb',
+                hood: '/models/cannavaro/hood.glb',
+                licenseplate: '/models/cannavaro/licenseplate.glb',
+                plate: '/models/cannavaro/plate.glb',
+                salon: '/models/cannavaro/salon.glb',
+                sits: '/models/cannavaro/sits.glb',
+                spoiler: '/models/cannavaro/spoiler.glb',
+                steering: '/models/cannavaro/steering.glb',
+                wheels: '/models/cannavaro/wheels.glb',
+            },
+        },
+        {
+            name: 'Chevy 1957',
+            price: 2500000,
+            parts: {
+                backlights: '/models/chevy1957/backlights.glb',
+                backlights1: '/models/chevy1957/backlights1.glb',
+                bumper: '/models/chevy1957/bumper.glb',
+                chassisbody: '/models/chevy1957/chassisbody.glb',
+                chassisbottom: '/models/chevy1957/chassisbottom.glb',
+                doors: '/models/chevy1957/doors.glb',
+                headlights: '/models/chevy1957/headlights.glb',
+                headlights2: '/models/chevy1957/headlights2.glb',
+                mirrors: '/models/chevy1957/mirrors.glb',
+                seat: '/models/chevy1957/seat.glb',
+                steering: '/models/chevy1957/steering.glb',
+                tires: '/models/chevy1957/tires.glb',
+                truck: '/models/chevy1957/truck.glb',
+                turnsignals: '/models/chevy1957/turnsignals.glb',
+                windows: '/models/chevy1957/windows.glb',
+                wheels: '/models/chevy1957/wheels.glb',
+            },
+        },
+        // {
+        //     name: 'Suzuke',
+        //     price: 5500000,
+        //     parts: {
+        //         backlights: '/models/suzuki/backlights.glb',
+        //         chassis: '/models/suzuki/chassis.glb',
+        //         chassisbottom: '/models/suzuki/chassisbottom.glb',
+        //         doors: '/models/suzuki/doors.glb',
+        //         headlights1: '/models/suzuki/headlights1.glb',
+        //         headlights2: '/models/suzuki/headlights2.glb',
+        //         mirrors: '/models/suzuki/mirrors.glb',
+        //         salon: '/models/suzuki/salon.glb',
+        //         spoiler: '/models/suzuki/spoiler.glb',
+        //         tire: '/models/suzuki/tire.glb',
+        //         wheels: '/models/suzuki/wheels.glb',
+        //         windows: '/models/suzuki/windows.glb',
+        //     },
+        // },
         // Add more cars here later
     ];
 
