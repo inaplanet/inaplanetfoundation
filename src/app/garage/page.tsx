@@ -170,6 +170,7 @@ export default function GaragePage() {
             parts: {
                 backlights: '/models/suzuki/backlights.glb',
                 chassis: '/models/suzuki/chassis.glb',
+                chassisbottom: '/models/suzuki/chassisbottom.glb',
                 headlights1: '/models/suzuki/headlights1.glb',
                 headlights2: '/models/suzuki/headlights2.glb',
                 mirrors: '/models/suzuki/mirrors.glb',
