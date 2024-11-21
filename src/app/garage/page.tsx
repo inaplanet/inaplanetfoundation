@@ -31,28 +31,7 @@ export default function GaragePage() {
     const showroomLoaded = useRef(false);
 
     const cameraRef = useRef<THREE.PerspectiveCamera | null>(null); // Reference for camera
-    const coinCanvasRef = useRef<HTMLCanvasElement | null>(null);
-
-    // type Car = {
-    //     name: string;
-    //     price: number;
-    //     parts: {
-    //         accessories: string;
-    //         backlights: string;
-    //         chassisinside: string;
-    //         engine: string;
-    //         headlights: string;
-    //         saloon: string;
-    //         chassisbottom: string;
-    //         chassis: string;
-    //         bumper: string;
-    //         spoiler: string;
-    //         window: string;
-    //         wheels: string;
-    //         tire: string;
-    //         antena: string;
-    //     };
-    // };    
+    const coinCanvasRef = useRef<HTMLCanvasElement | null>(null);  
 
     type Car = {
         name: string;
@@ -82,36 +61,13 @@ export default function GaragePage() {
             },
         },
         {
-            name: 'Cannavaro',
-            price: 1500000,
-            parts: {
-                backhood: '/models/cannavaro/backhood.glb',
-                backlights: '/models/cannavaro/backlights.glb',
-                bumper: '/models/cannavaro/bumper.glb',
-                chassisbody: '/models/cannavaro/chassisbody.glb',
-                chassisbottom: '/models/cannavaro/chassisbottom.glb',
-                doors: '/models/cannavaro/doors.glb',
-                frontlights: '/models/cannavaro/frontlights.glb',
-                hood: '/models/cannavaro/hood.glb',
-                licenseplate: '/models/cannavaro/licenseplate.glb',
-                plate: '/models/cannavaro/plate.glb',
-                salon: '/models/cannavaro/salon.glb',
-                sits: '/models/cannavaro/sits.glb',
-                spoiler: '/models/cannavaro/spoiler.glb',
-                steering: '/models/cannavaro/steering.glb',
-                wheels: '/models/cannavaro/wheels.glb',
-                tire: '/models/cannavaro/tire.glb',
-            },
-        },
-        {
             name: 'Chevy 1957',
             price: 2500000,
             parts: {
                 backlights: '/models/chevy1957/backlights.glb',
                 backlights1: '/models/chevy1957/backlights1.glb',
-                bumper: '/models/chevy1957/bumper.glb',
+                bumper: '/models/chevy1957/bumper1.glb',
                 chassisbody: '/models/chevy1957/chassisbody.glb',
-                // chassisbottom: '/models/chevy1957/chassisbottom.glb',
                 doors: '/models/chevy1957/doors.glb',
                 headlights: '/models/chevy1957/headlights.glb',
                 headlights2: '/models/chevy1957/headlights2.glb',
@@ -175,26 +131,6 @@ export default function GaragePage() {
             },
         },
         {
-            name: 'Banger VFX',
-            price: 542000,
-            parts: {
-                accessories: '/models/monster/empty.glb',
-                backlights: '/models/monster/empty.glb',
-                chassisinside: '/models/monster/empty.glb',
-                engine: '/models/monster/empty.glb',
-                headlights: '/models/monster/empty.glb',
-                saloon: '/models/monster/empty.glb',
-                chassisbottom: '/models/monster/chassisbottom.glb',
-                chassis: '/models/monster/chassis.glb',
-                bumper: '/models/monster/empty.glb',
-                spoiler: '/models/monster/empty.glb',
-                window: '/models/monster/window.glb',
-                wheels: '/models/monster/wheels.glb',
-                tire: '/models/monster/tire.glb',
-                antena: '/models/monster/antena.glb',
-            },
-        },
-        {
             name: 'RC Truck',
             price: 4800000,
             parts: {
@@ -213,7 +149,6 @@ export default function GaragePage() {
                 backlights: '/models/keshemberg/backlights.glb',
                 chassis: '/models/keshemberg/chassis.glb',
                 chassisbottom: '/models/keshemberg/chassisbottom.glb',
-                // chassisstructure: '/models/keshemberg/chassisstructure.glb',
                 headlights: '/models/keshemberg/headlights.glb',
                 saloon: '/models/keshemberg/saloon.glb',
                 wheel: '/models/keshemberg/wheel.glb',
@@ -222,7 +157,7 @@ export default function GaragePage() {
             },
         },
         {
-            name: 'Zimbow',
+            name: 'Gazanfar',
             price: 7500000,
             parts: {
                 backlights: '/models/zimbow/backlights.glb',
@@ -230,7 +165,6 @@ export default function GaragePage() {
                 chassisbottom: '/models/zimbow/chassisbottom.glb',
                 chassisstructure: '/models/zimbow/chassisstructure.glb',
                 headlights: '/models/zimbow/headlights.glb',
-                // salon: '/models/zimbow/salon.glb',
                 wheel: '/models/zimbow/wheel.glb',
                 tire: '/models/zimbow/tire.glb',
                 window: '/models/zimbow/window.glb',
