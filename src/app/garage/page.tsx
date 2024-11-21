@@ -160,6 +160,21 @@ export default function GaragePage() {
             },
         },
         {
+            name: 'Wrangler',
+            price: 378000,
+            parts: {
+                backhoodtire: '/models/wrangler/backhoodtire.glb',
+                chassisbody: '/models/wrangler/chassisbody.glb',
+                chassis: '/models/wrangler/chassis.glb',
+                chassispart: '/models/wrangler/chassispart.glb',
+                headlights: '/models/wrangler/headlights.glb',
+                hoodhandle: '/models/wrangler/hoodhandle.glb',
+                wheels: '/models/wrangler/wheels.glb',
+                tire: '/models/wrangler/tire.glb',
+                vehicle: '/models/wrangler/vehicle.glb',
+            },
+        },
+        {
             name: 'Banger VFX',
             price: 542000,
             parts: {
@@ -189,6 +204,36 @@ export default function GaragePage() {
                 window: '/models/rctruck/window.glb',
                 wheels: '/models/rctruck/wheels.glb',
                 backlights: '/models/rctruck/backlights.glb'
+            },
+        },
+        {
+            name: 'Keshemberg',
+            price: 5500000,
+            parts: {
+                backlights: '/models/keshemberg/backlights.glb',
+                chassis: '/models/keshemberg/chassis.glb',
+                chassisbottom: '/models/keshemberg/chassisbottom.glb',
+                // chassisstructure: '/models/keshemberg/chassisstructure.glb',
+                headlights: '/models/keshemberg/headlights.glb',
+                saloon: '/models/keshemberg/saloon.glb',
+                wheel: '/models/keshemberg/wheel.glb',
+                tire: '/models/keshemberg/tire.glb',
+                window: '/models/keshemberg/window.glb',
+            },
+        },
+        {
+            name: 'Zimbow',
+            price: 7500000,
+            parts: {
+                backlights: '/models/zimbow/backlights.glb',
+                chassis: '/models/zimbow/chassis.glb',
+                chassisbottom: '/models/zimbow/chassisbottom.glb',
+                chassisstructure: '/models/zimbow/chassisstructure.glb',
+                headlights: '/models/zimbow/headlights.glb',
+                // salon: '/models/zimbow/salon.glb',
+                wheel: '/models/zimbow/wheel.glb',
+                tire: '/models/zimbow/tire.glb',
+                window: '/models/zimbow/window.glb',
             },
         },
         // Add more cars here later
