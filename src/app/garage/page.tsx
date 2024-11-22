@@ -7,6 +7,9 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { SVGLoader } from 'three/examples/jsm/loaders/SVGLoader';
 import { useSearchParams } from 'next/navigation';
 
+import { FontLoader } from '../javascript/Utils/FontLoader';
+import { TextGeometry } from '../javascript/Utils/TextGeometry';
+
 import Slider from 'react-slick';
 import { CustomArrowProps } from 'react-slick';
 import "slick-carousel/slick/slick.css";
@@ -224,6 +227,42 @@ export default function GaragePage() {
         // Add more cars here later
     ];
 
+    const createGlowingText = async (
+        text: string,
+        position: THREE.Vector3,
+        scene: THREE.Scene
+    ) => {
+        const fontLoader = new FontLoader();
+        const font = await fontLoader.loadAsync('/fonts/orbitron.json'); // Ensure the font file is available in your public folder.
+    
+        const textGeometry = new TextGeometry(text, {
+            font,
+            size: 0.5,
+            height: 0.1,
+            curveSegments: 12,
+        });
+    
+        const textMaterial = new THREE.MeshStandardMaterial({
+            color: 0xffffff,
+            emissive: 0x00ffcc, // Glow color
+            emissiveIntensity: 1,
+        });
+    
+        const textMesh = new THREE.Mesh(textGeometry, textMaterial);
+        textMesh.position.copy(position);
+    
+        scene.add(textMesh);
+    
+        // Optional: Add reveal animation
+        gsap.fromTo(
+            textMesh.material,
+            { opacity: 0 },
+            { opacity: 1, duration: 1, ease: 'power2.out' }
+        );
+    
+        return textMesh;
+    };
+
     const toggleView = (selectedView: 'menu' | 'car' | 'rocket' | 'showroom' | 'customize') => {
         console.log('Toggling view to:', selectedView);
     
@@ -331,7 +370,7 @@ export default function GaragePage() {
         }
     
         console.log('Rocket group visibility:', rocketGroupRef.current.children.map((c) => c.visible)); // Debug log
-    };    
+    };
 
     useEffect(() => {
         // toggleView('car'); // Default to car view when the scene initializes
@@ -897,17 +936,36 @@ export default function GaragePage() {
         setShowCustomizationMenu(true);
     };
 
-    const handleCarSelection = (carName: string) => {
+    // const handleCarSelection = (carName: string) => {
+    //     const selectedCar = cars.find((car) => car.name === carName);
+    //     if (selectedCar) {
+    //         const selectedIndex = cars.indexOf(selectedCar);
+    //         setCurrentCarIndex(selectedIndex); // Update the current car index
+    //         toggleView('car'); // Switch to the car view
+    //         loadCar(selectedIndex); // Load the selected car into the car view
+    //     } else {
+    //         console.warn(`Car not found for name: ${carName}`);
+    //     }
+    // };
+
+    const handleCarSelection = async (carName: string) => {
         const selectedCar = cars.find((car) => car.name === carName);
         if (selectedCar) {
             const selectedIndex = cars.indexOf(selectedCar);
-            setCurrentCarIndex(selectedIndex); // Update the current car index
-            toggleView('car'); // Switch to the car view
-            loadCar(selectedIndex); // Load the selected car into the car view
+            setCurrentCarIndex(selectedIndex);
+            toggleView('car');
+            await loadCar(selectedIndex);
+    
+            // Display attributes in the scene
+            const attributePosition = new THREE.Vector3(0, 1, 2); // Adjust position
+            createGlowingText(`PWR: ${selectedCar.attributes.PWR}`, attributePosition.clone().add(new THREE.Vector3(0, 0.5, 0)), scene);
+            createGlowingText(`HP: ${selectedCar.attributes.HP}`, attributePosition.clone().add(new THREE.Vector3(0, 0, 0)), scene);
+            createGlowingText(`SPD: ${selectedCar.attributes.SPD}`, attributePosition.clone().add(new THREE.Vector3(0, -0.5, 0)), scene);
+            createGlowingText(`BRK: ${selectedCar.attributes.BRK}`, attributePosition.clone().add(new THREE.Vector3(0, -1, 0)), scene);
         } else {
             console.warn(`Car not found for name: ${carName}`);
         }
-    };
+    };    
 
     // Smooth camera transition function
     const smoothCameraTransition = (position: THREE.Vector3, lookAt: THREE.Vector3) => {
@@ -1356,7 +1414,6 @@ export default function GaragePage() {
                                 <h4 style={{ fontFamily: 'Orbitron', fontSize: '24px', marginBottom: '0px', textShadow: '2px 2px 4px rgba(0, 0, 0, 0.9)' }}>
                                     {car.name}
                                 </h4>
-                                
                                 {/* Select Button */}
                                 <button
                                     style={{
@@ -1374,6 +1431,52 @@ export default function GaragePage() {
                                 >
                                     SELECT
                                 </button>
+                                <div className="flex flex-col items-center">
+                                    {(Object.keys(car.attributes) as Array<keyof typeof car.attributes>).map((attr) => {
+                                        const value = car.attributes[attr];
+                                        const getBarColor = (value: number) => {
+                                            if (value <= 50) return 'red';
+                                            if (value <= 90) return 'orange';
+                                            return '#8CFF80'; // Green for 75-100+
+                                        };
+
+                                        return (
+                                            <div key={attr} style={{ marginBottom: '5px', width: '70%' }}>
+                                                <p
+                                                    style={{
+                                                        fontFamily: 'Orbitron',
+                                                        fontSize: '12px',
+                                                        marginBottom: '0px',
+                                                        textShadow: '2px 2px 4px rgba(0, 0, 0, 0.9)',
+                                                        textAlign: 'left',
+                                                    }}
+                                                >
+                                                    {attr}: {value}
+                                                </p>
+                                                <div
+                                                    style={{
+                                                        position: 'relative',
+                                                        height: '5px',
+                                                        width: '100%',
+                                                        background: '#333',
+                                                        borderRadius: '2px',
+                                                        overflow: 'hidden',
+                                                    }}
+                                                >
+                                                    <div
+                                                        className="battery-bar"
+                                                        style={{
+                                                            height: '5px',
+                                                            width: `${Math.min(value, 100)}%`, // Cap value to 100%
+                                                            background: getBarColor(value),
+                                                            transition: 'width 0.3s ease',
+                                                        }}
+                                                    />
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
                             </div>
                         ))}
                     </Slider>
