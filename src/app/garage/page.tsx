@@ -41,7 +41,7 @@ export default function GaragePage() {
 
     const cars: Car[] = [
         {
-            name: 'Charger TRX',
+            name: 'Charger Power Bank',
             price: 998000,
             parts: {
                 accessories: '/models/charger/accessories.glb',
@@ -61,7 +61,7 @@ export default function GaragePage() {
             },
         },
         {
-            name: 'Chevy 1957',
+            name: 'Chevy Impavido',
             price: 2500000,
             parts: {
                 backlights: '/models/chevy1957/backlights.glb',
@@ -82,7 +82,7 @@ export default function GaragePage() {
             },
         },
         {
-            name: 'Suzuke',
+            name: 'Suzuke Solar-System',
             price: 5500000,
             parts: {
                 backlights: '/models/suzuki/backlights.glb',
@@ -91,32 +91,33 @@ export default function GaragePage() {
                 mirrors: '/models/suzuki/mirrors.glb',
                 spoiler: '/models/suzuki/spoiler.glb',
                 tire: '/models/suzuki/tire.glb',
+                engine: '/models/suzuki/engine.glb',
                 wheels: '/models/suzuki/wheels.glb',
                 windows: '/models/suzuki/windows.glb',
             },
         },
+        // {
+        //     name: 'Kybertruck V2',
+        //     price: 378000,
+        //     parts: {
+        //         accessories: '/models/car/default/empty.glb',
+        //         backlights: '/models/car/default/empty.glb',
+        //         chassisinside: '/models/car/default/empty.glb',
+        //         engine: '/models/car/default/empty.glb',
+        //         headlights: '/models/car/default/empty.glb',
+        //         saloon: '/models/car/default/empty.glb',
+        //         chassisbottom: '/models/car/default/chassisbottom.glb',
+        //         chassis: '/models/car/default/chassisbody.glb',
+        //         bumper: '/models/car/default/bumper.glb',
+        //         spoiler: '/models/car/default/spoiler.glb',
+        //         window: '/models/car/default/window.glb',
+        //         wheels: '/models/car/default/wheels.glb',
+        //         tire: '/models/car/default/tire.glb',
+        //         antena: '/models/car/default/antena.glb',
+        //     },
+        // },
         {
-            name: 'Kybertruck V2',
-            price: 378000,
-            parts: {
-                accessories: '/models/car/default/empty.glb',
-                backlights: '/models/car/default/empty.glb',
-                chassisinside: '/models/car/default/empty.glb',
-                engine: '/models/car/default/empty.glb',
-                headlights: '/models/car/default/empty.glb',
-                saloon: '/models/car/default/empty.glb',
-                chassisbottom: '/models/car/default/chassisbottom.glb',
-                chassis: '/models/car/default/chassisbody.glb',
-                bumper: '/models/car/default/bumper.glb',
-                spoiler: '/models/car/default/spoiler.glb',
-                window: '/models/car/default/window.glb',
-                wheels: '/models/car/default/wheels.glb',
-                tire: '/models/car/default/tire.glb',
-                antena: '/models/car/default/antena.glb',
-            },
-        },
-        {
-            name: 'Wrangler',
+            name: 'Wrang Dirty Slipper',
             price: 378000,
             parts: {
                 backhoodtire: '/models/wrangler/backhoodtire.glb',
@@ -131,19 +132,20 @@ export default function GaragePage() {
             },
         },
         {
-            name: 'RC Truck',
+            name: 'RC TraxShark',
             price: 4800000,
             parts: {
                 tire: '/models/rctruck/tire.glb',
                 chassisbottom: '/models/rctruck/chassisbottom.glb',
                 chassis: '/models/rctruck/chassis.glb',
                 window: '/models/rctruck/window.glb',
+                doors: '/models/rctruck/doors.glb',
+                headlights: '/models/rctruck/headlights.glb',
                 wheels: '/models/rctruck/wheels.glb',
-                backlights: '/models/rctruck/backlights.glb'
             },
         },
         {
-            name: 'Keshemberg',
+            name: 'Keshemberg The Stray Bullet',
             price: 5500000,
             parts: {
                 backlights: '/models/keshemberg/backlights.glb',
@@ -157,7 +159,7 @@ export default function GaragePage() {
             },
         },
         {
-            name: 'Gazanfar',
+            name: 'Gazanfar Galosh Max',
             price: 7500000,
             parts: {
                 backlights: '/models/zimbow/backlights.glb',
@@ -327,7 +329,7 @@ export default function GaragePage() {
         const matcaps = ['elevator', 'blueGlass', 'metal', 'volcano', 'amazon', 'black', 'blacksea',
                           'blue', 'blueeye', 'bw', 'charcoal', 'darkEmerald', 'darkMetal', 'divo',
                           'emeraldGreen', 'exotic', 'gold', 'gray', 'green', 'greenBulb', 'indigo',
-                          'lemonblue', 'line', 'marble', 'mixature', 'offwhite', 'panacea', 'purple',
+                          'lemonblue', 'line', 'marble', 'mixature', 'offwhite', 'panacea',
                           'red', 'sky', 'sunearth', 'transparentLand', 'valakas',
                           'white', 'whiteblue', 'wine', 'yellow'];
         matcaps.forEach((matcap) => {
