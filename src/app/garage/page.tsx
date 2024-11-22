@@ -37,6 +37,12 @@ export default function GaragePage() {
         name: string;
         price: number;
         parts: Record<string, string>;
+        attributes: {
+            PWR: number; // Strength
+            HP: number;  // Health
+            SPD: number; // Speed
+            BRK: number; // Brake Strength
+        };
     };
 
     const cars: Car[] = [
@@ -59,6 +65,12 @@ export default function GaragePage() {
                 tire: '/models/charger/tire.glb',
                 antena: '/models/charger/empty.glb',
             },
+            attributes: {
+                PWR: 85,
+                HP: 120,
+                SPD: 95,
+                BRK: 80,
+            },
         },
         {
             name: 'Chevy Impavido',
@@ -80,6 +92,12 @@ export default function GaragePage() {
                 windows: '/models/chevy1957/windows.glb',
                 wheels: '/models/chevy1957/wheels.glb',
             },
+            attributes: {
+                PWR: 90,
+                HP: 100,
+                SPD: 80,
+                BRK: 70,
+            },
         },
         {
             name: 'Suzuke Solar-System',
@@ -94,6 +112,12 @@ export default function GaragePage() {
                 engine: '/models/suzuki/engine.glb',
                 wheels: '/models/suzuki/wheels.glb',
                 windows: '/models/suzuki/windows.glb',
+            },
+            attributes: {
+                PWR: 100,
+                HP: 150,
+                SPD: 110,
+                BRK: 90,
             },
         },
         // {
@@ -130,6 +154,12 @@ export default function GaragePage() {
                 tire: '/models/wrangler/tire.glb',
                 vehicle: '/models/wrangler/vehicle.glb',
             },
+            attributes: {
+                PWR: 100,
+                HP: 150,
+                SPD: 110,
+                BRK: 90,
+            },
         },
         {
             name: 'RC TraxShark',
@@ -142,6 +172,12 @@ export default function GaragePage() {
                 doors: '/models/rctruck/doors.glb',
                 headlights: '/models/rctruck/headlights.glb',
                 wheels: '/models/rctruck/wheels.glb',
+            },
+            attributes: {
+                PWR: 100,
+                HP: 150,
+                SPD: 110,
+                BRK: 90,
             },
         },
         {
@@ -157,6 +193,12 @@ export default function GaragePage() {
                 tire: '/models/keshemberg/tire.glb',
                 window: '/models/keshemberg/window.glb',
             },
+            attributes: {
+                PWR: 100,
+                HP: 150,
+                SPD: 110,
+                BRK: 90,
+            },
         },
         {
             name: 'Gazanfar Galosh Max',
@@ -171,6 +213,12 @@ export default function GaragePage() {
                 tire: '/models/zimbow/tire.glb',
                 window: '/models/zimbow/window.glb',
             },
+            attributes: {
+            PWR: 100,
+            HP: 150,
+            SPD: 110,
+            BRK: 90,
+        },
         },
         // Add more cars here later
     ];
