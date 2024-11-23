@@ -130,7 +130,7 @@ export default function GaragePage() {
             },
         },
         {
-            name: 'Suzuke Solar-System',
+            name: 'Carnage Solar-System',
             price: 5500000,
             parts: {
                 backlights: '/models/suzuki/backlights.glb',
@@ -152,7 +152,7 @@ export default function GaragePage() {
             },
         },
         {
-            name: 'Wrang Dirty Slipper',
+            name: 'Wran Wrecksaw',
             price: 378000,
             parts: {
                 backhoodtire: '/models/wrangler/backhoodtire.glb',
@@ -192,7 +192,7 @@ export default function GaragePage() {
             },
         },
         {
-            name: 'Keshemberg The Stray Bullet',
+            name: 'Rustbucket Rebel',
             price: 5500000,
             parts: {
                 backlights: '/models/keshemberg/backlights.glb',
@@ -212,7 +212,7 @@ export default function GaragePage() {
             },
         },
         {
-            name: 'Gazanfar Galosh Max',
+            name: 'Crushinator',
             price: 7500000,
             parts: {
                 backlights: '/models/zimbow/backlights.glb',
@@ -230,7 +230,7 @@ export default function GaragePage() {
             SPD: 110,
             BRK: 90,
         },
-        },
+        }
         // Add more cars here later
     ];
 
@@ -309,13 +309,6 @@ export default function GaragePage() {
                 }
             });
 
-            // Ensure only the first car is visible
-            // showroomGroupRef.current.children.forEach((child, index) => {
-            //     if (child instanceof THREE.Object3D) {
-            //         child.visible = index !== 0; // Show only the first car
-            //     }
-            // });
-
             // Load the showroom cars only if they haven't been loaded
             if (!showroomLoaded.current) {
                 loadShowroomCar(cars).then(() => {
@@ -341,6 +334,10 @@ export default function GaragePage() {
         }
     
         console.log('Rocket group visibility:', rocketGroupRef.current.children.map((c) => c.visible)); // Debug log
+    };
+
+    const formatBalance = (balance: number) => {
+        return balance.toLocaleString('en-US').replace(/,/g, ' '); // Replace commas with spaces
     };
 
     useEffect(() => {
@@ -1182,7 +1179,7 @@ export default function GaragePage() {
                     <div className="coin-icon" style={{ fontSize: "25px", animation: "rotateClockwise 6s linear infinite" }}>
                         ❖
                     </div>
-                    <div className="coin-layer">{playerBalance}</div>
+                    <div className="coin-layer">{formatBalance(playerBalance)}</div>
                     <div
                         className="button-element"
                         style={{ right: "-80px", backdropFilter: "blur(10px)" }} // Adjust positioning for the right button
