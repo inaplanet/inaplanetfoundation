@@ -554,6 +554,18 @@ export default function GaragePage() {
                         };
 
                         const randomMatcapName = randomMatcap();
+
+                        // Apply transformations or material settings
+                        if (partName === 'headlights') {
+                            part.traverse((child) => {
+                                if (child instanceof THREE.Mesh) {
+                                    child.material = new THREE.MeshStandardMaterial({
+                                        emissive: new THREE.Color(0xffffff),
+                                        emissiveIntensity: 1.5,
+                                    });
+                                }
+                            });
+                        }
                         
                         if (partName === 'chassis') {
                             applyMatcap(part, randomMatcapName);
@@ -587,7 +599,15 @@ export default function GaragePage() {
                 cameraRef.current.position.set(0, -200, 5); // Pull camera twice the distance out
                 cameraRef.current.lookAt(carGroupRef.current.position);
             }
+
+            addHeadlightEffect(carGroupRef.current);
         };  
+
+        const addHeadlightEffect = (carGroup: THREE.Group) => {
+            const headlightLight = new THREE.PointLight(0xffffff, 1, 10); // Adjust intensity and distance
+            headlightLight.position.set(0, 1, 2); // Adjust position relative to the car
+            carGroup.add(headlightLight);
+        };
 
         const loadShowroomCar = async (
             cars: Array<{ name: string; parts: Record<string, string>; price: number }>
@@ -1435,7 +1455,7 @@ export default function GaragePage() {
                 <div className='showroom-layer'
                     style={{
                         position: 'absolute',
-                        bottom: '0',
+                        bottom: '-100px',
                         left: '50%',
                         transform: 'translateX(-50%)',
                         padding: '30px',
