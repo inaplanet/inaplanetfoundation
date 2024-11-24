@@ -151,7 +151,29 @@ export default function GaragePage() {
             },
         },
         {
-            name: 'Wran Wrecksaw',
+            name: 'Wreckslinger',
+            price: 7500000,
+            parts: {
+                accessories: '/models/wreckslinger/accessories.glb',
+                backlights: '/models/wreckslinger/backlights.glb',
+                bumper: '/models/wreckslinger/bumper.glb',
+                chassis: '/models/wreckslinger/chassis.glb',
+                chassisbottom: '/models/wreckslinger/chassisbottom.glb',
+                doors: '/models/wreckslinger/doors.glb',
+                headlights: '/models/wreckslinger/headlights.glb',
+                tire: '/models/wreckslinger/tire.glb',
+                wheel: '/models/wreckslinger/wheel.glb',
+                window: '/models/wreckslinger/window.glb',
+            },
+            attributes: {
+                PWR: 70,
+                HP: 40,
+                SPD: 110,
+                BRK: 90,
+            },
+        },
+        {
+            name: 'Wran Wreckstone',
             price: 378000,
             parts: {
                 backhoodtire: '/models/wrangler/backhoodtire.glb',
