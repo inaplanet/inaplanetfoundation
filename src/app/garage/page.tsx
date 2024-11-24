@@ -55,10 +55,10 @@ export default function GaragePage() {
             price: 378000,
             parts: {
                 accessories: '/models/car/default/empty.glb',
-                backlights: '/models/car/default/empty.glb',
+                backlights: '/models/car/default/backLightsBrake.glb',
                 chassisinside: '/models/car/default/empty.glb',
                 engine: '/models/car/default/empty.glb',
-                headlights: '/models/car/default/empty.glb',
+                headlights: '/models/car/default/headlights.glb',
                 saloon: '/models/car/default/empty.glb',
                 chassisbottom: '/models/car/default/chassisbottom.glb',
                 chassis: '/models/car/default/chassisbody.glb',
@@ -159,10 +159,11 @@ export default function GaragePage() {
                 chassis: '/models/wrangler/chassis.glb',
                 chassispart: '/models/wrangler/chassispart.glb',
                 headlights: '/models/wrangler/headlights.glb',
+                backlights: '/models/wrangler/backlights.glb',
                 hoodhandle: '/models/wrangler/hoodhandle.glb',
                 wheels: '/models/wrangler/wheels.glb',
                 tire: '/models/wrangler/tire.glb',
-                vehicle: '/models/wrangler/vehicle.glb',
+                vehicle: '/models/wrangler/vehicle1.glb',
             },
             attributes: {
                 PWR: 100,
@@ -181,6 +182,7 @@ export default function GaragePage() {
                 window: '/models/rctruck/window.glb',
                 doors: '/models/rctruck/doors.glb',
                 headlights: '/models/rctruck/headlights.glb',
+                backlights: '/models/rctruck/backlights.glb',
                 wheels: '/models/rctruck/wheels.glb',
             },
             attributes: {
@@ -375,7 +377,102 @@ export default function GaragePage() {
         chassisbottom: '/garage/bottom.png',
         spoiler: '/garage/spoiler.png',
         window: '/garage/window.png',
-    };     
+    };    
+    
+    const createNitroEffect = (position: THREE.Vector3, quaternion: THREE.Quaternion, carChassis: THREE.Object3D) => {
+        const nitroTexture = '/garage/nitro.png';
+        const base64Texture = nitroTexture; // Ensure this texture is defined or imported
+        const img = new Image();
+        img.src = base64Texture;
+        img.crossOrigin = "anonymous";
+    
+        img.onload = () => {
+            const texture = new THREE.Texture(img);
+            texture.needsUpdate = true;
+    
+            const material = new THREE.PointsMaterial({
+                size: 20,
+                map: texture,
+                vertexColors: true,
+                sizeAttenuation: true,
+                transparent: true,
+                opacity: 1,
+                blending: THREE.AdditiveBlending,
+                depthWrite: false,
+            });
+    
+            const particleCount = 100;
+            const geometry = new THREE.BufferGeometry();
+            const vertices = [];
+            const colors = [];
+            const sizes = [];
+    
+            // Initialize particle vertices, colors, and sizes
+            for (let i = 0; i < particleCount; i++) {
+                vertices.push(0, 0, 0);
+    
+                const randomColor = Math.random();
+                if (randomColor < 0.33) {
+                    colors.push(0.0, 0.5 + Math.random() * 0.5, 1.0);
+                } else if (randomColor < 0.66) {
+                    colors.push(1.0, 1.0 + Math.random() * 0.5, 0.0);
+                } else {
+                    colors.push(0.0, 1.0, 0.5 + Math.random() * 0.5);
+                }
+    
+                sizes.push(Math.random() * 0.1 + 0.05);
+            }
+    
+            geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+            geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+            geometry.setAttribute('size', new THREE.Float32BufferAttribute(sizes, 1));
+    
+            const particles = new THREE.Points(geometry, material);
+    
+            carChassis.add(particles);
+    
+            // Rotate the particle system for exhaust alignment
+            particles.rotation.x = Math.PI / 2;
+            particles.position.copy(position).add(new THREE.Vector3(-0.95, 0, 0.6));
+    
+            let isBoostActive = true;
+    
+            const animateParticles = () => {
+                if (!isBoostActive) return;
+    
+                const positions = geometry.attributes.position.array as Float32Array;
+                for (let i = 0; i < particleCount; i++) {
+                    const localMovement = new THREE.Vector3(
+                        -1 * (Math.random() - 0.5) * 0.1,
+                        -1 * (Math.random() - 0.5) * 0.1,
+                        -1 * (Math.random() * 0.05)
+                    );
+                    localMovement.applyQuaternion(quaternion);
+                    positions[i * 3 + 0] += localMovement.x * 3;
+                    positions[i * 3 + 1] += localMovement.y;
+                    positions[i * 3 + 2] += localMovement.z;
+                }
+    
+                geometry.attributes.position.needsUpdate = true;
+    
+                particles.position.copy(carChassis.position).add(new THREE.Vector3(-0.95, 0, 0.6));
+                requestAnimationFrame(animateParticles);
+            };
+    
+            animateParticles();
+    
+            setTimeout(() => {
+                isBoostActive = false;
+                carChassis.remove(particles);
+                geometry.dispose();
+                material.dispose();
+            }, 200);
+        };
+    
+        img.onerror = (error) => {
+            console.error('Failed to load base64 texture:', error);
+        };
+    };
 
     // Load matcap textures
     useEffect(() => {
@@ -465,12 +562,12 @@ export default function GaragePage() {
         };
         animate();
 
-        return () => {
-            cancelAnimationFrame(animationFrameId); // Properly clean up
-            window.removeEventListener('resize', handleResize);
-            window.removeEventListener('click', handleMouseClick);
-            renderer.dispose();
-        };
+        // return () => {
+        //     cancelAnimationFrame(animationFrameId); // Properly clean up
+        //     window.removeEventListener('resize', handleResize);
+        //     window.removeEventListener('click', handleMouseClick);
+        //     renderer.dispose();
+        // };
 
         const handleResize = () => {
             renderer.setSize(window.innerWidth, window.innerHeight);
@@ -1204,7 +1301,17 @@ export default function GaragePage() {
                     <div
                         className="button-element"
                         style={{ left: "-90px", backdropFilter: "blur(10px)"}} // Adjust positioning for the left button
-                        onClick={() => console.log("Left button clicked")}
+                        onClick={() => {
+                            if (carGroupRef.current && carGroupRef.current.children.length > 0) {
+                                const activeCar = carGroupRef.current.children[0]; // Assuming the first car is active
+                                const position = new THREE.Vector3().copy(activeCar.position); // Get car position
+                                const quaternion = new THREE.Quaternion().copy(activeCar.quaternion); // Get car orientation
+                    
+                                createNitroEffect(position, quaternion, activeCar); // Trigger nitro effect
+                            } else {
+                                console.error("No car found to apply nitro effect.");
+                            }
+                        }}
                     >
                         <div
                             className="button-icon"
