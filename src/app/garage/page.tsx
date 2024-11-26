@@ -183,7 +183,7 @@ export default function GaragePage() {
                 lightscover: '/models/f40/lightscover.glb',
                 mirrors: '/models/f40/mirrors.glb',
                 tire: '/models/f40/tire.glb',
-                wheels: '/models/f40/wheels.glb',
+                wheels: '/models/f40/wheels1.glb',
                 window: '/models/f40/window.glb',
             },
             attributes: {
@@ -291,6 +291,26 @@ export default function GaragePage() {
             attributes: {
             PWR: 80,
             HP: 150,
+            SPD: 110,
+            BRK: 90,
+        },
+        },
+        {
+            name: 'Impactus',
+            price: 7500000,
+            parts: {
+                backlights: '/models/impactus/backlights.glb',
+                chassis: '/models/impactus/chassis.glb',
+                brake: '/models/impactus/brake.glb',
+                headlights: '/models/impactus/headlights.glb',
+                rims: '/models/impactus/rims.glb',
+                tire: '/models/impactus/tire.glb',
+                windows: '/models/impactus/windows.glb',
+                roof: '/models/impactus/roof.glb',
+            },
+            attributes: {
+            PWR: 140,
+            HP: 190,
             SPD: 110,
             BRK: 90,
         },
