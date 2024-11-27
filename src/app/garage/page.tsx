@@ -247,8 +247,8 @@ export default function GaragePage() {
                 chassis: '/models/240gti/chassis.glb',
                 chassisbottom: '/models/240gti/chassisbottom.glb',
                 headlights: '/models/240gti/headlights.glb',
-                tire: '/models/240gti/tire.glb',
-                wheels: '/models/240gti/wheels.glb',
+                tire: '/models/240gti/tire1.glb',
+                wheels: '/models/240gti/wheels1.glb',
                 windows: '/models/240gti/windows.glb',
             },
             attributes: {
