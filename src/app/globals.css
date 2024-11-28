@@ -476,7 +476,7 @@ opacity: 0;
   font-family: 'Orbitron', sans-serif;
   backdrop-filter: blur(5px);
   /* box-shadow: 0px 0px 5px rgba(24, 255, 0, 0.5); */
-  box-shadow: 0px 0px 10px rgb(0, 0, 0, 0.5);
+  /* box-shadow: 0px 0px 10px rgb(0, 0, 0, 0.5); */
   box-sizing: border-box;
   border-top: 20px solid transparent;
   border-bottom: 20px solid transparent;
@@ -517,7 +517,7 @@ opacity: 0;
   font-family: 'Orbitron', sans-serif;
   backdrop-filter: blur(5px);
   /* box-shadow: 0px 0px 5px rgba(24, 255, 0, 0.5); */
-  box-shadow: 0px 0px 10px rgb(0, 0, 0, 0.5);
+  /* box-shadow: 0px 0px 10px rgb(0, 0, 0, 0.5); */
   box-sizing: border-box;
   border-top: 10px solid transparent;
   border-bottom: 10px solid transparent;
@@ -525,7 +525,9 @@ opacity: 0;
 }
 
 #garage-button:hover {
-  background-color: #0213f7;
+  background-color: #8CFF80;
+  color: #000;
+  transition: background-color 0.2s ease;
 }
 
 @media (max-width: 767px) {
@@ -543,7 +545,7 @@ opacity: 0;
   text-align: center;
   font-family: 'Orbitron', sans-serif;
   backdrop-filter: blur(5px);
-  box-shadow: 0px 0px 10px rgb(0, 0, 0, 0.5);
+  /* box-shadow: 0px 0px 10px rgb(0, 0, 0, 0.5); */
   box-sizing: border-box;
   border-top: 10px solid transparent;
   border-bottom: 10px solid transparent;
@@ -591,14 +593,14 @@ opacity: 0;
     left: 20px;
     width: 88%;
     /* background-color: rgba(255, 255, 255, 0.01); Semi-transparent background */
-    box-shadow: 0px 0px 10px rgb(0, 0, 0, 0.5);
+    /* box-shadow: 0px 0px 10px rgb(0, 0, 0, 0.5); */
     padding: 0 20px 0 20px;
     /* border-radius: 20px; */
     z-index: 100; /* Higher z-index to display on top */
     display: block; /* Initially hidden */
     /* border: 1.5px solid rgba(255, 255, 255, 0.05); */
     text-align: center;
-    max-height: 39%; /* Maximum height */
+    max-height: 44%; /* Maximum height */
     overflow-y: auto; /* Vertical scrolling */
     font-family: 'Orbitron', sans-serif;
     backdrop-filter: blur(2px);

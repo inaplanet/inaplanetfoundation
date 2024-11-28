@@ -48,7 +48,6 @@ export default function Home() {
     'Berlin', 'Havana', 'Montreal', 'Antananarivo', 'Cape Town',
     'Boston', 'Milan', 'Bangkok', 'Mumbai', 'Barcelona',
     'Amsterdam', 'Athens', 'Monaco', 'Venice', 'Peru',
-    'Kyiv'
   ];
 
   const worldIcons = [
@@ -64,7 +63,6 @@ export default function Home() {
     '🇩🇪', '🇨🇺', '🇨🇦', '🇲🇬', '🇿🇦',
     '🇺🇸', '🇮🇹', '🇹🇭', '🇮🇳', '🇪🇸',
     '🇳🇱', '🇬🇷', '🇲🇨', '🇮🇹', '🇵🇪',
-    '🇺🇦'
   ];
 
   // Function to get token from the server
@@ -182,7 +180,7 @@ export default function Home() {
           } else {
               console.error("Invalid score received:", message.score);
           }
-          
+
           console.log("PLAYER SCORE", playerBalance)
 
       } else {
