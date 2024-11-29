@@ -809,22 +809,24 @@ export default class Car
         switch (carName) {
             case 'Charger Power Bank':
                 this.models.chassis = this.resources.items.chargerChassis;
-                // this.models.accessories = this.resources.items.chargerAccessories;
-                // this.models.backlights = this.resources.items.chargerBacklights;
-                // this.models.chassisBottom = this.resources.items.chargerChassisBottom;
-                // this.models.chassisInside = this.resources.items.chargerChassisInside;
-                // this.models.engine = this.resources.items.chargerEngine;
-                // this.models.saloon = this.resources.items.chargerSaloon;
                 this.models.wheel = this.resources.items.chargerWheels;
-                // this.models.tire = this.resources.items.chargerTire;
-                // this.models.windows = this.resources.items.chargerWindows;
-                // this.models.headlights = this.resources.items.chargerHeadlights;
                 this.models.antena = this.resources.items.chargerAntena;
                 this.models.backLightsBrake = this.resources.items.chargerBacklights;
                 this.models.backLightsReverse = this.resources.items.chargerBacklightsReverse;
                 this.models.backLightsBattery = this.resources.items.carDefaultBackLightsBattery;
 
                 console.log("Setting Charger Power Bank")
+                break;
+
+            case 'Wreckslinger':
+                this.models.chassis = this.resources.items.wreckslingerChassis;
+                this.models.wheel = this.resources.items.wreckslingerWheels;
+                this.models.antena = this.resources.items.wreckslingerAntena;
+                this.models.backLightsBrake = this.resources.items.wreckslingerBacklights;
+                this.models.backLightsReverse = this.resources.items.wreckslingerBacklightsReverse;
+                this.models.backLightsBattery = this.resources.items.carDefaultBackLightsBattery;
+    
+                console.log("Setting Wreckslinger")
                 break;
     
             default:

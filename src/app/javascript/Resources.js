@@ -144,6 +144,13 @@ const chargerWindowsSource = '/models/charger/windows.glb'
 const chargerHeadlightsSource = '/models/charger/headlights.glb'
 const chargerAntenaSource = '/models/charger/antena.glb'
 
+// Wreckslinger
+const wreckslingerChassisSource = '/models/wreckslinger/auto.glb'
+const wreckslingerBacklightsSource = '/models/wreckslinger/backlights.glb'
+const wreckslingerBacklightsReverseSource = '/models/wreckslinger/backlightsReverse.glb'
+const wreckslingerWheelsSource = '/models/wreckslinger/wheels.glb'
+const wreckslingerAntenaSource = '/models/wreckslinger/antena.glb'
+
 // Car default 1
 const car1DefaultChassisSource = '/models/car1/default/chassis.glb'
 const car1DefaultWheelSource = '/models/car1/default/wheel.glb'
@@ -388,6 +395,13 @@ export default class Resources extends EventEmitter
             { name: 'chargerWindows', source: chargerWindowsSource },
             { name: 'chargerHeadlights', source: chargerHeadlightsSource },
             { name: 'chargerAntena', source: chargerAntenaSource },
+
+            // Wreckslinger
+            { name: 'wreckslingerChassis', source: wreckslingerChassisSource },
+            { name: 'wreckslingerBacklights', source: wreckslingerBacklightsSource },
+            { name: 'wreckslingerBacklightsReverse', source: wreckslingerBacklightsReverseSource },
+            { name: 'wreckslingerWheels', source: wreckslingerWheelsSource },
+            { name: 'wreckslingerAntena', source: wreckslingerAntenaSource },
 
             // Car1 default
             { name: 'car1DefaultChassis', source: car1DefaultChassisSource },
