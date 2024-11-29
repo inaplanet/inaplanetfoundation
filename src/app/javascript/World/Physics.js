@@ -36,7 +36,6 @@ export default class Physics
         this.worldId = _options.worldId
         this.carClass = _options.carClass
         this.carName = _options.carName
-        console.log("PHYSICS CAR NAME", this.carName)
         this.bullets = []
         this.cars = {}
 
@@ -119,7 +118,7 @@ export default class Physics
         this.setModels()
         this.setMaterials()
         this.setFloor()
-        this.setCar()
+        this.setCar(this.playerId, this.carName)
 
         this.time.on('tick', () =>
         {
@@ -346,7 +345,7 @@ export default class Physics
     {
         this.models = {}
         this.models.container = new THREE.Object3D()
-        this.models.container.visible = true
+        this.models.container.visible = false
         this.models.materials = {}
         this.models.materials.static = new THREE.MeshBasicMaterial({ color: 0x0000ff, wireframe: true })
         this.models.materials.dynamic = new THREE.MeshBasicMaterial({ color: 0xff0000, wireframe: true })
@@ -7556,12 +7555,12 @@ export default class Physics
     }
     
 
-    setCar(playerId)
+    setCar(playerId, carName)
     {
         this.car = {}
 
         // Retrieve physics configuration for the car
-        // const carConfig = this.carPhysicsConfigs[carName] || this.carPhysicsConfigs.default;
+        const carConfig = this.carPhysicsConfigs[carName] || this.carPhysicsConfigs.default;
 
         // console.log("Car config", carConfig)
 
@@ -7578,67 +7577,67 @@ export default class Physics
         /**
          * Options
          */
-        this.car.options = {}
-        this.car.options.chassisWidth = 1.02
-        this.car.options.chassisHeight = 1.16
-        this.car.options.chassisDepth = 2.03
-        this.car.options.chassisOffset = new CANNON.Vec3(0, 0, 0.41)
-        this.car.options.chassisMass = 40
-        this.car.options.wheelFrontOffsetDepth = 0.775
-        this.car.options.wheelBackOffsetDepth = - 0.708
-        this.car.options.wheelOffsetWidth = 0.51
-        this.car.options.wheelRadius = 0.25
-        this.car.options.wheelHeight = 0.24
-        this.car.options.wheelSuspensionStiffness = 50
-        this.car.options.wheelSuspensionRestLength = 0.1
-        this.car.options.wheelFrictionSlip = 10
-        this.car.options.wheelDampingRelaxation = 1.8
-        this.car.options.wheelDampingCompression = 1.5
-        this.car.options.wheelMaxSuspensionForce = 100000
-        this.car.options.wheelRollInfluence =  0.01
-        this.car.options.wheelMaxSuspensionTravel = 0.3
-        this.car.options.wheelCustomSlidingRotationalSpeed = - 30
-        this.car.options.wheelMass = 5
-        this.car.options.controlsSteeringSpeed = 0.005 * 3
-        this.car.options.controlsSteeringMax = Math.PI * 0.17
-        this.car.options.controlsSteeringQuad = false
-        this.car.options.controlsAcceleratinMaxSpeed = 0.055 * 3 / 17
-        this.car.options.controlsAcceleratinMaxSpeedBoost = 0.17 * 3 / 17
-        this.car.options.controlsAcceleratingSpeed = 2 * 4 * 2
-        this.car.options.controlsAcceleratingSpeedBoost = 7 * 4 * 2
-        this.car.options.controlsAcceleratingQuad = true
-        this.car.options.controlsBrakeStrength = 0.45 * 9
-
         // this.car.options = {}
-        // this.car.options.chassisWidth = carConfig.chassisWidth,
-        // this.car.options.chassisHeight = carConfig.chassisHeight,
-        // this.car.options.chassisDepth = carConfig.chassisDepth,
-        // this.car.options.chassisOffset = carConfig.chassisOffset,
-        // this.car.options.chassisMass = carConfig.chassisMass,
-        // this.car.options.wheelFrontOffsetDepth = carConfig.wheelFrontOffsetDepth,
-        // this.car.options.wheelBackOffsetDepth = - carConfig.wheelBackOffsetDepth,
-        // this.car.options.wheelOffsetWidth = carConfig.wheelOffsetWidth,
-        // this.car.options.wheelRadius = carConfig.wheelRadius,
-        // this.car.options.wheelHeight = carConfig.wheelHeight,
-        // this.car.options.wheelSuspensionStiffness = carConfig.wheelSuspensionStiffness,
-        // this.car.options.wheelSuspensionRestLength = carConfig.wheelSuspensionRestLength,
-        // this.car.options.wheelFrictionSlip = carConfig.wheelFrictionSlip,
-        // this.car.options.wheelDampingRelaxation = carConfig.wheelDampingRelaxation,
-        // this.car.options.wheelDampingCompression = carConfig.wheelDampingCompression,
-        // this.car.options.wheelMaxSuspensionForce = carConfig.wheelMaxSuspensionForce,
-        // this.car.options.wheelRollInfluence =  carConfig.wheelRollInfluence,
-        // this.car.options.wheelMaxSuspensionTravel = carConfig.wheelMaxSuspensionTravel,
-        // this.car.options.wheelCustomSlidingRotationalSpeed = carConfig.wheelCustomSlidingRotationalSpeed,
-        // this.car.options.wheelMass = carConfig.wheelMass,
-        // this.car.options.controlsSteeringSpeed = carConfig.controlsSteeringSpeed,
-        // this.car.options.controlsSteeringMax = carConfig.controlsSteeringMax,
-        // this.car.options.controlsSteeringQuad = carConfig.controlsSteeringQuad,
-        // this.car.options.controlsAcceleratinMaxSpeed = carConfig.controlsAcceleratinMaxSpeed,
-        // this.car.options.controlsAcceleratinMaxSpeedBoost = carConfig.controlsAcceleratinMaxSpeedBoost,
-        // this.car.options.controlsAcceleratingSpeed = carConfig.controlsAcceleratingSpeed,
-        // this.car.options.controlsAcceleratingSpeedBoost = carConfig.controlsAcceleratingSpeedBoost,
-        // this.car.options.controlsAcceleratingQuad = carConfig.controlsAcceleratingQuad,
-        // this.car.options.controlsBrakeStrength = carConfig.controlsBrakeStrength,
+        // this.car.options.chassisWidth = 1.02
+        // this.car.options.chassisHeight = 1.16
+        // this.car.options.chassisDepth = 2.03
+        // this.car.options.chassisOffset = new CANNON.Vec3(0, 0, 0.41)
+        // this.car.options.chassisMass = 40
+        // this.car.options.wheelFrontOffsetDepth = 0.775
+        // this.car.options.wheelBackOffsetDepth = - 0.708
+        // this.car.options.wheelOffsetWidth = 0.51
+        // this.car.options.wheelRadius = 0.25
+        // this.car.options.wheelHeight = 0.24
+        // this.car.options.wheelSuspensionStiffness = 50
+        // this.car.options.wheelSuspensionRestLength = 0.1
+        // this.car.options.wheelFrictionSlip = 10
+        // this.car.options.wheelDampingRelaxation = 1.8
+        // this.car.options.wheelDampingCompression = 1.5
+        // this.car.options.wheelMaxSuspensionForce = 100000
+        // this.car.options.wheelRollInfluence =  0.01
+        // this.car.options.wheelMaxSuspensionTravel = 0.3
+        // this.car.options.wheelCustomSlidingRotationalSpeed = - 30
+        // this.car.options.wheelMass = 5
+        // this.car.options.controlsSteeringSpeed = 0.005 * 3
+        // this.car.options.controlsSteeringMax = Math.PI * 0.17
+        // this.car.options.controlsSteeringQuad = false
+        // this.car.options.controlsAcceleratinMaxSpeed = 0.055 * 3 / 17
+        // this.car.options.controlsAcceleratinMaxSpeedBoost = 0.17 * 3 / 17
+        // this.car.options.controlsAcceleratingSpeed = 2 * 4 * 2
+        // this.car.options.controlsAcceleratingSpeedBoost = 7 * 4 * 2
+        // this.car.options.controlsAcceleratingQuad = true
+        // this.car.options.controlsBrakeStrength = 0.45 * 9
+
+        this.car.options = {}
+        this.car.options.chassisWidth = carConfig.chassisWidth,
+        this.car.options.chassisHeight = carConfig.chassisHeight,
+        this.car.options.chassisDepth = carConfig.chassisDepth,
+        this.car.options.chassisOffset = carConfig.chassisOffset,
+        this.car.options.chassisMass = carConfig.chassisMass,
+        this.car.options.wheelFrontOffsetDepth = carConfig.wheelFrontOffsetDepth,
+        this.car.options.wheelBackOffsetDepth = - carConfig.wheelBackOffsetDepth,
+        this.car.options.wheelOffsetWidth = carConfig.wheelOffsetWidth,
+        this.car.options.wheelRadius = carConfig.wheelRadius,
+        this.car.options.wheelHeight = carConfig.wheelHeight,
+        this.car.options.wheelSuspensionStiffness = carConfig.wheelSuspensionStiffness,
+        this.car.options.wheelSuspensionRestLength = carConfig.wheelSuspensionRestLength,
+        this.car.options.wheelFrictionSlip = carConfig.wheelFrictionSlip,
+        this.car.options.wheelDampingRelaxation = carConfig.wheelDampingRelaxation,
+        this.car.options.wheelDampingCompression = carConfig.wheelDampingCompression,
+        this.car.options.wheelMaxSuspensionForce = carConfig.wheelMaxSuspensionForce,
+        this.car.options.wheelRollInfluence =  carConfig.wheelRollInfluence,
+        this.car.options.wheelMaxSuspensionTravel = carConfig.wheelMaxSuspensionTravel,
+        this.car.options.wheelCustomSlidingRotationalSpeed = carConfig.wheelCustomSlidingRotationalSpeed,
+        this.car.options.wheelMass = carConfig.wheelMass,
+        this.car.options.controlsSteeringSpeed = carConfig.controlsSteeringSpeed,
+        this.car.options.controlsSteeringMax = carConfig.controlsSteeringMax,
+        this.car.options.controlsSteeringQuad = carConfig.controlsSteeringQuad,
+        this.car.options.controlsAcceleratinMaxSpeed = carConfig.controlsAcceleratinMaxSpeed,
+        this.car.options.controlsAcceleratinMaxSpeedBoost = carConfig.controlsAcceleratinMaxSpeedBoost,
+        this.car.options.controlsAcceleratingSpeed = carConfig.controlsAcceleratingSpeed,
+        this.car.options.controlsAcceleratingSpeedBoost = carConfig.controlsAcceleratingSpeedBoost,
+        this.car.options.controlsAcceleratingQuad = carConfig.controlsAcceleratingQuad,
+        this.car.options.controlsBrakeStrength = carConfig.controlsBrakeStrength
 
         /**
          * Upsize down
@@ -7722,19 +7721,39 @@ export default class Physics
             }
 
             // Front left
-            this.car.wheels.options.chassisConnectionPointLocal.set(this.car.options.wheelFrontOffsetDepth, this.car.options.wheelOffsetWidth, 0)
+            // this.car.wheels.options.chassisConnectionPointLocal.set(this.car.options.wheelFrontOffsetDepth, this.car.options.wheelOffsetWidth, 0)
+            this.car.wheels.options.chassisConnectionPointLocal = new CANNON.Vec3(
+                carConfig.wheelFrontOffsetDepth,
+                carConfig.wheelOffsetWidth,
+                0
+            );
             this.car.vehicle.addWheel(this.car.wheels.options)
 
             // Front right
-            this.car.wheels.options.chassisConnectionPointLocal.set(this.car.options.wheelFrontOffsetDepth, - this.car.options.wheelOffsetWidth, 0)
+            // this.car.wheels.options.chassisConnectionPointLocal.set(this.car.options.wheelFrontOffsetDepth, - this.car.options.wheelOffsetWidth, 0)
+            this.car.wheels.options.chassisConnectionPointLocal = new CANNON.Vec3(
+                carConfig.wheelFrontOffsetDepth,
+                -carConfig.wheelOffsetWidth,
+                0
+            );
             this.car.vehicle.addWheel(this.car.wheels.options)
 
             // Back left
-            this.car.wheels.options.chassisConnectionPointLocal.set(this.car.options.wheelBackOffsetDepth, this.car.options.wheelOffsetWidth, 0)
+            // this.car.wheels.options.chassisConnectionPointLocal.set(this.car.options.wheelBackOffsetDepth, this.car.options.wheelOffsetWidth, 0)
+            this.car.wheels.options.chassisConnectionPointLocal = new CANNON.Vec3(
+                carConfig.wheelBackOffsetDepth,
+                carConfig.wheelOffsetWidth,
+                0
+            );
             this.car.vehicle.addWheel(this.car.wheels.options)
 
             // Back right
-            this.car.wheels.options.chassisConnectionPointLocal.set(this.car.options.wheelBackOffsetDepth, - this.car.options.wheelOffsetWidth, 0)
+            // this.car.wheels.options.chassisConnectionPointLocal.set(this.car.options.wheelBackOffsetDepth, - this.car.options.wheelOffsetWidth, 0)
+            this.car.wheels.options.chassisConnectionPointLocal = new CANNON.Vec3(
+                carConfig.wheelBackOffsetDepth,
+                -carConfig.wheelOffsetWidth,
+                0
+            );
             this.car.vehicle.addWheel(this.car.wheels.options)
 
             this.car.vehicle.addToWorld(this.world)

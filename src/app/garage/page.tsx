@@ -1554,8 +1554,8 @@ export default function GaragePage() {
                             }}
                         />
                     </div>
-                    <div className="coin-icon" style={{ fontSize: "25px", animation: "rotateClockwise 6s linear infinite" }}>
-                    ۞
+                    <div className="coin-icon" style={{ fontSize: "25px", animation: "rotateClockwise 5s linear infinite" }}>
+                    ❖
                     </div>
                     <div className="coin-layer">{formatBalance(playerAccount)}</div>
                     <div
