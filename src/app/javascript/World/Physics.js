@@ -35,6 +35,8 @@ export default class Physics
         this.sounds = _options.sounds
         this.worldId = _options.worldId
         this.carClass = _options.carClass
+        this.carName = _options.carName
+        console.log("PHYSICS CAR NAME", this.carName)
         this.bullets = []
         this.cars = {}
 
@@ -47,6 +49,71 @@ export default class Physics
             this.debugFolder = this.debug.addFolder('physics')
             // this.debugFolder.open()
         }
+
+        this.carPhysicsConfigs = {
+            'Charger Power Bank': {
+                chassisWidth: 1.02,
+                chassisHeight: 1.16,
+                chassisDepth: 2.03,
+                chassisOffset: new CANNON.Vec3(0, 0, 0.41),
+                chassisMass: 40,
+                wheelFrontOffsetDepth: 0.635,
+                wheelBackOffsetDepth: -0.475,
+                wheelOffsetWidth: 0.39,
+                wheelRadius: 0.25,
+                wheelHeight: 0.24,
+                wheelSuspensionStiffness: 50,
+                wheelSuspensionRestLength: 0.1,
+                wheelFrictionSlip: 10,
+                wheelDampingRelaxation: 1.8,
+                wheelDampingCompression: 1.5,
+                wheelMaxSuspensionForce: 100000,
+                wheelRollInfluence:  0.01,
+                wheelMaxSuspensionTravel: 0.3,
+                wheelCustomSlidingRotationalSpeed: - 30,
+                wheelMass: 5,
+                controlsSteeringSpeed: 0.005 * 3,
+                controlsSteeringMax: Math.PI * 0.17,
+                controlsSteeringQuad: false,
+                controlsAcceleratinMaxSpeed: 0.055 * 3 / 17,
+                controlsAcceleratinMaxSpeedBoost: 0.17 * 3 / 17,
+                controlsAcceleratingSpeed: 2 * 4 * 2,
+                controlsAcceleratingSpeedBoost: 7 * 4 * 2,
+                controlsAcceleratingQuad: true,
+                controlsBrakeStrength: 0.45 * 9,
+            },
+            default: {
+                chassisWidth: 1.02,
+                chassisHeight: 1.16,
+                chassisDepth: 2.03,
+                chassisOffset: new CANNON.Vec3(0, 0, 0.41),
+                chassisMass: 40,
+                wheelFrontOffsetDepth: 0.635,
+                wheelBackOffsetDepth: -0.475,
+                wheelOffsetWidth: 0.39,
+                wheelRadius: 0.25,
+                wheelHeight: 0.24,
+                wheelSuspensionStiffness: 50,
+                wheelSuspensionRestLength: 0.1,
+                wheelFrictionSlip: 10,
+                wheelDampingRelaxation: 1.8,
+                wheelDampingCompression: 1.5,
+                wheelMaxSuspensionForce: 100000,
+                wheelRollInfluence:  0.01,
+                wheelMaxSuspensionTravel: 0.3,
+                wheelCustomSlidingRotationalSpeed: - 30,
+                wheelMass: 5,
+                controlsSteeringSpeed: 0.005 * 3,
+                controlsSteeringMax: Math.PI * 0.17,
+                controlsSteeringQuad: false,
+                controlsAcceleratinMaxSpeed: 0.055 * 3 / 17,
+                controlsAcceleratinMaxSpeedBoost: 0.17 * 3 / 17,
+                controlsAcceleratingSpeed: 2 * 4 * 2,
+                controlsAcceleratingSpeedBoost: 7 * 4 * 2,
+                controlsAcceleratingQuad: true,
+                controlsBrakeStrength: 0.45 * 9,
+            },
+        };
 
         this.setWorld()
         this.setModels()
@@ -279,7 +346,7 @@ export default class Physics
     {
         this.models = {}
         this.models.container = new THREE.Object3D()
-        this.models.container.visible = false
+        this.models.container.visible = true
         this.models.materials = {}
         this.models.materials.static = new THREE.MeshBasicMaterial({ color: 0x0000ff, wireframe: true })
         this.models.materials.dynamic = new THREE.MeshBasicMaterial({ color: 0xff0000, wireframe: true })
@@ -7493,6 +7560,11 @@ export default class Physics
     {
         this.car = {}
 
+        // Retrieve physics configuration for the car
+        // const carConfig = this.carPhysicsConfigs[carName] || this.carPhysicsConfigs.default;
+
+        // console.log("Car config", carConfig)
+
         this.car.steering = 0
         this.car.accelerating = 0
         this.car.speed = 0
@@ -7512,8 +7584,8 @@ export default class Physics
         this.car.options.chassisDepth = 2.03
         this.car.options.chassisOffset = new CANNON.Vec3(0, 0, 0.41)
         this.car.options.chassisMass = 40
-        this.car.options.wheelFrontOffsetDepth = 0.635
-        this.car.options.wheelBackOffsetDepth = - 0.475
+        this.car.options.wheelFrontOffsetDepth = 0.735
+        this.car.options.wheelBackOffsetDepth = - 0.675
         this.car.options.wheelOffsetWidth = 0.39
         this.car.options.wheelRadius = 0.25
         this.car.options.wheelHeight = 0.24
@@ -7536,6 +7608,37 @@ export default class Physics
         this.car.options.controlsAcceleratingSpeedBoost = 7 * 4 * 2
         this.car.options.controlsAcceleratingQuad = true
         this.car.options.controlsBrakeStrength = 0.45 * 9
+
+        // this.car.options = {}
+        // this.car.options.chassisWidth = carConfig.chassisWidth,
+        // this.car.options.chassisHeight = carConfig.chassisHeight,
+        // this.car.options.chassisDepth = carConfig.chassisDepth,
+        // this.car.options.chassisOffset = carConfig.chassisOffset,
+        // this.car.options.chassisMass = carConfig.chassisMass,
+        // this.car.options.wheelFrontOffsetDepth = carConfig.wheelFrontOffsetDepth,
+        // this.car.options.wheelBackOffsetDepth = - carConfig.wheelBackOffsetDepth,
+        // this.car.options.wheelOffsetWidth = carConfig.wheelOffsetWidth,
+        // this.car.options.wheelRadius = carConfig.wheelRadius,
+        // this.car.options.wheelHeight = carConfig.wheelHeight,
+        // this.car.options.wheelSuspensionStiffness = carConfig.wheelSuspensionStiffness,
+        // this.car.options.wheelSuspensionRestLength = carConfig.wheelSuspensionRestLength,
+        // this.car.options.wheelFrictionSlip = carConfig.wheelFrictionSlip,
+        // this.car.options.wheelDampingRelaxation = carConfig.wheelDampingRelaxation,
+        // this.car.options.wheelDampingCompression = carConfig.wheelDampingCompression,
+        // this.car.options.wheelMaxSuspensionForce = carConfig.wheelMaxSuspensionForce,
+        // this.car.options.wheelRollInfluence =  carConfig.wheelRollInfluence,
+        // this.car.options.wheelMaxSuspensionTravel = carConfig.wheelMaxSuspensionTravel,
+        // this.car.options.wheelCustomSlidingRotationalSpeed = carConfig.wheelCustomSlidingRotationalSpeed,
+        // this.car.options.wheelMass = carConfig.wheelMass,
+        // this.car.options.controlsSteeringSpeed = carConfig.controlsSteeringSpeed,
+        // this.car.options.controlsSteeringMax = carConfig.controlsSteeringMax,
+        // this.car.options.controlsSteeringQuad = carConfig.controlsSteeringQuad,
+        // this.car.options.controlsAcceleratinMaxSpeed = carConfig.controlsAcceleratinMaxSpeed,
+        // this.car.options.controlsAcceleratinMaxSpeedBoost = carConfig.controlsAcceleratinMaxSpeedBoost,
+        // this.car.options.controlsAcceleratingSpeed = carConfig.controlsAcceleratingSpeed,
+        // this.car.options.controlsAcceleratingSpeedBoost = carConfig.controlsAcceleratingSpeedBoost,
+        // this.car.options.controlsAcceleratingQuad = carConfig.controlsAcceleratingQuad,
+        // this.car.options.controlsBrakeStrength = carConfig.controlsBrakeStrength,
 
         /**
          * Upsize down

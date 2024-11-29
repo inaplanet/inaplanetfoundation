@@ -2748,6 +2748,7 @@ export default class
             physics: this.physics,
             worldId: this.worldId,
             carClass: this.carClass,
+            carName: this.carName,
             ws: this.ws
         })
         this.container.add(this.physics.models.container)
