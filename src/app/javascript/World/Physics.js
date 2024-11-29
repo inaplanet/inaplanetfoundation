@@ -7584,9 +7584,9 @@ export default class Physics
         this.car.options.chassisDepth = 2.03
         this.car.options.chassisOffset = new CANNON.Vec3(0, 0, 0.41)
         this.car.options.chassisMass = 40
-        this.car.options.wheelFrontOffsetDepth = 0.735
-        this.car.options.wheelBackOffsetDepth = - 0.675
-        this.car.options.wheelOffsetWidth = 0.39
+        this.car.options.wheelFrontOffsetDepth = 0.775
+        this.car.options.wheelBackOffsetDepth = - 0.708
+        this.car.options.wheelOffsetWidth = 0.51
         this.car.options.wheelRadius = 0.25
         this.car.options.wheelHeight = 0.24
         this.car.options.wheelSuspensionStiffness = 50
