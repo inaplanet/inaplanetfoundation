@@ -57,9 +57,9 @@ export default class Physics
                 chassisDepth: 2.03,
                 chassisOffset: new CANNON.Vec3(0, 0, 0.41),
                 chassisMass: 40,
-                wheelFrontOffsetDepth: 0.635,
-                wheelBackOffsetDepth: -0.475,
-                wheelOffsetWidth: 0.39,
+                wheelFrontOffsetDepth: 0.775,
+                wheelBackOffsetDepth: - 0.708,
+                wheelOffsetWidth: 0.51,
                 wheelRadius: 0.25,
                 wheelHeight: 0.24,
                 wheelSuspensionStiffness: 50,
@@ -80,7 +80,7 @@ export default class Physics
                 controlsAcceleratingSpeed: 2 * 4 * 2,
                 controlsAcceleratingSpeedBoost: 7 * 4 * 2,
                 controlsAcceleratingQuad: true,
-                controlsBrakeStrength: 0.45 * 9,
+                controlsBrakeStrength: 0.45 * 9
             },
             default: {
                 chassisWidth: 1.02,

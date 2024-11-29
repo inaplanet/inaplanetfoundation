@@ -821,7 +821,7 @@ export default class Car
                 // this.models.headlights = this.resources.items.chargerHeadlights;
                 this.models.antena = this.resources.items.chargerAntena;
                 this.models.backLightsBrake = this.resources.items.chargerBacklights;
-                this.models.backLightsReverse = this.resources.items.carDefaultBackLightsReverse;
+                this.models.backLightsReverse = this.resources.items.chargerBacklightsReverse;
                 this.models.backLightsBattery = this.resources.items.carDefaultBackLightsBattery;
 
                 console.log("Setting Charger Power Bank")

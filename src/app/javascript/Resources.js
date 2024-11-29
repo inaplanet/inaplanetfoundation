@@ -131,6 +131,7 @@ const carDefaultAntenaSource = '/models/car/default/antena.glb'
 // Charger
 const chargerAccessoriesSource = '/models/charger/accessories.glb'
 const chargerBacklightsSource = '/models/charger/backlights.glb'
+const chargerBacklightsReverseSource = '/models/charger/backlightsReverse.glb'
 // const chargerChassisSource = '/models/charger/chassis.glb'
 const chargerChassisSource = '/models/charger/topcar.glb'
 const chargerChassisBottomSource = '/models/charger/chassisbottom.glb'
@@ -377,6 +378,7 @@ export default class Resources extends EventEmitter
             { name: 'chargerChassis', source: chargerChassisSource },
             { name: 'chargerAccessories', source: chargerAccessoriesSource },
             { name: 'chargerBacklights', source: chargerBacklightsSource },
+            { name: 'chargerBacklightsReverse', source: chargerBacklightsReverseSource },
             { name: 'chargerChassisBottom', source: chargerChassisBottomSource },
             { name: 'chargerChassisInside', source: chargerChassisInsideSource },
             { name: 'chargerEngine', source: chargerEngineSource },
