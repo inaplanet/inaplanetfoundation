@@ -5,7 +5,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { SVGLoader } from 'three/examples/jsm/loaders/SVGLoader';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 
 import { FontLoader } from '../javascript/Utils/FontLoader';
 import { TextGeometry } from '../javascript/Utils/TextGeometry';
@@ -18,8 +18,10 @@ import "slick-carousel/slick/slick-theme.css";
 import gsap from 'gsap';
 
 export default function GaragePage() {
+    const router = useRouter();
+    const [navigateToPage, setNavigateToPage] = useState<string | null>(null); // Track navigation target
     const searchParams = useSearchParams();
-    const [playerBalance, setPlayerBalance] = useState<number>(365747);
+    const [playerAccount, setPlayerAccount] = useState<number>(0);
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const carGroupRef = useRef<THREE.Group>(new THREE.Group());
     const rocketGroupRef = useRef<THREE.Group>(new THREE.Group());
@@ -564,7 +566,7 @@ export default function GaragePage() {
 
         // Parse the balance and set it in state
         if (balance && !isNaN(Number(balance))) {
-            setPlayerBalance(Number(balance));
+            setPlayerAccount(Number(balance));
         }
     }, [searchParams]); // Run when searchParams change
 
@@ -1257,18 +1259,33 @@ export default function GaragePage() {
     };
 
     const handleCarSelection = async (carName: string) => {
+
         const selectedCar = cars.find((car) => car.name === carName);
         if (selectedCar) {
             const selectedIndex = cars.indexOf(selectedCar);
             setCurrentCarIndex(selectedIndex);
             toggleView('car');
             await loadCar(selectedIndex);
+
+            // Save the selected car name to localStorage
+            localStorage.setItem('selectedCar', carName);
+            console.log("Selected car", localStorage);
+
+            // Queue navigation
+            setNavigateToPage('/');
     
-            // Display attributes in the scene
         } else {
             console.warn(`Car not found for name: ${carName}`);
         }
     };    
+
+    // Trigger navigation when `navigateToPage` is set
+    React.useEffect(() => {
+        if (navigateToPage) {
+            router.push(navigateToPage); // Perform navigation
+            setNavigateToPage(null); // Reset navigation state
+        }
+    }, [navigateToPage, router]);
 
     // Smooth camera transition function
     const smoothCameraTransition = (position: THREE.Vector3, lookAt: THREE.Vector3) => {
@@ -1510,7 +1527,7 @@ export default function GaragePage() {
             {/* <div className="coin-element">
                 <div className="coin-container">
                     <div className="coin-icon" style={{ fontSize: "25px", animation: "rotateClockwise 6s linear infinite" }}>❖</div>
-                    <div className="coin-layer">{playerBalance}</div>
+                    <div className="coin-layer">{playerAccount}</div>
                 </div>          
             </div> */}
             <div className="coin-element">
@@ -1538,9 +1555,9 @@ export default function GaragePage() {
                         />
                     </div>
                     <div className="coin-icon" style={{ fontSize: "25px", animation: "rotateClockwise 6s linear infinite" }}>
-                        ❖
+                    ۞
                     </div>
-                    <div className="coin-layer">{formatBalance(playerBalance)}</div>
+                    <div className="coin-layer">{formatBalance(playerAccount)}</div>
                     <div
                         className="button-element"
                         style={{ right: "-90px", backdropFilter: "blur(10px)" }} // Adjust positioning for the right button

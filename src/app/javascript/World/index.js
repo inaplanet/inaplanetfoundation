@@ -65,6 +65,8 @@ export default class
         this.playerId = _options.playerId;
         this.worldId = _options.worldId;
         this.token = _options.token;
+        this.carName = _options.carName;
+        console.log("INDEX CAR NAME", this.carName);
         this.otherPlayers = [];
         this.bullets = [];
         
@@ -371,14 +373,16 @@ export default class
         this.setWalls();
         this.setSections();
 
-        this.setupMultiplayer(this.playerId, this.token);
+        this.setupMultiplayer(this.playerId, this.token, this.carName);
 
         this.createMiniMap();
         this.setReveal();
         this.setClock();
     }
 
-    setCar() {
+    setCar(carName) {
+        console.log("This car car name", carName)
+
         this.car = new Car({
             time: this.time,
             resources: this.resources,
@@ -397,12 +401,13 @@ export default class
             bullets: this.bullets,
             battery: this.battery,
             score: this.score,
-            ws: this.ws
+            ws: this.ws,
+            carName: this.carName
         });
         this.container.add(this.car.container);
         this.updateBatteryStatus(this.car.battery);
         this.updateScoreStatus(this.car.score);
-
+        console.log("This car car name", this.car.carName)
       }
 
       setAds() {
@@ -511,7 +516,7 @@ export default class
             }
         }       
 
-        setupMultiplayer = async (playerId, token) => {
+        setupMultiplayer = async (playerId, token, carName) => {
             try {
                 // Retrieve the token from localStorage
                 // token = localStorage.getItem('token');
@@ -530,6 +535,8 @@ export default class
                 // this.worldId = "world-1"
 
                 this.playerId = playerId;
+                // this.carName = carName;
+                // console.log("Setup multiplayer car name", this.carName);
                 this.otherPlayers = {};
                 this.cars = {};
                 this.inParty = false;
@@ -873,7 +880,7 @@ export default class
                         }
                 };
 
-                this.setCar(this.playerId);
+                this.setCar(this.playerId, this.carName);
                 const playerCar = this.car;
 
                 this.initializeTargetDetection();

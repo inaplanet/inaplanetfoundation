@@ -25,7 +25,9 @@ export default class Car
         this.shooterId = _options.shooterId
         this.worldId = _options.worldId
         this.ws = _options.ws
-        this.carType = _options.carType
+        this.carName = _options.carName
+
+        console.log("CLASS carName", this.carName);
 
         // Set up
         this.container = new THREE.Object3D()
@@ -54,7 +56,7 @@ export default class Car
             // this.debugFolder.open()
         }
 
-        this.setModels()
+        this.setModels(this.carName)
         this.setMovement()
         this.setChassis()
         this.setAntena()
@@ -791,17 +793,49 @@ export default class Car
         }
     }
 
-    setModels()
+    setModels(carName)
     {
         this.models = {}
 
-        {
-            this.models.chassis = this.resources.items.carDefaultChassis
-            this.models.antena = this.resources.items.carDefaultAntena
-            this.models.backLightsBrake = this.resources.items.carDefaultBackLightsBrake
-            this.models.backLightsReverse = this.resources.items.carDefaultBackLightsReverse
-            this.models.backLightsBattery = this.resources.items.carDefaultBackLightsBattery
-            this.models.wheel = this.resources.items.carDefaultWheel
+        // {
+        //     this.models.chassis = this.resources.items.carDefaultChassis
+        //     this.models.antena = this.resources.items.carDefaultAntena
+        //     this.models.backLightsBrake = this.resources.items.carDefaultBackLightsBrake
+        //     this.models.backLightsReverse = this.resources.items.carDefaultBackLightsReverse
+        //     this.models.backLightsBattery = this.resources.items.carDefaultBackLightsBattery
+        //     this.models.wheel = this.resources.items.carDefaultWheel
+        // }
+
+        switch (carName) {
+            case 'Charger Power Bank':
+                this.models.chassis = this.resources.items.chargerChassis;
+                // this.models.accessories = this.resources.items.chargerAccessories;
+                // this.models.backlights = this.resources.items.chargerBacklights;
+                // this.models.chassisBottom = this.resources.items.chargerChassisBottom;
+                // this.models.chassisInside = this.resources.items.chargerChassisInside;
+                // this.models.engine = this.resources.items.chargerEngine;
+                // this.models.saloon = this.resources.items.chargerSaloon;
+                this.models.wheel = this.resources.items.chargerWheels;
+                // this.models.tire = this.resources.items.chargerTire;
+                // this.models.windows = this.resources.items.chargerWindows;
+                // this.models.headlights = this.resources.items.chargerHeadlights;
+                this.models.antena = this.resources.items.chargerAntena;
+                this.models.backLightsBrake = this.resources.items.chargerBacklights;
+                this.models.backLightsReverse = this.resources.items.carDefaultBackLightsReverse;
+                this.models.backLightsBattery = this.resources.items.carDefaultBackLightsBattery;
+
+                console.log("Setting Charger Power Bank")
+                break;
+    
+            default:
+                // Fallback to default car models if carName doesn't match
+                this.models.chassis = this.resources.items.carDefaultChassis;
+                this.models.antena = this.resources.items.carDefaultAntena;
+                this.models.backLightsBrake = this.resources.items.carDefaultBackLightsBrake;
+                this.models.backLightsReverse = this.resources.items.carDefaultBackLightsReverse;
+                this.models.backLightsBattery = this.resources.items.carDefaultBackLightsBattery;
+                this.models.wheel = this.resources.items.carDefaultWheel;
+                break;
         }
     }
 
@@ -895,6 +929,45 @@ export default class Car
         })
     }
 
+    // setChassis() {
+    //     this.chassis = {};
+    //     this.chassis.offset = new THREE.Vector3(0, 0, -0.28);
+    
+    //     // Debugging the model and mesh conversion
+    //     if (!this.models.chassis) {
+    //         console.error("Chassis model is undefined. Check if the model was loaded correctly.");
+    //         return;
+    //     }
+    
+    //     this.chassis.object = this.objects.getConvertedMesh(this.models.chassis.scene.children);
+    
+    //     if (!this.chassis.object) {
+    //         console.error("Failed to convert chassis model to mesh.");
+    //         return;
+    //     }
+    
+    //     this.chassis.object.position.copy(this.physics.car.chassis.body.position);
+    //     this.chassis.oldPosition = this.chassis.object.position.clone();
+    //     this.container.add(this.chassis.object);
+    
+    //     this.shadows.add(this.chassis.object, { sizeX: 3, sizeY: 2, offsetZ: 0.2 });
+    
+    //     // Time tick
+    //     this.time.on('tick', () => {
+    //         // Save old position for movement calculation
+    //         this.chassis.oldPosition = this.chassis.object.position.clone();
+    
+    //         // Update if mode physics
+    //         if (!this.transformControls.enabled) {
+    //             this.chassis.object.position.copy(this.physics.car.chassis.body.position).add(this.chassis.offset);
+    //             this.chassis.object.quaternion.copy(this.physics.car.chassis.body.quaternion);
+    //         }
+    
+    //         // Update position
+    //         this.position.copy(this.chassis.object.position);
+    //     });
+    // }
+    
     setChassis() {
         this.chassis = {};
         this.chassis.offset = new THREE.Vector3(0, 0, -0.28);
@@ -923,17 +996,18 @@ export default class Car
             // Save old position for movement calculation
             this.chassis.oldPosition = this.chassis.object.position.clone();
     
-            // Update if mode physics
-            if (!this.transformControls.enabled) {
-                this.chassis.object.position.copy(this.physics.car.chassis.body.position).add(this.chassis.offset);
+            // Ensure `transformControls` exists before accessing
+            if (this.transformControls && !this.transformControls.enabled) {
+                this.chassis.object.position
+                    .copy(this.physics.car.chassis.body.position)
+                    .add(this.chassis.offset);
                 this.chassis.object.quaternion.copy(this.physics.car.chassis.body.quaternion);
             }
     
             // Update position
             this.position.copy(this.chassis.object.position);
         });
-    }
-    
+    }    
 
     setAntena()
     {

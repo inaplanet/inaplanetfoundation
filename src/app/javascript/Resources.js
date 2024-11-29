@@ -128,6 +128,21 @@ const carDefaultBackLightsReverseSource = '/models/car/default/backLightsReverse
 const carDefaultBackLightsBatterySource = '/models/car/default/backLightsBattery.glb'
 const carDefaultAntenaSource = '/models/car/default/antena.glb'
 
+// Charger
+const chargerAccessoriesSource = '/models/charger/accessories.glb'
+const chargerBacklightsSource = '/models/charger/backlights.glb'
+// const chargerChassisSource = '/models/charger/chassis.glb'
+const chargerChassisSource = '/models/charger/topcar.glb'
+const chargerChassisBottomSource = '/models/charger/chassisbottom.glb'
+const chargerChassisInsideSource = '/models/charger/chassisinside.glb'
+const chargerEngineSource = '/models/charger/engine.glb'
+const chargerSaloonSource = '/models/charger/saloon.glb'
+const chargerTireSource = '/models/charger/tire.glb'
+const chargerWheelsSource = '/models/charger/wheel.glb'
+const chargerWindowsSource = '/models/charger/windows.glb'
+const chargerHeadlightsSource = '/models/charger/headlights.glb'
+const chargerAntenaSource = '/models/charger/antena.glb'
+
 // Car default 1
 const car1DefaultChassisSource = '/models/car1/default/chassis.glb'
 const car1DefaultWheelSource = '/models/car1/default/wheel.glb'
@@ -357,6 +372,20 @@ export default class Resources extends EventEmitter
             { name: 'carDefaultBackLightsReverse', source: carDefaultBackLightsReverseSource },
             { name: 'carDefaultBackLightsBattery', source: carDefaultBackLightsBatterySource },
             { name: 'carDefaultAntena', source: carDefaultAntenaSource },
+
+            // Charger
+            { name: 'chargerChassis', source: chargerChassisSource },
+            { name: 'chargerAccessories', source: chargerAccessoriesSource },
+            { name: 'chargerBacklights', source: chargerBacklightsSource },
+            { name: 'chargerChassisBottom', source: chargerChassisBottomSource },
+            { name: 'chargerChassisInside', source: chargerChassisInsideSource },
+            { name: 'chargerEngine', source: chargerEngineSource },
+            { name: 'chargerSaloon', source: chargerSaloonSource },
+            { name: 'chargerWheels', source: chargerWheelsSource },
+            { name: 'chargerTire', source: chargerTireSource },
+            { name: 'chargerWindows', source: chargerWindowsSource },
+            { name: 'chargerHeadlights', source: chargerHeadlightsSource },
+            { name: 'chargerAntena', source: chargerAntenaSource },
 
             // Car1 default
             { name: 'car1DefaultChassis', source: car1DefaultChassisSource },

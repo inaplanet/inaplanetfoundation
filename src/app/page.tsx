@@ -24,12 +24,13 @@ export default function Home() {
   const [selectedWorldId, setSelectedWorldId] = useState<string | null>(null); // New state for selected world ID
   const [isWorldSelected, setIsWorldSelected] = useState(false);
   const [token, setToken] = useState<string | null>(null); // State to store the token
+  const [carName, setCarName] = useState<string | null>(null);
   // const [popupGarage, setPopupGarage] = useState(false);
   const [playerCount, setPlayerCount] = useState(0);
   const [ws, setWs] = useState<WebSocket | null>(null);
   const [isWebSocketReady, setIsWebSocketReady] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
-  const [playerBalance, setPlayerBalance] = useState(0);
+  const [playerAccount, setPlayerAccount] = useState(0);
 
   const router = useRouter();
   const maxRetries = 5;  // Limit retries to avoid infinite reconnect loop
@@ -83,6 +84,15 @@ export default function Home() {
       const { token } = await response.json(); // Extract token from response
       localStorage.setItem('token', token); // Store token in localStorage
       setToken(token); // Set token in state
+
+      const storedCarName = localStorage.getItem('selectedCar');
+
+      if (storedCarName) {
+        setCarName(storedCarName);
+        // Optionally delete carName after loading
+        localStorage.removeItem('selectedCar');
+        console.log(`Car name "${storedCarName}" loaded and removed from localStorage.`);
+    }
       console.log('Token received and stored:', token);
     } catch (error) {
       console.error('Error fetching token:', error);
@@ -176,12 +186,12 @@ export default function Home() {
       if (message.type === 'playerScore') {
           if (typeof message.score === 'number') {
               console.log(`Player score received for player ${message.playerId}:`, message.score);
-              setPlayerBalance(message.score); // Update the state with the player's score
+              setPlayerAccount(message.score); // Update the state with the player's score
           } else {
               console.error("Invalid score received:", message.score);
           }
 
-          console.log("PLAYER SCORE", playerBalance)
+          console.log("PLAYER SCORE", playerAccount)
 
       } else {
           console.log("Unknown message type:", message.type);
@@ -364,7 +374,7 @@ export default function Home() {
   };
   
   const handleGarageButtonClick = () => {
-      const balance = playerBalance; // Assume `playerBalance` contains the fetched balance
+      const balance = playerAccount; // Assume `playerAccount` contains the fetched balance
       router.push(`/garage?balance=${balance}`);
   };
 
@@ -471,7 +481,7 @@ export default function Home() {
 
         {/* Conditionally render the Application only once */}
         {isConnected && playerId && selectedWorldId && token && application && (
-          <Application playerId={playerId} selectedWorldId={selectedWorldId} token={token}/>
+          <Application playerId={playerId} selectedWorldId={selectedWorldId} token={token} carName={carName}/>
         )}
 
         {/* Once connected, display the game UI */}

@@ -16,7 +16,7 @@ import BlurPass from './Passes/Blur.js'
 import GlowsPass from './Passes/Glows.js'
 
 // Main Application as a React component
-const Application = ({ playerId, selectedWorldId, token }) => {
+const Application = ({ playerId, selectedWorldId, token, carName }) => {
     const canvasRef = useRef(null);
     const appInstanceRef = useRef(null);
   
@@ -35,6 +35,9 @@ const Application = ({ playerId, selectedWorldId, token }) => {
           this.playerId = _options.playerId;
           this.worldId = selectedWorldId;
           this.token = token;
+          this.carName = carName;
+
+          console.log("CAR NAME APP:", this.carName);
   
           this.time = new Time();
           this.sizes = new Sizes();
@@ -44,7 +47,7 @@ const Application = ({ playerId, selectedWorldId, token }) => {
           this.setRenderer();
           this.setCamera();
           this.setPasses();
-          this.setWorld(this.worldId);
+          this.setWorld(this.worldId, this.carName);
           this.animate();
 
           // Resize canvas when window size changes
@@ -307,7 +310,7 @@ const Application = ({ playerId, selectedWorldId, token }) => {
     /**
      * Set world
      */
-    setWorld(worldId, ws)
+    setWorld(worldId, carName, ws)
     {
         this.world = new World({
             config: this.config,
@@ -324,11 +327,13 @@ const Application = ({ playerId, selectedWorldId, token }) => {
             canvas: this.$canvas,
             playerId: this.playerId,
             token: this.token,
+            carName: this.carName,
             worldId,
             ws: this.ws
         })
         this.scene.add(this.world.container)
         console.log("Game World:", this.world)
+        console.log("Game car", this.world.car)
     }
 
     /**
