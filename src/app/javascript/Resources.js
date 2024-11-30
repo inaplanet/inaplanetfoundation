@@ -187,6 +187,14 @@ const rcTruckBacklightsReverseSource = '/models/rctruck/backlightsReverse.glb'
 const rcTruckWheelsSource = '/models/rctruck/wheel1.glb'
 const rcTruckAntenaSource = '/models/rctruck/antena.glb'
 
+// Pusher Crowd
+const pusherCrowdChassisSource = '/models/pushpushpush/auto.glb'
+const pusherCrowdBacklightsSource = '/models/pushpushpush/backlights1.glb'
+const pusherCrowdHeadlightsSource = '/models/pushpushpush/headlights1.glb'
+const pusherCrowdBacklightsReverseSource = '/models/pushpushpush/backlightsReverse.glb'
+const pusherCrowdWheelsSource = '/models/pushpushpush/wheel.glb'
+const pusherCrowdAntenaSource = '/models/pushpushpush/antena.glb'
+
 // Car default 1
 const car1DefaultChassisSource = '/models/car1/default/chassis.glb'
 const car1DefaultWheelSource = '/models/car1/default/wheel.glb'
@@ -474,6 +482,14 @@ export default class Resources extends EventEmitter
             { name: 'rcTruckBacklightsReverse', source: rcTruckBacklightsReverseSource },
             { name: 'rcTruckWheels', source: rcTruckWheelsSource },
             { name: 'rcTruckAntena', source: rcTruckAntenaSource },
+
+            // Pusher Crowd
+            { name: 'pusherCrowdChassis', source: pusherCrowdChassisSource },
+            { name: 'pusherCrowdBacklights', source: pusherCrowdBacklightsSource },
+            { name: 'pusherCrowdHeadlights', source: pusherCrowdHeadlightsSource },
+            { name: 'pusherCrowdBacklightsReverse', source: pusherCrowdBacklightsReverseSource },
+            { name: 'pusherCrowdWheels', source: pusherCrowdWheelsSource },
+            { name: 'pusherCrowdAntena', source: pusherCrowdAntenaSource },
 
             // Car1 default
             { name: 'car1DefaultChassis', source: car1DefaultChassisSource },

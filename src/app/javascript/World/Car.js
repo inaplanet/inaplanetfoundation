@@ -882,7 +882,19 @@ export default class Car
                 this.models.backLightsReverse = this.resources.items.rcTruckBacklightsReverse;
                 this.models.backLightsBattery = this.resources.items.carDefaultBackLightsBattery;
             
-                console.log("Howler Packard")
+                console.log("RC TraxShark")
+                break;
+
+            case 'Pusher Crowd':
+                this.models.chassis = this.resources.items.pusherCrowdChassis;
+                this.models.wheel = this.resources.items.pusherCrowdWheels;
+                this.models.antena = this.resources.items.pusherCrowdAntena;
+                this.models.headLights = this.resources.items.pusherCrowdHeadlights;
+                this.models.backLightsBrake = this.resources.items.pusherCrowdBacklights;
+                this.models.backLightsReverse = this.resources.items.pusherCrowdBacklightsReverse;
+                this.models.backLightsBattery = this.resources.items.carDefaultBackLightsBattery;
+                
+                console.log("Pusher Crowd")
                 break;
     
             default:
