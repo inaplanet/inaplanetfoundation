@@ -896,6 +896,18 @@ export default class Car
                 
                 console.log("Pusher Crowd")
                 break;
+
+            case 'Impactus':
+                this.models.chassis = this.resources.items.impactusChassis;
+                this.models.wheel = this.resources.items.impactusWheels;
+                this.models.antena = this.resources.items.impactusAntena;
+                this.models.headLights = this.resources.items.impactusHeadlights;
+                this.models.backLightsBrake = this.resources.items.impactusBacklights;
+                this.models.backLightsReverse = this.resources.items.impactusBacklightsReverse;
+                this.models.backLightsBattery = this.resources.items.carDefaultBackLightsBattery;
+                    
+                console.log("Impactus")
+                break;
     
             default:
                 // Fallback to default car models if carName doesn't match

@@ -195,6 +195,14 @@ const pusherCrowdBacklightsReverseSource = '/models/pushpushpush/backlightsRever
 const pusherCrowdWheelsSource = '/models/pushpushpush/wheel.glb'
 const pusherCrowdAntenaSource = '/models/pushpushpush/antena.glb'
 
+// Impactus
+const impactusChassisSource = '/models/impactus/auto.glb'
+const impactusBacklightsSource = '/models/impactus/backlights1.glb'
+const impactusHeadlightsSource = '/models/impactus/headlights1.glb'
+const impactusBacklightsReverseSource = '/models/impactus/backlightsReverse.glb'
+const impactusWheelsSource = '/models/impactus/wheel.glb'
+const impactusAntenaSource = '/models/impactus/antena.glb'
+
 // Car default 1
 const car1DefaultChassisSource = '/models/car1/default/chassis.glb'
 const car1DefaultWheelSource = '/models/car1/default/wheel.glb'
@@ -490,6 +498,14 @@ export default class Resources extends EventEmitter
             { name: 'pusherCrowdBacklightsReverse', source: pusherCrowdBacklightsReverseSource },
             { name: 'pusherCrowdWheels', source: pusherCrowdWheelsSource },
             { name: 'pusherCrowdAntena', source: pusherCrowdAntenaSource },
+
+            // Impactus
+            { name: 'impactusChassis', source: impactusChassisSource },
+            { name: 'impactusBacklights', source: impactusBacklightsSource },
+            { name: 'impactusHeadlights', source: impactusHeadlightsSource },
+            { name: 'impactusBacklightsReverse', source: impactusBacklightsReverseSource },
+            { name: 'impactusWheels', source: impactusWheelsSource },
+            { name: 'impactusAntena', source: impactusAntenaSource },
 
             // Car1 default
             { name: 'car1DefaultChassis', source: car1DefaultChassisSource },
