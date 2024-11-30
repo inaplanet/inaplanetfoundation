@@ -872,6 +872,18 @@ export default class Car
         
                 console.log("Howler Packard")
                 break;
+
+            case 'RC TraxShark':
+                this.models.chassis = this.resources.items.rcTruckChassis;
+                this.models.wheel = this.resources.items.rcTruckWheels;
+                this.models.antena = this.resources.items.rcTruckAntena;
+                this.models.headLights = this.resources.items.rcTruckHeadlights;
+                this.models.backLightsBrake = this.resources.items.rcTruckBacklights;
+                this.models.backLightsReverse = this.resources.items.rcTruckBacklightsReverse;
+                this.models.backLightsBattery = this.resources.items.carDefaultBackLightsBattery;
+            
+                console.log("Howler Packard")
+                break;
     
             default:
                 // Fallback to default car models if carName doesn't match
@@ -1112,10 +1124,15 @@ export default class Car
     setBackLights()
     {
         this.backLightsBrake = {}
+        this.headLights = {}
 
         this.backLightsBrake.material = this.materials.pures.items.red.clone()
         this.backLightsBrake.material.transparent = true
         this.backLightsBrake.material.opacity = 0.5
+
+        this.headLights.material = this.materials.pures.items.white.clone()
+        this.headLights.material.transparent = true
+        this.headLights.material.opacity = 0.1
 
         this.backLightsBrake.object = this.objects.getConvertedMesh(this.models.backLightsBrake.scene.children)
         for(const _child of this.backLightsBrake.object.children)
@@ -1123,7 +1140,14 @@ export default class Car
             _child.material = this.backLightsBrake.material
         }
 
+        this.headLights.object = this.objects.getConvertedMesh(this.models.headLights.scene.children)
+        for(const _child of this.headLights.object.children)
+        {
+            _child.material = this.headLights.material
+        }
+
         this.chassis.object.add(this.backLightsBrake.object)
+        this.chassis.object.add(this.headLights.object)
 
         // Back lights brake
         this.backLightsReverse = {}
@@ -1168,6 +1192,7 @@ export default class Car
             {
                 this.backLightsBrake.material.opacity = this.physics.controls.actions.brake ? 1 : 0.5
                 this.backLightsReverse.material.opacity = this.physics.controls.actions.down ? 1 : 0.5
+                this.headLights.material.opacity = this.physics.controls.actions.up ? 1 : 0.1
 
                 // const batteryLevelWidth = this.battery / 100; // Calculate the width based on battery percentage
                 //     this.backLightsBattery.object.children.forEach(child => {

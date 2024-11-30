@@ -1708,7 +1708,7 @@ export default function GaragePage() {
                             }}
                             onClick={() => toggleView('car')}
                         >
-                            AUTO
+                            VEHICLE
                         </button>
                         <button
                             style={{
