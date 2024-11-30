@@ -157,7 +157,7 @@ const wreckslingerAntenaSource = '/models/wreckslinger/antena.glb'
 const gangoverChassisSource = '/models/gangover/auto.glb'
 const gangoverBacklightsSource = '/models/gangover/backlights.glb'
 const gangoverBacklightsReverseSource = '/models/gangover/backlightsReverse.glb'
-const gangoverHeadlightsSource = '/models/gangover/headlights.glb'
+const gangoverHeadlightsSource = '/models/gangover/headlights2.glb'
 const gangoverWheelsSource = '/models/gangover/wheels.glb'
 const gangoverAntenaSource = '/models/gangover/antena.glb'
 
