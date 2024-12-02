@@ -478,107 +478,217 @@ export default function GaragePage() {
         // Add more cars here later
     ];
 
+    // const toggleView = (selectedView: 'menu' | 'car' | 'rocket' | 'showroom' | 'customize') => {
+    //     console.log('Toggling view to:', selectedView);
+    
+    //     setView(selectedView); // Update the state
+    
+    //     if (selectedView === 'car') {
+
+    //         carGroupRef.current.traverse((child) => {
+    //             if (child instanceof THREE.Object3D) {
+    //                 child.visible = true; // Show all car parts
+    //             }
+    //         });
+    
+    //         rocketGroupRef.current.traverse((child) => {
+    //             if (child instanceof THREE.Object3D) {
+    //                 child.visible = false; // Hide the rocket
+    //             }
+    //         });
+
+    //         showroomGroupRef.current.traverse((child) => {
+    //             if (child instanceof THREE.Object3D) {
+    //                 child.visible = false; // Hide the rocket
+    //             }
+    //         });
+
+    //         setView('customize');
+
+    //     } else if (selectedView === 'rocket') {
+
+    //         setIsOrbitEnabled(true);
+
+    //         carGroupRef.current.traverse((child) => {
+    //             if (child instanceof THREE.Object3D) {
+    //                 child.visible = false; // Hide all car parts
+    //             }
+    //         });
+
+    //         rocketGroupRef.current.traverse((child) => {
+    //             console.log(`Setting rocket visibility to true for: ${child.name}`); // Debug log
+    //             if (child instanceof THREE.Object3D) {
+    //                 child.visible = true; // Show the rocket
+    //             }
+    //         });
+
+    //         showroomGroupRef.current.traverse((child) => {
+    //             if (child instanceof THREE.Object3D) {
+    //                 child.visible = false; // Hide the rocket
+    //             }
+    //         });
+    
+    //         setView('rocket');
+    //     } else if (selectedView === 'showroom') {
+    //         // Clear previous showroom content and load fresh showroom cars
+    //         console.log('Loading showroom cars...', showroomGroupRef.current );
+
+    //         setIsOrbitEnabled(true);
+    
+    //         carGroupRef.current.traverse((child) => {
+    //             if (child instanceof THREE.Object3D) {
+    //                 child.visible = false; // Hide all car parts
+    //             }
+    //         });
+    
+    //         rocketGroupRef.current.traverse((child) => {
+    //             if (child instanceof THREE.Object3D) {
+    //                 child.visible = false; // Hide the rocket
+    //             }
+    //         });
+
+    //         showroomGroupRef.current.traverse((child) => {
+    //             if (child instanceof THREE.Object3D) {
+    //                 child.visible = true; // Hide the rocket
+    //             }
+    //         });
+
+    //         // Load the showroom cars only if they haven't been loaded
+    //         if (!showroomLoaded.current) {
+    //             loadShowroomCar(cars).then(() => {
+    //                 showroomLoaded.current = true; // Mark as loaded
+    //                 console.log('Showroom cars loaded.');
+    //             });
+    //         }
+
+    //         // Ensure only the first car in the slider is displayed initially
+    //         if (showroomGroupRef.current.children.length > 0) {
+    //             const firstCarName = cars[0].name; // Get the name of the first car
+    //             showroomGroupRef.current.children.forEach((carGroup) => {
+    //                 if (carGroup instanceof THREE.Object3D) {
+    //                     carGroup.visible = carGroup.name === firstCarName;
+    //                 }
+    //             });
+    //         }
+    
+    //         console.log('Entering showroom view');
+    //         setView('showroom');
+    //     } else if (selectedView === 'menu') {
+    //         setView('menu');
+    //     }
+    
+    //     console.log('Rocket group visibility:', rocketGroupRef.current.children.map((c) => c.visible)); // Debug log
+    // };
+
     const toggleView = (selectedView: 'menu' | 'car' | 'rocket' | 'showroom' | 'customize') => {
         console.log('Toggling view to:', selectedView);
     
         setView(selectedView); // Update the state
     
         if (selectedView === 'car') {
-
-            carGroupRef.current.traverse((child) => {
-                if (child instanceof THREE.Object3D) {
-                    child.visible = true; // Show all car parts
-                }
-            });
-    
-            rocketGroupRef.current.traverse((child) => {
-                if (child instanceof THREE.Object3D) {
-                    child.visible = false; // Hide the rocket
-                }
-            });
-
-            showroomGroupRef.current.traverse((child) => {
-                if (child instanceof THREE.Object3D) {
-                    child.visible = false; // Hide the rocket
-                }
-            });
-
-            setView('customize');
-
+            handleCarView();
         } else if (selectedView === 'rocket') {
-
-            setIsOrbitEnabled(true);
-
-            carGroupRef.current.traverse((child) => {
-                if (child instanceof THREE.Object3D) {
-                    child.visible = false; // Hide all car parts
-                }
-            });
-
-            rocketGroupRef.current.traverse((child) => {
-                console.log(`Setting rocket visibility to true for: ${child.name}`); // Debug log
-                if (child instanceof THREE.Object3D) {
-                    child.visible = true; // Show the rocket
-                }
-            });
-
-            showroomGroupRef.current.traverse((child) => {
-                if (child instanceof THREE.Object3D) {
-                    child.visible = false; // Hide the rocket
-                }
-            });
-    
-            setView('rocket');
+            handleRocketView();
         } else if (selectedView === 'showroom') {
-            // Clear previous showroom content and load fresh showroom cars
-            console.log('Loading showroom cars...', showroomGroupRef.current );
-
-            setIsOrbitEnabled(true);
-    
-            carGroupRef.current.traverse((child) => {
-                if (child instanceof THREE.Object3D) {
-                    child.visible = false; // Hide all car parts
-                }
-            });
-    
-            rocketGroupRef.current.traverse((child) => {
-                if (child instanceof THREE.Object3D) {
-                    child.visible = false; // Hide the rocket
-                }
-            });
-
-            showroomGroupRef.current.traverse((child) => {
-                if (child instanceof THREE.Object3D) {
-                    child.visible = true; // Hide the rocket
-                }
-            });
-
-            // Load the showroom cars only if they haven't been loaded
-            if (!showroomLoaded.current) {
-                loadShowroomCar(cars).then(() => {
-                    showroomLoaded.current = true; // Mark as loaded
-                    console.log('Showroom cars loaded.');
-                });
-            }
-
-            // Ensure only the first car in the slider is displayed initially
-            if (showroomGroupRef.current.children.length > 0) {
-                const firstCarName = cars[0].name; // Get the name of the first car
-                showroomGroupRef.current.children.forEach((carGroup) => {
-                    if (carGroup instanceof THREE.Object3D) {
-                        carGroup.visible = carGroup.name === firstCarName;
-                    }
-                });
-            }
-    
-            console.log('Entering showroom view');
-            setView('showroom');
+            handleShowroomView();
         } else if (selectedView === 'menu') {
             setView('menu');
         }
     
         console.log('Rocket group visibility:', rocketGroupRef.current.children.map((c) => c.visible)); // Debug log
     };
+
+    const handleCarView = () => {
+        carGroupRef.current.traverse((child) => {
+            if (child instanceof THREE.Object3D) {
+                child.visible = true; // Show all car parts
+            }
+        });
+    
+        rocketGroupRef.current.traverse((child) => {
+            if (child instanceof THREE.Object3D) {
+                child.visible = false; // Hide the rocket
+            }
+        });
+    
+        showroomGroupRef.current.traverse((child) => {
+            if (child instanceof THREE.Object3D) {
+                child.visible = false; // Hide the showroom cars
+            }
+        });
+    
+        setView('customize');
+    };
+
+    const handleRocketView = () => {
+        setIsOrbitEnabled(true);
+    
+        carGroupRef.current.traverse((child) => {
+            if (child instanceof THREE.Object3D) {
+                child.visible = false; // Hide all car parts
+            }
+        });
+    
+        rocketGroupRef.current.traverse((child) => {
+            console.log(`Setting rocket visibility to true for: ${child.name}`); // Debug log
+            if (child instanceof THREE.Object3D) {
+                child.visible = true; // Show the rocket
+            }
+        });
+    
+        showroomGroupRef.current.traverse((child) => {
+            if (child instanceof THREE.Object3D) {
+                child.visible = false; // Hide the showroom cars
+            }
+        });
+    
+        setView('rocket');
+    };
+
+    const handleShowroomView = () => {
+        console.log('Loading showroom cars...', showroomGroupRef.current);
+    
+        setIsOrbitEnabled(true);
+    
+        carGroupRef.current.traverse((child) => {
+            if (child instanceof THREE.Object3D) {
+                child.visible = false; // Hide all car parts
+            }
+        });
+    
+        rocketGroupRef.current.traverse((child) => {
+            if (child instanceof THREE.Object3D) {
+                child.visible = false; // Hide the rocket
+            }
+        });
+    
+        showroomGroupRef.current.traverse((child) => {
+            if (child instanceof THREE.Object3D) {
+                child.visible = true; // Show showroom cars
+            }
+        });
+    
+        // Load the showroom cars only if they haven't been loaded
+        if (!showroomLoaded.current) {
+            loadShowroomCar(cars).then(() => {
+                showroomLoaded.current = true; // Mark as loaded
+                console.log('Showroom cars loaded.');
+            });
+        }
+    
+        // Ensure only the first car in the slider is displayed initially
+        if (showroomGroupRef.current.children.length > 0) {
+            const firstCarName = cars[0].name; // Get the name of the first car
+            showroomGroupRef.current.children.forEach((carGroup) => {
+                if (carGroup instanceof THREE.Object3D) {
+                    carGroup.visible = carGroup.name === firstCarName;
+                }
+            });
+        }
+    
+        console.log('Entering showroom view');
+        setView('showroom');
+    };    
 
     const formatBalance = (account: number) => {
         return account.toLocaleString('en-US').replace(/,/g, ' '); // Replace commas with spaces
@@ -956,6 +1066,12 @@ export default function GaragePage() {
         const loadShowroomCar = async (
             cars: Array<{ name: string; parts: Record<string, string>; price: number }>
         ) => {
+
+            if (!showroomGroupRef.current) {
+                console.error('Showroom group reference is not initialized.');
+                return;
+            }
+
             showroomGroupRef.current.clear(); // Clear existing cars from the showroom
 
             if (!scene) {

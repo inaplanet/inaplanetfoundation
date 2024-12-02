@@ -206,49 +206,10 @@ const Application = ({ playerId, selectedWorldId, token, carName }) => {
     {
         this.passes = {}
 
-        // Debug
-        if(this.debug)
-        {
-            this.passes.debugFolder = this.debug.addFolder('postprocess')
-            // this.passes.debugFolder.open()
-        }
-
         this.passes.composer = new EffectComposer(this.renderer)
 
         // Create passes
         this.passes.renderPass = new RenderPass(this.scene, this.camera.instance)
-
-        // this.passes.horizontalBlurPass = new ShaderPass(BlurPass);  // This is where the error occurs
-
-        // this.passes.horizontalBlurPass = new ShaderPass(BlurPass)
-        // this.passes.horizontalBlurPass.strength = this.config.touch ? 0 : 1
-        // this.passes.horizontalBlurPass.material.uniforms.uResolution.value = new THREE.Vector2(this.sizes.viewport.width, this.sizes.viewport.height)
-        // this.passes.horizontalBlurPass.material.uniforms.uStrength.value = new THREE.Vector2(this.passes.horizontalBlurPass.strength, 0)
-
-        // this.passes.verticalBlurPass = new ShaderPass(BlurPass);  // This is where the error occurs
-
-        // this.passes.verticalBlurPass = new ShaderPass(BlurPass)
-        // this.passes.verticalBlurPass.strength = this.config.touch ? 0 : 1
-        // this.passes.verticalBlurPass.material.uniforms.uResolution.value = new THREE.Vector2(this.sizes.viewport.width, this.sizes.viewport.height)
-        // this.passes.verticalBlurPass.material.uniforms.uStrength.value = new THREE.Vector2(0, this.passes.verticalBlurPass.strength)
-
-        // Debug
-        if(this.debug)
-        {
-            // const folder = this.passes.debugFolder.addFolder('blur')
-            folder.open()
-
-            // folder.add(this.passes.horizontalBlurPass.material.uniforms.uStrength.value, 'x').step(0.001).min(0).max(10)
-            // folder.add(this.passes.verticalBlurPass.material.uniforms.uStrength.value, 'y').step(0.001).min(0).max(10)
-        }
-
-        // this.passes.glowsPass = new ShaderPass(GlowsPass)
-        // this.passes.glowsPass.color = '#ffcfe0'
-        // this.passes.glowsPass.material.uniforms.uPosition.value = new THREE.Vector2(0, 0.25)
-        // this.passes.glowsPass.material.uniforms.uRadius.value = 0.7
-        // this.passes.glowsPass.material.uniforms.uColor.value = new THREE.Color(this.passes.glowsPass.color)
-        // this.passes.glowsPass.material.uniforms.uColor.value.convertLinearToSRGB()
-        // this.passes.glowsPass.material.uniforms.uAlpha.value = 0.55
 
         // Debug
         if(this.debug)
