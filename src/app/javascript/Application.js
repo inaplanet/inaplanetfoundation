@@ -333,35 +333,6 @@ const Application = ({ playerId, selectedWorldId, token, carName }) => {
         })
         this.scene.add(this.world.container)
         console.log("Game World:", this.world)
-        console.log("Game car", this.world.car)
-    }
-
-    /**
-     * Set title
-     */
-    setTitle()
-    {
-        this.title = {}
-        this.title.frequency = 300
-        this.title.width = 20
-        this.title.position = 0
-        this.title.$element = document.querySelector('title')
-        this.title.absolutePosition = Math.round(this.title.width * 0.25)
-
-        this.time.on('tick', () =>
-        {
-            if(this.world.physics)
-            {
-                this.title.absolutePosition += this.world.physics.car.forwardSpeed
-
-                if(this.title.absolutePosition < 0)
-                {
-                    this.title.absolutePosition = 0
-                }
-            }
-        })
-
-
     }
 
     /**

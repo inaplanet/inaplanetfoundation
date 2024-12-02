@@ -58,7 +58,7 @@ export default class Physics
                 chassisMass: 40,
                 wheelFrontOffsetDepth: 0.775,
                 wheelBackOffsetDepth: - 0.708,
-                wheelOffsetWidth: 0.51,
+                wheelOffsetWidth: 0.44,
                 wheelRadius: 0.25,
                 wheelHeight: 0.24,
                 wheelSuspensionStiffness: 50,
@@ -238,7 +238,7 @@ export default class Physics
             },
             'Howler Packard': {
                 chassisWidth: 1.62,
-                chassisHeight: 1.87,
+                chassisHeight: 1.56,
                 chassisDepth: 2.33,
                 chassisOffset: new CANNON.Vec3(0, 0, 0.41),
                 chassisMass: 40,

@@ -53,7 +53,7 @@ export default function GaragePage() {
 
     const cars: Car[] = [
         {
-            name: 'Kybertruck V2',
+            name: 'Kybertruck',
             price: 378000,
             parts: {
                 accessories: '/models/car/default/empty.glb',

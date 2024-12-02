@@ -693,7 +693,7 @@ export default class Car
             );
             shooterId = bulletData.shooterId;
         } else {
-            const frontOffset = new THREE.Vector3(0.5, 0, 0);
+            const frontOffset = new THREE.Vector3(0.7, 0, 0);
             frontOffset.applyQuaternion(this.physics.car.chassis.body.quaternion);
             frontOffset.multiplyScalar(2);
             bulletPosition = new THREE.Vector3().addVectors(this.physics.car.chassis.body.position, frontOffset);
