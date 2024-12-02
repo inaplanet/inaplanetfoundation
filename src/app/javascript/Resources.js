@@ -217,6 +217,14 @@ const zimbowBacklightsReverseSource = '/models/zimbow/backlightsReverse.glb'
 const zimbowWheelsSource = '/models/zimbow/wheels.glb'
 const zimbowAntenaSource = '/models/zimbow/antena.glb'
 
+// Goodwing
+const goodwingChassisSource = '/models/goodwing/auto.glb'
+const goodwingBacklightsSource = '/models/goodwing/backlights1.glb'
+const goodwingHeadlightsSource = '/models/goodwing/headlights1.glb'
+const goodwingBacklightsReverseSource = '/models/goodwing/backlightsReverse.glb'
+const goodwingWheelsSource = '/models/goodwing/wheel.glb'
+const goodwingAntenaSource = '/models/goodwing/antena.glb'
+
 // Car default 1
 const car1DefaultChassisSource = '/models/car1/default/chassis.glb'
 const car1DefaultWheelSource = '/models/car1/default/wheel.glb'
@@ -537,6 +545,14 @@ export default class Resources extends EventEmitter
             { name: 'zimbowBacklightsReverse', source: zimbowBacklightsReverseSource },
             { name: 'zimbowWheels', source: zimbowWheelsSource },
             { name: 'zimbowAntena', source: zimbowAntenaSource },
+
+            // Goodwing
+            { name: 'goodwingChassis', source: goodwingChassisSource },
+            { name: 'goodwingBacklights', source: goodwingBacklightsSource },
+            { name: 'goodwingHeadlights', source: goodwingHeadlightsSource },
+            { name: 'goodwingBacklightsReverse', source: goodwingBacklightsReverseSource },
+            { name: 'goodwingWheels', source: goodwingWheelsSource },
+            { name: 'goodwingAntena', source: goodwingAntenaSource },
 
             // Car1 default
             { name: 'car1DefaultChassis', source: car1DefaultChassisSource },

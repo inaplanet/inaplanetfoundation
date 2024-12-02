@@ -926,6 +926,18 @@ export default class Car
                         
                 console.log("Impactus")
                 break;
+
+            case 'Goodwing':
+                this.models.chassis = this.resources.items.goodwingChassis;
+                this.models.wheel = this.resources.items.goodwingWheels;
+                this.models.antena = this.resources.items.goodwingAntena;
+                this.models.headLights = this.resources.items.goodwingHeadlights;
+                this.models.backLightsBrake = this.resources.items.goodwingBacklights;
+                this.models.backLightsReverse = this.resources.items.goodwingBacklightsReverse;
+                this.models.backLightsBattery = this.resources.items.carDefaultBackLightsBattery;
+                            
+                console.log("Goodwing")
+                break;
     
             default:
                 // Fallback to default car models if carName doesn't match

@@ -335,6 +335,27 @@ export default function GaragePage() {
             },
         },
         {
+            name: 'Goodwing',
+            price: 378000,
+            parts: {
+                backlights: '/models/goodwing/backlights.glb',
+                chassisbottom: '/models/goodwing/chassisbottom.glb',
+                chassis: '/models/goodwing/chassisobject.glb',
+                foglights: '/models/goodwing/foglights.glb',
+                headlights: '/models/goodwing/headlights.glb',
+                lightsdown: '/models/goodwing/lightsdown.glb',
+                showroomtire: '/models/goodwing/showroomtire.glb',
+                showroomwheel: '/models/goodwing/showroomwheel.glb',
+                windows: '/models/goodwing/windows.glb',
+            },
+            attributes: {
+                PWR: 100,
+                HP: 150,
+                SPD: 110,
+                BRK: 70,
+            },
+        },
+        {
             name: 'Howler Packard',
             price: 378000,
             parts: {
