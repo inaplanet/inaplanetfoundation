@@ -441,7 +441,7 @@ export default function GaragePage() {
             price: 7500000,
             parts: {
                 backlights: '/models/impactus/backlights.glb',
-                chassis: '/models/impactus/chassis.glb',
+                chassis: '/models/impactus/chassis1.glb',
                 brake: '/models/impactus/brake.glb',
                 headlights: '/models/impactus/headlights.glb',
                 rims: '/models/impactus/showroomwheel.glb',
