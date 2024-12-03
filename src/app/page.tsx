@@ -373,8 +373,8 @@ export default function Home() {
   
   const handleGarageButtonClick = () => {
       const account = playerAccount; // Assume `playerAccount` contains the fetched account
-      console.log("PLAYER SCORE", playerAccount)
-      router.push(`/garage?account=${account}`);
+      localStorage.setItem('playerAccount', account.toString())
+      router.push('/garage');
   };
 
   return (

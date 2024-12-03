@@ -696,19 +696,16 @@ export default function GaragePage() {
     };
 
     useEffect(() => {
-        let account = searchParams.get('account');
-
-        // Fallback for browsers where `searchParams` doesn't work as expected
-        if (!account) {
-            const queryParams = new URLSearchParams(window.location.search);
-            account = queryParams.get('account');
-        }
+        const account = localStorage.getItem('playerAccount');;
 
         if (account && !isNaN(Number(account))) {
-            setPlayerAccount(Number(account));
+            setPlayerAccount(parseInt(account, 10));
         } else {
             setPlayerAccount(0); // Default to 0 if account is invalid
         }
+
+        // Remove the account from localStorage
+        localStorage.removeItem('playerAccount');
 
         setLoadingAccount(false);
     }, [searchParams]);
