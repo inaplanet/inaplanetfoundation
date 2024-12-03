@@ -65,10 +65,9 @@ export default function GaragePage() {
                 saloon: '/models/car/default/empty.glb',
                 chassisbottom: '/models/car/default/chassisbottom.glb',
                 chassis: '/models/car/default/chassisbody.glb',
-                // bumper: '/models/car/default/bumper.glb',
                 spoiler: '/models/car/default/spoiler.glb',
                 window: '/models/car/default/window.glb',
-                wheels: '/models/car/default/wheels.glb',
+                wheels: '/models/car/default/wheels1.glb',
                 tire: '/models/car/default/tire.glb',
                 antena: '/models/car/default/antena.glb',
             },
@@ -313,28 +312,28 @@ export default function GaragePage() {
         //         BRK: 90,
         //     },
         // },
-        {
-            name: 'Wran Wreckstone',
-            price: 378000,
-            parts: {
-                backhoodtire: '/models/jeep/backhoodtire.glb',
-                chassisbody: '/models/jeep/chassisbody.glb',
-                chassis: '/models/jeep/chassis.glb',
-                chassispart: '/models/jeep/chassispart.glb',
-                headlights: '/models/jeep/headlights.glb',
-                backlights: '/models/jeep/backlights.glb',
-                hoodhandle: '/models/jeep/hoodhandle.glb',
-                wheels: '/models/jeep/wheels.glb',
-                tire: '/models/jeep/tire.glb',
-                vehicle: '/models/jeep/vehicle1.glb',
-            },
-            attributes: {
-                PWR: 100,
-                HP: 150,
-                SPD: 110,
-                BRK: 70,
-            },
-        },
+        // {
+        //     name: 'Wran Wreckstone',
+        //     price: 378000,
+        //     parts: {
+        //         backhoodtire: '/models/jeep/backhoodtire.glb',
+        //         chassisbody: '/models/jeep/chassisbody.glb',
+        //         chassis: '/models/jeep/chassis.glb',
+        //         chassispart: '/models/jeep/chassispart.glb',
+        //         headlights: '/models/jeep/headlights.glb',
+        //         backlights: '/models/jeep/backlights.glb',
+        //         hoodhandle: '/models/jeep/hoodhandle.glb',
+        //         wheels: '/models/jeep/wheels.glb',
+        //         tire: '/models/jeep/tire.glb',
+        //         vehicle: '/models/jeep/vehicle1.glb',
+        //     },
+        //     attributes: {
+        //         PWR: 100,
+        //         HP: 150,
+        //         SPD: 110,
+        //         BRK: 70,
+        //     },
+        // },
         {
             name: 'Goodwing',
             price: 378000,
@@ -443,7 +442,7 @@ export default function GaragePage() {
                 backlights: '/models/impactus/backlights.glb',
                 chassis: '/models/impactus/chassis1.glb',
                 brake: '/models/impactus/brake.glb',
-                headlights: '/models/impactus/headlights.glb',
+                headlights: '/models/impactus/headlights2.glb',
                 rims: '/models/impactus/showroomwheel.glb',
                 tire: '/models/impactus/showroomtire.glb',
                 windows: '/models/impactus/windows.glb',
@@ -697,18 +696,22 @@ export default function GaragePage() {
     };
 
     useEffect(() => {
-        const account = searchParams.get('account');
+        let account = searchParams.get('account');
 
-        // Parse the balance and set it in state
+        // Fallback for browsers where `searchParams` doesn't work as expected
+        if (!account) {
+            const queryParams = new URLSearchParams(window.location.search);
+            account = queryParams.get('account');
+        }
+
         if (account && !isNaN(Number(account))) {
             setPlayerAccount(Number(account));
         } else {
-            setPlayerAccount(0); // Default to 0 if the account is invalid
+            setPlayerAccount(0); // Default to 0 if account is invalid
         }
 
         setLoadingAccount(false);
-        
-    }, [searchParams]); // Run when searchParams change
+    }, [searchParams]);
 
     const kybertruck = [
         { 
@@ -719,7 +722,7 @@ export default function GaragePage() {
             // bumper: '/models/car/default/bumper.glb',
             spoiler: '/models/car/default/spoiler.glb',
             window: '/models/car/default/window.glb',
-            wheels: '/models/car/default/wheels.glb', 
+            wheels: '/models/car/default/wheels1.glb', 
             tire: '/models/car/default/tire.glb', 
             antena: '/models/car/default/antena.glb',
         },
@@ -1009,6 +1012,7 @@ export default function GaragePage() {
                                 if (child instanceof THREE.Mesh) {
                                     child.material = new THREE.MeshStandardMaterial({
                                         emissive: new THREE.Color(0xffffff),
+                                        metalness: 1,
                                         emissiveIntensity: 1.5,
                                     });
                                 }
@@ -1018,6 +1022,7 @@ export default function GaragePage() {
                                 if (child instanceof THREE.Mesh) {
                                     child.material = new THREE.MeshStandardMaterial({
                                         emissive: new THREE.Color(0xFF0000),
+                                        metalness: 1,
                                         emissiveIntensity: 1.5,
                                     });
                                 }
@@ -1127,6 +1132,7 @@ export default function GaragePage() {
                                                 if (child instanceof THREE.Mesh) {
                                                     child.material = new THREE.MeshStandardMaterial({
                                                         emissive: new THREE.Color(0xffffff),
+                                                        metalness: 1,
                                                         emissiveIntensity: 1.5,
                                                     });
                                                 }
@@ -1136,6 +1142,7 @@ export default function GaragePage() {
                                                 if (child instanceof THREE.Mesh) {
                                                     child.material = new THREE.MeshStandardMaterial({
                                                         emissive: new THREE.Color(0xFF0000),
+                                                        metalness: 1,
                                                         emissiveIntensity: 1.5,
                                                     });
                                                 }
