@@ -698,19 +698,47 @@ export default function GaragePage() {
         return account.toLocaleString('en-US').replace(/,/g, ' '); // Replace commas with spaces
     };
 
-    const kybertruck = [
-        { 
-            chassisbottom: '/models/car/default/chassisbottom.glb',
-            chassis: '/models/car/default/chassisbody.glb',
-            headlights: '/models/car/default/headlights.glb',
-            backlights: '/models/car/default/backLightsBrake.glb',
-            spoiler: '/models/car/default/spoiler.glb',
-            window: '/models/car/default/window.glb',
-            wheels: '/models/car/default/wheels1.glb', 
-            tire: '/models/car/default/tire.glb', 
-            antena: '/models/car/default/antena.glb',
+    // const kybertruck = [
+    //     { 
+    //         chassisbottom: '/models/car/default/chassisbottom.glb',
+    //         chassis: '/models/car/default/chassisbody.glb',
+    //         headlights: '/models/car/default/headlights.glb',
+    //         backlights: '/models/car/default/backLightsBrake.glb',
+    //         spoiler: '/models/car/default/spoiler.glb',
+    //         window: '/models/car/default/window.glb',
+    //         wheels: '/models/car/default/wheels1.glb', 
+    //         tire: '/models/car/default/tire.glb', 
+    //         antena: '/models/car/default/antena.glb',
+    //     },
+    // ];
+
+    const kybertruck: Car[] = [
+        {
+            name: 'Kybertruck',
+            price: 378000,
+            parts: {
+                accessories: '/models/car/default/empty.glb',
+                backlights: '/models/car/default/backLightsBrake.glb',
+                chassisinside: '/models/car/default/empty.glb',
+                engine: '/models/car/default/empty.glb',
+                headlights: '/models/car/default/headlights.glb',
+                saloon: '/models/car/default/empty.glb',
+                chassisbottom: '/models/car/default/chassisbottom.glb',
+                chassis: '/models/car/default/chassisbody.glb',
+                spoiler: '/models/car/default/spoiler.glb',
+                window: '/models/car/default/window.glb',
+                wheels: '/models/car/default/wheels1.glb',
+                tire: '/models/car/default/tire.glb',
+                antena: '/models/car/default/antena.glb',
+            },
+            attributes: {
+                PWR: 55,
+                HP: 70,
+                SPD: 80,
+                BRK: 95,
+            },
         },
-    ];
+    ];    
 
     const controlsRef = useRef<OrbitControls | null>(null);
     const raycaster = new THREE.Raycaster();
@@ -965,32 +993,117 @@ export default function GaragePage() {
             }
         };
 
+        // const loadCar = async (index: number) => {
+        //     carGroupRef.current.clear();
+
+        //     showroomGroupRef.current.visible = false;
+        //     rocketGroupRef.current.visible = false;
+        
+        //     const loader = new GLTFLoader();
+        //     const carParts = index < kybertruck.length ? kybertruck[index] : cars[index]?.parts;
+        //     if (!carParts) return;
+        
+        //     const loadingPromises = Object.entries(carParts).map(([partName, partPath]) =>
+        //         new Promise<void>((resolve) => {
+        //             loader.load(partPath, (gltf) => {
+        //                 const part = gltf.scene;
+        //                 part.name = partName;
+
+        //                 // Apply a random matcap from the available options
+        //                 const randomMatcap = () => {
+        //                     const matcapKeys = Object.keys(matcapTextures.current);
+        //                     const randomIndex = Math.floor(Math.random() * matcapKeys.length);
+        //                     return matcapKeys[randomIndex];
+        //                 };
+
+        //                 const randomMatcapName = randomMatcap();
+
+        //                 // Apply transformations or material settings
+        //                 if (partName === 'headlights') {
+        //                     part.traverse((child) => {
+        //                         if (child instanceof THREE.Mesh) {
+        //                             child.material = new THREE.MeshStandardMaterial({
+        //                                 emissive: new THREE.Color(0xffffff),
+        //                                 metalness: 1,
+        //                                 emissiveIntensity: 1.5,
+        //                             });
+        //                         }
+        //                     });
+        //                 } else if (partName === 'backlights') {
+        //                     part.traverse((child) => {
+        //                         if (child instanceof THREE.Mesh) {
+        //                             child.material = new THREE.MeshStandardMaterial({
+        //                                 emissive: new THREE.Color(0xFF0000),
+        //                                 metalness: 1,
+        //                                 emissiveIntensity: 1.5,
+        //                             });
+        //                         }
+        //                     });
+        //                 }
+                        
+        //                 if (partName === 'chassis') {
+        //                     applyMatcap(part, 'darkEmerald');
+        //                 } else if (partName === 'wheels') {
+        //                     applyMatcap(part, 'darkEmerald');
+        //                 } else if (partName === 'tire') {
+        //                     applyMatcap(part, 'black');
+        //                 } else if (partName === 'chassisbottom') {
+        //                     applyMatcap(part, 'black');
+        //                 } else if (partName === 'bumper') {
+        //                     applyMatcap(part, 'black');
+        //                 } else if (partName === 'spoiler') {
+        //                     applyMatcap(part, 'black');
+        //                 } else if (partName === 'window') {
+        //                     applyMatcap(part, 'black');
+        //                 }
+                        
+        //                 carGroupRef.current.add(part);
+        //                 resolve();
+        //             });
+        //         })
+        //     );
+        
+        //     await Promise.all(loadingPromises);
+
+        //     // Position the car in the center
+        //     carGroupRef.current.position.set(0, 0, -0.5);
+
+        //      // Adjust camera to look at the car
+        //     if (cameraRef.current) {
+        //         cameraRef.current.position.set(0, -200, 5); // Pull camera twice the distance out
+        //         cameraRef.current.lookAt(carGroupRef.current.position);
+        //     }
+
+        //     addHeadlightEffect(carGroupRef.current);
+        // };  
+
         const loadCar = async (index: number) => {
             carGroupRef.current.clear();
-
+        
             showroomGroupRef.current.visible = false;
             rocketGroupRef.current.visible = false;
         
             const loader = new GLTFLoader();
-            const carParts = index < kybertruck.length ? kybertruck[index] : cars[index]?.parts;
+        
+            // Safely access car parts
+            const carParts =
+                index >= 0 && index < cars.length
+                    ? cars[index]?.parts
+                    : kybertruck[0]?.parts; // Default to kybertruck if index is invalid
             if (!carParts) return;
+        
+            if (!carParts) {
+                console.error('Car parts not found for the specified index.');
+                return;
+            }
         
             const loadingPromises = Object.entries(carParts).map(([partName, partPath]) =>
                 new Promise<void>((resolve) => {
                     loader.load(partPath, (gltf) => {
                         const part = gltf.scene;
                         part.name = partName;
-
-                        // Apply a random matcap from the available options
-                        const randomMatcap = () => {
-                            const matcapKeys = Object.keys(matcapTextures.current);
-                            const randomIndex = Math.floor(Math.random() * matcapKeys.length);
-                            return matcapKeys[randomIndex];
-                        };
-
-                        const randomMatcapName = randomMatcap();
-
-                        // Apply transformations or material settings
+        
+                        // Apply material or transformations based on part type
                         if (partName === 'headlights') {
                             part.traverse((child) => {
                                 if (child instanceof THREE.Mesh) {
@@ -1005,30 +1118,21 @@ export default function GaragePage() {
                             part.traverse((child) => {
                                 if (child instanceof THREE.Mesh) {
                                     child.material = new THREE.MeshStandardMaterial({
-                                        emissive: new THREE.Color(0xFF0000),
+                                        emissive: new THREE.Color(0xff0000),
                                         metalness: 1,
                                         emissiveIntensity: 1.5,
                                     });
                                 }
                             });
                         }
-                        
-                        if (partName === 'chassis') {
+        
+                        // Apply matcap materials
+                        if (['chassis', 'wheels'].includes(partName)) {
                             applyMatcap(part, 'darkEmerald');
-                        } else if (partName === 'wheels') {
-                            applyMatcap(part, 'darkEmerald');
-                        } else if (partName === 'tire') {
-                            applyMatcap(part, 'black');
-                        } else if (partName === 'chassisbottom') {
-                            applyMatcap(part, 'black');
-                        } else if (partName === 'bumper') {
-                            applyMatcap(part, 'black');
-                        } else if (partName === 'spoiler') {
-                            applyMatcap(part, 'black');
-                        } else if (partName === 'window') {
+                        } else if (['tire', 'chassisbottom', 'bumper', 'spoiler', 'window'].includes(partName)) {
                             applyMatcap(part, 'black');
                         }
-                        
+        
                         carGroupRef.current.add(part);
                         resolve();
                     });
@@ -1036,18 +1140,18 @@ export default function GaragePage() {
             );
         
             await Promise.all(loadingPromises);
-
+        
             // Position the car in the center
             carGroupRef.current.position.set(0, 0, -0.5);
-
-             // Adjust camera to look at the car
+        
+            // Adjust the camera to look at the car
             if (cameraRef.current) {
-                cameraRef.current.position.set(0, -200, 5); // Pull camera twice the distance out
+                cameraRef.current.position.set(0, -200, 5);
                 cameraRef.current.lookAt(carGroupRef.current.position);
             }
-
+        
             addHeadlightEffect(carGroupRef.current);
-        };  
+        };        
 
         const addHeadlightEffect = (carGroup: THREE.Group) => {
             const headlightLight = new THREE.PointLight(0xffffff, 2, 50); // Adjust intensity and distance
@@ -1267,7 +1371,7 @@ export default function GaragePage() {
 
     useEffect(() => {
         const loadAssets = async () => {
-            await loadCar(currentCarIndex); // Load the dynamically selected car
+            // await loadCar(currentCarIndex); // Load the dynamically selected car
             await loadShowroomCar(cars);   // Load all cars in the showroom
             await loadRocket();
             showroomLoaded.current = true;
@@ -1728,11 +1832,14 @@ export default function GaragePage() {
                 }
             }
 
+            // Handle selectedCar message
             if (message.type === 'selectedCar') {
-                setSelectedCar(message.selectedCar || 'kybertruck');
-                setCurrentCarIndex(
-                    cars.findIndex((car) => car.name === message.selectedCar) || 0
-                );
+                const selectedCar = message.selectedCar || 'kybertruck'; // Default to kybertruck
+                setSelectedCar(selectedCar);
+
+                const carIndex = cars.findIndex((car) => car.name === selectedCar);
+                setCurrentCarIndex(carIndex !== -1 ? carIndex : 0); // Default to the first car if not found
+                loadCar(carIndex !== -1 ? carIndex : 0);
             }
         };
 
