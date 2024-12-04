@@ -704,7 +704,6 @@ export default function GaragePage() {
             chassis: '/models/car/default/chassisbody.glb',
             headlights: '/models/car/default/headlights.glb',
             backlights: '/models/car/default/backLightsBrake.glb',
-            // bumper: '/models/car/default/bumper.glb',
             spoiler: '/models/car/default/spoiler.glb',
             window: '/models/car/default/window.glb',
             wheels: '/models/car/default/wheels1.glb', 
@@ -1287,8 +1286,8 @@ export default function GaragePage() {
 
         setCurrentCarAttributes(selectedCar.attributes);
     
-        const outDuration = 1; // Duration for the outgoing animation in seconds
-        const inDuration = 0.5; // Duration for the incoming animation in seconds
+        const outDuration = 0.7; // Duration for the outgoing animation in seconds
+        const inDuration = 0.4; // Duration for the incoming animation in seconds
         const clock = new THREE.Clock();
     
         let currentAnimatingCar: THREE.Object3D | null = null;
@@ -1626,7 +1625,7 @@ export default function GaragePage() {
         fade: true,
         dots: false,
         autoplay: true,
-        autoplaySpeed: 5000,
+        autoplaySpeed: 10000,
         speed: 1000,           // Transition speed
         slidesToShow: 1,      // Show 3 icons per slide
         slidesToScroll: 1,    // Scroll 1 icon at a time
@@ -1768,7 +1767,7 @@ export default function GaragePage() {
                         />
                     </div>
                     <div className="coin-icon" style={{ fontSize: "25px", animation: "rotateClockwise 5s linear infinite" }}>
-                    ❖
+                    
                     </div>
                     <div className="coin-layer">{loadingAccount ? 'Loading...' : formatBalance(playerAccount)}</div>
                     <div

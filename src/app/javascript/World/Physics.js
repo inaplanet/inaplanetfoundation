@@ -399,7 +399,7 @@ export default class Physics
                 chassisMass: 40,
                 wheelFrontOffsetDepth: 0.635,
                 wheelBackOffsetDepth: -0.475,
-                wheelOffsetWidth: 0.39,
+                wheelOffsetWidth: 0.44,
                 wheelRadius: 0.25,
                 wheelHeight: 0.24,
                 wheelSuspensionStiffness: 50,

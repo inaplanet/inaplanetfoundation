@@ -122,7 +122,7 @@ const crossroadsStaticCollisionSource = '/models/crossroads/static/collision.glb
 
 // Car default
 const carDefaultChassisSource = '/models/car/default/chassis.glb'
-const carDefaultWheelSource = '/models/car/default/wheel.glb'
+const carDefaultWheelSource = '/models/car/default/cyberwheel.glb'
 const carDefaultHeadlightsSource = '/models/car/default/headlights.glb'
 const carDefaultBackLightsBrakeSource = '/models/car/default/backLightsBrake.glb'
 const carDefaultBackLightsReverseSource = '/models/car/default/backLightsReverse.glb'
