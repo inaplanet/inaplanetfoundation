@@ -14,6 +14,14 @@ declare module 'three/examples/jsm/loaders/GLTFLoader' {
     }
 }
 
+declare global {
+    interface Window {
+        currentBlinkingState: boolean;
+        toggleBlinking: (state: boolean) => void;
+    }
+}
+export {};
+
 declare module 'three/examples/jsm/loaders/FontLoader';
 declare module 'three/examples/jsm/geometries/TextGeometry';
 

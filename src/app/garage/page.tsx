@@ -38,6 +38,7 @@ export default function GaragePage() {
     const [selectedPart, setSelectedPart] = useState<string | null>(null);
     const [selectedCar, setSelectedCar] = useState<Car | null>(null);
     const [currentCarAttributes, setCurrentCarAttributes] = useState<{ [key: string]: number } | null>(null);
+    const [isBlinking, setIsBlinking] = useState(false);
     const showroomLoaded = useRef(false);
 
     const cameraRef = useRef<THREE.PerspectiveCamera | null>(null); // Reference for camera
@@ -766,7 +767,7 @@ export default function GaragePage() {
             texture.needsUpdate = true;
     
             const material = new THREE.PointsMaterial({
-                size: 20,
+                size: 30,
                 map: texture,
                 vertexColors: true,
                 sizeAttenuation: true,
@@ -918,7 +919,7 @@ export default function GaragePage() {
             if (carGroupRef.current) {
                 // carGroupRef.current.rotation.x += 0.001; // Adjust speed as needed
                 // carGroupRef.current.rotation.y += 0.001;
-                // carGroupRef.current.rotation.z += 0.01;
+                carGroupRef.current.rotation.z += 0.001;
             }
 
             // Spin the rocket group
@@ -1106,12 +1107,13 @@ export default function GaragePage() {
                         // Apply material or transformations based on part type
                         if (partName === 'headlights') {
                             part.traverse((child) => {
-                                if (child instanceof THREE.Mesh) {
-                                    child.material = new THREE.MeshStandardMaterial({
-                                        emissive: new THREE.Color(0xffffff),
-                                        metalness: 1,
-                                        emissiveIntensity: 1.5,
-                                    });
+                                if (child instanceof THREE.Mesh && child.material instanceof THREE.MeshStandardMaterial) {
+                                    const headlightMaterial = child.material;
+                        
+                                    // Set static headlights
+                                    headlightMaterial.emissive = new THREE.Color(0xffffff);
+                                    headlightMaterial.metalness = 1;
+                                    headlightMaterial.emissiveIntensity = 1.5;
                                 }
                             });
                         } else if (partName === 'backlights') {
@@ -1150,13 +1152,56 @@ export default function GaragePage() {
                 cameraRef.current.lookAt(carGroupRef.current.position);
             }
         
-            addHeadlightEffect(carGroupRef.current);
+            // addHeadlightEffect(carGroupRef.current);
         };        
 
         const addHeadlightEffect = (carGroup: THREE.Group) => {
             const headlightLight = new THREE.PointLight(0xffffff, 2, 50); // Adjust intensity and distance
             headlightLight.position.set(0, 2, 5); // Adjust position relative to the car
             carGroup.add(headlightLight);
+        };
+
+        const applyBlinkEffect = (carGroup: THREE.Group) => {
+            const clock = new THREE.Clock();
+            const blinkDuration = 0.7; // Duration for each blink state
+        
+            const toggleBlink = () => {
+                carGroup.traverse((child) => {
+                    if (child instanceof THREE.Mesh && child.material instanceof THREE.MeshStandardMaterial) {
+                        const elapsedTime = clock.getElapsedTime();
+        
+                        // Toggle emissive intensity based on time
+                        child.material.emissiveIntensity =
+                            Math.floor(elapsedTime / blinkDuration) % 2 === 0 ? 1.5 : 0.5;
+                    }
+                });
+        
+                requestAnimationFrame(toggleBlink);
+            };
+        
+            toggleBlink();
+        };     
+        
+        const applyStaticEffect = (carGroup: THREE.Group) => {
+            carGroup.traverse((child) => {
+                if (child instanceof THREE.Mesh && child.material instanceof THREE.MeshStandardMaterial) {
+                    // Reset emissive intensity to static value
+                    child.material.emissiveIntensity = 1.5;
+                }
+            });
+        };  
+        
+        const toggleHeadlightEffect = () => {
+            if (carGroupRef.current) {
+                if (isBlinking) {
+                    applyStaticEffect(carGroupRef.current); // Switch to static
+                } else {
+                    applyBlinkEffect(carGroupRef.current); // Switch to blinking
+                }
+                setIsBlinking(!isBlinking); // Toggle the state
+            } else {
+                console.error('Car group reference is null.');
+            }
         };
 
         const loadShowroomCar = async (
@@ -1217,12 +1262,13 @@ export default function GaragePage() {
                                             applyMatcap(part, 'black');
                                         } else if (partName === 'headlights') {
                                             part.traverse((child) => {
-                                                if (child instanceof THREE.Mesh) {
-                                                    child.material = new THREE.MeshStandardMaterial({
-                                                        emissive: new THREE.Color(0xffffff),
-                                                        metalness: 1,
-                                                        emissiveIntensity: 1.5,
-                                                    });
+                                                if (child instanceof THREE.Mesh && child.material instanceof THREE.MeshStandardMaterial) {
+                                                    const headlightMaterial = child.material;
+                                        
+                                                    // Set static headlights
+                                                    headlightMaterial.emissive = new THREE.Color(0xffffff);
+                                                    headlightMaterial.metalness = 1;
+                                                    headlightMaterial.emissiveIntensity = 1.5;
                                                 }
                                             });
                                         } else if (partName === 'backlights') {
@@ -1521,14 +1567,6 @@ export default function GaragePage() {
             
             toggleView('car');
             await loadCar(selectedIndex);
-
-            // Save the selected car name to localStorage
-            // localStorage.setItem('selectedCar', carName);
-            // localStorage.removeItem('selectedCar');
-            // console.log("Selected car", localStorage);
-
-            // Queue navigation
-            setNavigateToPage('/');
     
         } else {
             console.warn(`Car not found for name: ${carName}`);
@@ -1912,7 +1950,7 @@ export default function GaragePage() {
                     <div
                         className="button-element"
                         style={{ right: "-90px", backdropFilter: "blur(10px)" }} // Adjust positioning for the right button
-                        onClick={() => console.log("Right button clicked")}
+                        onClick={toggleHeadlightEffect}
                     >
                         <div
                             className="button-icon"
@@ -1921,6 +1959,33 @@ export default function GaragePage() {
                             }}
                         />
                     </div>
+                </div>
+                <div
+                    className="slide-to-start-container"
+                    style={{
+                        position: "absolute",
+                        top: "100px",
+                        width: "100%",
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                    }}
+                >
+                            <button
+                            style={{
+                                padding: '0',
+                                // animation: 'pulse 1.5s infinite',
+                                textShadow: '2px 2px 4px rgba(0, 0, 0, 0.9)',
+                                borderRadius: '8px',
+                                cursor: 'pointer',
+                                fontSize: '15px',
+                                fontFamily: 'Orbitron',
+                                animation: 'pulse 1.5s infinite',
+                            }}
+                            onClick={() => setNavigateToPage('/')}
+                            >
+                            READY
+                        </button>
                 </div>
             </div>
 
@@ -2093,12 +2158,12 @@ export default function GaragePage() {
                     <div
                         style={{
                             display: 'flex',
-                            flexDirection: 'column',
-                            gap: '20px',
-                            justifyContent: 'center',
-                            alignItems: 'center',
+                            flexDirection: 'row', // Change to 'row' for horizontal alignment
+                            gap: '20px',          // Space between buttons
+                            justifyContent: 'center', // Center-align buttons horizontally
+                            alignItems: 'center', // Center-align buttons vertically
                         }}
-                    >
+                >
                         <button
                             style={{
                                 padding: '0',
