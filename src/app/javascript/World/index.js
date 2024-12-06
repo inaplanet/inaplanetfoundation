@@ -2157,7 +2157,7 @@ export default class
                 coinElement.style.height = '5px'; // Set the height
                 coinElement.style.color = 'red'; // Set the height
                 coinElement.style.transform = 'translate(-50%, -50%)'; // Center the element
-                coinElement.innerHTML = `${feather.icons['crosshair'].toSvg({ width: 5, height: 5 })}`; // Set the SVG as innerHTML
+                coinElement.innerHTML = `${feather.icons['cpu'].toSvg({ width: 5, height: 5 })}`; // Set the SVG as innerHTML
                 coinElement.classList.add('pulsing'); // Add pulsing class for animation
                 
                 feather.replace();

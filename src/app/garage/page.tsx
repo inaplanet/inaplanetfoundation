@@ -73,7 +73,7 @@ export default function GaragePage() {
                 spoiler: '/models/car/default/spoiler.glb',
                 window: '/models/car/default/window.glb',
                 wheels: '/models/car/default/wheels1.glb',
-                tire: '/models/car/default/tire.glb',
+                tire: '/models/car/default/showroomtire.glb',
                 antena: '/models/car/default/antena.glb',
             },
             attributes: {
@@ -730,7 +730,7 @@ export default function GaragePage() {
                 spoiler: '/models/car/default/spoiler.glb',
                 window: '/models/car/default/window.glb',
                 wheels: '/models/car/default/wheels1.glb',
-                tire: '/models/car/default/tire.glb',
+                tire: '/models/car/default/showroomtire.glb',
                 antena: '/models/car/default/antena.glb',
             },
             attributes: {
@@ -820,7 +820,7 @@ export default function GaragePage() {
                 const positions = geometry.attributes.position.array as Float32Array;
                 for (let i = 0; i < particleCount; i++) {
                     const localMovement = new THREE.Vector3(
-                        -1 * (Math.random() - 0.5) * 0.1,
+                        1 * (Math.random() - 0.5) * 0.1,
                         -1 * (Math.random() - 0.5) * 0.1,
                         -1 * (Math.random() * 0.05)
                     );
@@ -832,7 +832,7 @@ export default function GaragePage() {
     
                 geometry.attributes.position.needsUpdate = true;
     
-                particles.position.copy(carChassis.position).add(new THREE.Vector3(-0.95, 0, 0.6));
+                particles.position.copy(carChassis.position).add(new THREE.Vector3(-1.5, 0, 0.6));
                 requestAnimationFrame(animateParticles);
             };
     
@@ -1942,7 +1942,7 @@ export default function GaragePage() {
                 <div className="coin-container">
                     <div
                         className="button-element"
-                        style={{ left: "-140px", backdropFilter: "blur(10px)"}} // Adjust positioning for the left button
+                        style={{ left: "-100px", backdropFilter: "blur(10px)"}} // Adjust positioning for the left button
                         onClick={() => {
                             if (carGroupRef.current && carGroupRef.current.children.length > 0) {
                                 const activeCar = carGroupRef.current.children[0]; // Assuming the first car is active
@@ -1968,13 +1968,13 @@ export default function GaragePage() {
                     <div className="coin-layer">{loadingAccount ? 'Loading...' : formatBalance(playerAccount)}</div>
                     <div
                         className="button-element"
-                        style={{ right: "-140px", backdropFilter: "blur(10px)" }} // Adjust positioning for the right button
+                        style={{ right: "-100px", backdropFilter: "blur(10px)" }} // Adjust positioning for the right button
                         onClick={toggleHeadlightEffect}
                     >
                         <div
                             className="button-icon"
                             style={{
-                                backgroundImage: `url('/images/mobile/paperPlane.png')`,
+                                backgroundImage: `url('/images/mobile/warning.png')`,
                             }}
                         />
                     </div>

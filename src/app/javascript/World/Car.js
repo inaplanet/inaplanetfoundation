@@ -561,7 +561,7 @@ export default class Car
                 for (let i = 0; i < particleCount; i++) {
                     // Calculate the movement vector in local space
                     const localMovement = new THREE.Vector3(
-                        -1 * (Math.random() - 0.5) * 0.1, // X-axis jitter
+                        1 * (Math.random() - 0.5) * 0.1, // X-axis jitter
                         -1 * (Math.random() - 0.5) * 0.1, // Y-axis jitter
                         -1 * (Math.random() * 0.05) // Z-axis forward movement (toward initial position)
                     );
