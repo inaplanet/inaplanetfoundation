@@ -39,7 +39,11 @@ export default function GaragePage() {
     const [selectedPart, setSelectedPart] = useState<string | null>(null);
     const [selectedCar, setSelectedCar] = useState<Car | null>(null);
     const [currentCarAttributes, setCurrentCarAttributes] = useState<{ [key: string]: number } | null>(null);
+    const [filteredPngIcons, setFilteredPngIcons] = useState<{ [key: string]: string }>({});
     const [isBlinking, setIsBlinking] = useState(false);
+    const [isButtonActive, setIsButtonActive] = useState(false); // State for button activity
+    const [isNitroActive, setIsNitroActive] = useState(false); // State for button activity
+    const [isCarLoading, setIsCarLoading] = useState(false); // State for button activity
     const showroomLoaded = useRef(false);
 
     const cameraRef = useRef<THREE.PerspectiveCamera | null>(null); // Reference for camera
@@ -748,12 +752,16 @@ export default function GaragePage() {
     const customizationPoints = useRef<THREE.Mesh[]>([]);
     const matcapTextures = useRef<{ [key: string]: THREE.Texture }>({});
 
-    const pngIcons: { [key: string]: string } = {
-        chassis: '/garage/chassis.png',
-        wheels: '/garage/wheel.png',
-        chassisbottom: '/garage/bottom.png',
-        spoiler: '/garage/spoiler.png',
-        window: '/garage/window.png',
+    // const pngIcons: { [key: string]: string } = {
+    //     chassis: '/garage/chassis.png',
+    //     wheels: '/garage/wheel.png',
+    //     chassisbottom: '/garage/bottom.png',
+    //     spoiler: '/garage/spoiler.png',
+    //     window: '/garage/window.png',
+    // };  
+    
+    const constructPngIconPath = (carName: string, partName: string): string => {
+        return `/garage/${carName.toLowerCase()}/${partName}.png`;
     };    
     
     const createNitroEffect = (position: THREE.Vector3, quaternion: THREE.Quaternion, carChassis: THREE.Object3D) => {
@@ -821,8 +829,8 @@ export default function GaragePage() {
                 for (let i = 0; i < particleCount; i++) {
                     const localMovement = new THREE.Vector3(
                         1 * (Math.random() - 0.5) * 0.1,
-                        -1 * (Math.random() - 0.5) * 0.1,
-                        -1 * (Math.random() * 0.05)
+                        1 * (Math.random() - 0.5) * 0.1,
+                        1 * (Math.random() * 0.05)
                     );
                     localMovement.applyQuaternion(quaternion);
                     positions[i * 3 + 0] += localMovement.x * 3;
@@ -1081,6 +1089,8 @@ export default function GaragePage() {
 
         const loadCar = async (index: number) => {
 
+            setIsCarLoading(true); // Start loading animation
+
             // Update car attributes based on the index
             if (index >= 0 && index < cars.length) {
                 setCurrentCarAttributes(cars[index].attributes); // Update the attributes state
@@ -1157,11 +1167,12 @@ export default function GaragePage() {
         
             // Adjust the camera to look at the car
             if (cameraRef.current) {
-                cameraRef.current.position.set(5, -50, 10);
+                cameraRef.current.position.set(0, -200, 0);
                 cameraRef.current.lookAt(carGroupRef.current.position);
             }
                     
-            // addHeadlightEffect(carGroupRef.current);
+            setIsCarLoading(false);
+            addHeadlightEffect(carGroupRef.current);
         };        
 
         const addHeadlightEffect = (carGroup: THREE.Group) => {
@@ -1170,28 +1181,49 @@ export default function GaragePage() {
             carGroup.add(headlightLight);
         };
 
-        let blinkAnimationFrame: number | null = null;
+        let blinkAnimationFrame: number | null = null; // Global variable for animation frame
+        let isBlinkingActive = false; // Global flag to track if blinking is active
+
+        const toggleHeadlightEffect = () => {
+            if (carGroupRef.current) {
+                if (isBlinking) {
+                    applyStaticEffect(carGroupRef.current); // Switch to static
+                } else {
+                    applyBlinkEffect(carGroupRef.current); // Switch to blinking
+                }
+                setIsBlinking(!isBlinking); // Toggle the blinking state
+            } else {
+                console.error('Car group reference is null.');
+            }
+        };
 
         const applyStaticEffect = (carGroup: THREE.Group) => {
-            // Clear any existing animation frame
+            // Stop blinking effect
+            isBlinkingActive = false;
             if (blinkAnimationFrame !== null) {
-                cancelAnimationFrame(blinkAnimationFrame);
+                cancelAnimationFrame(blinkAnimationFrame); // Cancel any pending animation frame
                 blinkAnimationFrame = null;
             }
 
+            // Reset all headlight materials to static
             carGroup.traverse((child) => {
                 if (child instanceof THREE.Mesh && child.material instanceof THREE.MeshStandardMaterial) {
                     const material = child.material;
-                    material.emissiveIntensity = 1.5; // Static light intensity
+                    material.emissiveIntensity = 1.5; // Set static light intensity
                 }
             });
         };
 
         const applyBlinkEffect = (carGroup: THREE.Group) => {
+            isBlinkingActive = true; // Mark blinking as active
             const blinkDuration = 0.7; // Duration for each state (on/off) in seconds
             let isBlinkingOn = true;
 
             const blink = () => {
+                if (!isBlinkingActive) {
+                    return; // Stop blinking if blinking is no longer active
+                }
+
                 carGroup.traverse((child) => {
                     if (child instanceof THREE.Mesh && child.material instanceof THREE.MeshStandardMaterial) {
                         const material = child.material;
@@ -1203,25 +1235,37 @@ export default function GaragePage() {
 
                 // Schedule the next frame
                 blinkAnimationFrame = requestAnimationFrame(() => {
-                    setTimeout(blink, blinkDuration * 1000); // Delay for blink duration
+                    setTimeout(blink, blinkDuration * 1000); // Delay for the blink duration
                 });
             };
 
             blink(); // Start blinking
         };
-        
-        const toggleHeadlightEffect = () => {
-            if (carGroupRef.current) {
-                if (isBlinking) {
-                    applyStaticEffect(carGroupRef.current); // Switch to static
-                } else {
-                    applyBlinkEffect(carGroupRef.current); // Switch to blinking
-                }
-                setIsBlinking(!isBlinking); // Toggle the state
+
+
+        const handleNitroEffect = () => {
+            if (carGroupRef.current && carGroupRef.current.children.length > 0) {
+                const activeCar = carGroupRef.current.children[0]; // Assuming the first car is active
+                const position = new THREE.Vector3().copy(activeCar.position); // Get car position
+                const quaternion = new THREE.Quaternion().copy(activeCar.quaternion); // Get car orientation
+    
+                createNitroEffect(position, quaternion, activeCar); // Trigger nitro effect
             } else {
-                console.error('Car group reference is null.');
+                console.error("No car found to apply nitro effect.");
             }
-        };        
+        };
+    
+        const handleNitroToggle = () => {
+            setIsNitroActive(!isNitroActive); // Toggle button activity
+            handleNitroEffect(); // Call the nitro effect function
+            setTimeout(() => setIsNitroActive(false), 100);
+        };
+        
+        const handleBlinkToggle = () => {
+            setIsButtonActive(!isButtonActive); // Toggle button activity
+            toggleHeadlightEffect(); // Call the existing headlight toggle function
+            setTimeout(() => setIsButtonActive(false), 100);
+        };
 
         const loadShowroomCar = async (
             cars: Array<{ name: string; parts: Record<string, string>; price: number }>
@@ -1565,13 +1609,32 @@ export default function GaragePage() {
         setShowCustomizationMenu(true);
     };
 
+    // const updateCustomizationIcons = (selectedCar: Car) => {
+    //     const filteredIcons = Object.keys(selectedCar.parts).reduce((icons, partName) => {
+    //         if (pngIcons[partName]) {
+    //             icons[partName] = pngIcons[partName];
+    //         }
+    //         return icons;
+    //     }, {} as { [key: string]: string });
+    
+    //     setFilteredPngIcons(filteredIcons);
+    // };
+    
     const handleCarSelection = async (carName: string) => {
-
         const selectedCar = cars.find((car) => car.name === carName);
         if (selectedCar) {
             const selectedIndex = cars.indexOf(selectedCar);
+            setIsCarLoading(true); // Set loading state to true before loading parts
             setCurrentCarIndex(selectedIndex);
-
+    
+            // Dynamically generate icon paths based on the selected car
+            const filteredIcons = Object.keys(selectedCar.parts).reduce((icons, partName) => {
+                icons[partName] = constructPngIconPath(carName, partName);
+                return icons;
+            }, {} as { [key: string]: string });
+    
+            setFilteredPngIcons(filteredIcons);
+    
             // Send the selected car to the server
             const playerId = new URLSearchParams(window.location.search).get('playerId');
             if (playerId) {
@@ -1583,14 +1646,42 @@ export default function GaragePage() {
                     })
                 );
             }
-            
-            toggleView('car');
-            await loadCar(selectedIndex);
     
+            // Load the car and toggle the view to 'car' only when it's ready
+            await loadCar(selectedIndex);
+            setIsCarLoading(false); // Set loading state to false once the car is fully loaded
+            toggleView('car');
         } else {
             console.warn(`Car not found for name: ${carName}`);
         }
     };    
+
+    // const handleCarSelection = async (carName: string) => {
+
+    //     const selectedCar = cars.find((car) => car.name === carName);
+    //     if (selectedCar) {
+    //         const selectedIndex = cars.indexOf(selectedCar);
+    //         setCurrentCarIndex(selectedIndex);
+
+    //         // Send the selected car to the server
+    //         const playerId = new URLSearchParams(window.location.search).get('playerId');
+    //         if (playerId) {
+    //             wsRef.current?.send(
+    //                 JSON.stringify({
+    //                     type: 'setSelectedCar',
+    //                     playerId,
+    //                     carName,
+    //                 })
+    //             );
+    //         }
+            
+    //         toggleView('car');
+    //         await loadCar(selectedIndex);
+    
+    //     } else {
+    //         console.warn(`Car not found for name: ${carName}`);
+    //     }
+    // };    
 
     // Trigger navigation when `navigateToPage` is set
     React.useEffect(() => {
@@ -1942,18 +2033,13 @@ export default function GaragePage() {
                 <div className="coin-container">
                     <div
                         className="button-element"
-                        style={{ left: "-100px", backdropFilter: "blur(10px)"}} // Adjust positioning for the left button
-                        onClick={() => {
-                            if (carGroupRef.current && carGroupRef.current.children.length > 0) {
-                                const activeCar = carGroupRef.current.children[0]; // Assuming the first car is active
-                                const position = new THREE.Vector3().copy(activeCar.position); // Get car position
-                                const quaternion = new THREE.Quaternion().copy(activeCar.quaternion); // Get car orientation
-                    
-                                createNitroEffect(position, quaternion, activeCar); // Trigger nitro effect
-                            } else {
-                                console.error("No car found to apply nitro effect.");
-                            }
+                        style={{
+                            left: "-100px",
+                            backdropFilter: "blur(10px)",
+                            backgroundColor: isNitroActive ? "#8CFF80" : "transparent", // Dynamically set background color
+                            transition: "background-color 0.3s ease", // Smooth transition for background color
                         }}
+                        onClick={handleNitroToggle} // Call the toggle function
                     >
                         <div
                             className="button-icon"
@@ -1965,11 +2051,20 @@ export default function GaragePage() {
                     <div className="coin-icon" style={{ fontSize: "25px", animation: "rotateClockwise 5s linear infinite" }}>
                     
                     </div>
-                    <div className="coin-layer">{loadingAccount ? 'Loading...' : formatBalance(playerAccount)}</div>
+                    {/* <div className="coin-layer">{loadingAccount ? 'Loading...' : formatBalance(playerAccount)}</div> */}
+                    <div className="coin-layer-wrapper">
+                        <h2 className="account-title">COIN ACCOUNT</h2>
+                        <div className="coin-layer">{loadingAccount ? 'Loading...' : formatBalance(playerAccount)}</div>
+                    </div>
                     <div
                         className="button-element"
-                        style={{ right: "-100px", backdropFilter: "blur(10px)" }} // Adjust positioning for the right button
-                        onClick={toggleHeadlightEffect}
+                        style={{
+                            right: "-100px",
+                            backdropFilter: "blur(10px)",
+                            backgroundColor: isButtonActive ? "#8CFF80" : "transparent", // Dynamically set background color
+                            transition: "background-color 0.3s ease", // Smooth transition for background color
+                        }}
+                        onClick={handleBlinkToggle}
                     >
                         <div
                             className="button-icon"
@@ -2132,15 +2227,15 @@ export default function GaragePage() {
                             }}
                             onClick={() => setNavigateToPage('/')}
                         >
-                            READY
-                            <span
+                            LET'S KRASH
+                            {/* <span
                                 style={{
                                     marginLeft: '10px',
                                 }}
                                 dangerouslySetInnerHTML={{
                                     __html: feather.icons['play-circle'].toSvg({ width: 20, height: 20 }),
                                 }}
-                            />
+                            /> */}
                         </button>
                     )}
 
@@ -2328,7 +2423,7 @@ export default function GaragePage() {
             )}
 
             {/* Customization Menu */}
-            {showCustomizationMenu && (
+            {/* {showCustomizationMenu && (
                 <div className="customization-menu">
                     <Slider {...sliderSettings} className="customization-slider">
                         {Object.keys(pngIcons).map((partName) => (
@@ -2339,6 +2434,27 @@ export default function GaragePage() {
                             >
                                 <img
                                     src={pngIcons[partName]}
+                                    alt={`${partName} icon`}
+                                    className="customization-icon"
+                                />
+                            </button>
+                        ))}
+                    </Slider>
+                </div>
+            )} */}
+
+            {/* Customization Menu */}
+            {showCustomizationMenu && (
+                <div className="customization-menu">
+                    <Slider {...sliderSettings} className="customization-slider">
+                        {Object.entries(filteredPngIcons).map(([partName, iconPath]) => (
+                            <button
+                                key={partName}
+                                onClick={() => handlePartSelection(partName)}
+                                className="customization-button"
+                            >
+                                <img
+                                    src={iconPath}
                                     alt={`${partName} icon`}
                                     className="customization-icon"
                                 />
