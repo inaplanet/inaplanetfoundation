@@ -874,7 +874,7 @@ export default function GaragePage() {
         // Initialize the scene
         scene = new THREE.Scene();
         scene.background = new THREE.Color('#0213f7'); // Updated background color
-        cameraRef.current = new THREE.PerspectiveCamera(1.0, window.innerWidth / window.innerHeight, 1, 500);
+        cameraRef.current = new THREE.PerspectiveCamera(2.0, window.innerWidth / window.innerHeight, 1, 500);
         cameraRef.current.position.set(0, -200, 1);
 
         const renderer = new THREE.WebGLRenderer({ antialias: true, canvas: canvasRef.current, logarithmicDepthBuffer: true });
@@ -1157,7 +1157,7 @@ export default function GaragePage() {
         
             // Adjust the camera to look at the car
             if (cameraRef.current) {
-                cameraRef.current.position.set(0, -200, 5);
+                cameraRef.current.position.set(5, -50, 10);
                 cameraRef.current.lookAt(carGroupRef.current.position);
             }
                     
