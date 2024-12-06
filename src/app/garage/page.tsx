@@ -2053,7 +2053,7 @@ export default function GaragePage() {
                     </div>
                     {/* <div className="coin-layer">{loadingAccount ? 'Loading...' : formatBalance(playerAccount)}</div> */}
                     <div className="coin-layer-wrapper">
-                        <h2 className="account-title">ACCOUNT K COIN</h2>
+                        <h2 className="account-title">ACCOUNT FUNDS</h2>
                         <div className="coin-layer">{loadingAccount ? 'Loading...' : formatBalance(playerAccount)}</div>
                     </div>
                     <div
@@ -2093,7 +2093,7 @@ export default function GaragePage() {
                                 const value = currentCarAttributes[attr];
                                 const getBarColor = (value: number) => {
                                     if (value <= 30) return '#FF8000';
-                                    if (value <= 60) return '#8CFF80';
+                                    if (value <= 60) return '#FF8000';
                                     return '#18FF00';
                                 };
 
@@ -2409,7 +2409,7 @@ export default function GaragePage() {
                                     {car.price} ❖
                                 </p> */}
                                 {/* Car Name and Price */}
-                                <h4 style={{ fontFamily: 'Orbitron', fontSize: '24px', marginBottom: '0px', textShadow: '2px 2px 4px rgba(0, 0, 0, 0.9)' }}>
+                                <h4 style={{ fontFamily: 'Orbitron', fontSize: '28px', marginBottom: '0px', textShadow: '2px 2px 4px rgba(0, 0, 0, 0.9)' }}>
                                     {car.name}
                                 </h4>
                                 {/* Select Button */}
@@ -2419,7 +2419,7 @@ export default function GaragePage() {
                                         borderRadius: '5px',
                                         color: '#fff',
                                         fontFamily: 'Orbitron',
-                                        fontSize: '16px',
+                                        fontSize: '12px',
                                         marginTop: '0px',
                                         cursor: 'pointer',
                                         textShadow: '2px 2px 4px rgba(0, 0, 0, 0.9)',

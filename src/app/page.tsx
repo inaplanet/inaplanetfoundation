@@ -1,6 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
+import React from 'react';
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAccount } from 'wagmi';
@@ -373,6 +374,7 @@ export default function Home() {
   
         // Fetch the token for the connected player
         getToken(address);
+
       }
     }, [isConnected, address, hasAppInitialized, initializeWebSocket]);
 
@@ -453,6 +455,7 @@ export default function Home() {
         </div>
       )}
       
+      
       {/* Show the loading layer if the wallet is connected but the canvas isn't initialized */}
       {isConnected && !isCanvasInitialized && (
         <div id="loading-container">
@@ -487,7 +490,7 @@ export default function Home() {
                     </div>
                     </div>
                       <div id='garage' className='garage'>
-                        <button id='garage-button' onClick={handleGarageButtonClick}>WORKSHOP</button>
+                        <button id='garage-button' onClick={handleGarageButtonClick}>KARAGE</button>
                         {/* <button id='garage-button'>GARAGE</button> */}
                       </div>
                     </>

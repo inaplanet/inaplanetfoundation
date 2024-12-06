@@ -1754,7 +1754,7 @@ opacity: 0;
   display: flex;
   justify-content: center;
   align-items: center;
-  background: rgba(255, 255, 255, 0.05);
+  background: transparent;
   box-shadow: 0 15px 15px rgba(0, 0, 0, 0.3);
   border-bottom: 0.5px solid rgba(255, 255, 0, 0.1);
   border-top: 0.5px solid rgba(255, 255, 0, 0.1);
@@ -1768,8 +1768,47 @@ opacity: 0;
   backdrop-filter: blur(15px);
 }
 
+/* .container .btn:hover a {
+  letter-spacing: 3px;
+} */
+
+.container .btn:active {
+  transform: scale(0.8); /* Scale down slightly on click */
+}
+
 .container .btn:hover a {
-  letter-spacing: 2px;
+  animation: brakeEffect 0.4s ease-out; /* Apply the brake effect */
+}
+
+/* Define the brake effect animation */
+@keyframes brakeEffect {
+  0% {
+    transform: translateX(0); /* Initial position */
+  }
+  20% {
+    transform: translateX(-1000px); /* Slight backward motion */
+  }
+  40% {
+    transform: translateX(500px); /* Slight forward motion */
+  }
+  60% {
+    transform: translateX(-300px); /* Settle backward */
+  }
+  80% {
+    transform: translateX(100px); /* Fine adjustment forward */
+  }
+  100% {
+    transform: translateX(0); /* Back to initial position */
+  }
+}
+
+.container .btn a {
+  color: #fff;
+  text-decoration: none;
+  font-size: 16px;
+  font-family: "Orbitron", sans-serif;
+  letter-spacing: 1px;
+  transition: letter-spacing 0.3s ease-in-out;
 }
 
 .container .btn a::before {
