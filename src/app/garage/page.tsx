@@ -2053,7 +2053,7 @@ export default function GaragePage() {
                     </div>
                     {/* <div className="coin-layer">{loadingAccount ? 'Loading...' : formatBalance(playerAccount)}</div> */}
                     <div className="coin-layer-wrapper">
-                        <h2 className="account-title">COIN ACCOUNT</h2>
+                        <h2 className="account-title">ACCOUNT K COIN</h2>
                         <div className="coin-layer">{loadingAccount ? 'Loading...' : formatBalance(playerAccount)}</div>
                     </div>
                     <div
@@ -2210,33 +2210,46 @@ export default function GaragePage() {
                     {/* READY Button - Hidden in non-menu views */}
                     {view === 'menu' && (
                         <button
-                            style={{
-                                paddingTop: '5px',
-                                textShadow: '2px 2px 4px rgba(0, 0, 0, 0.9)',
-                                borderRadius: '8px',
-                                cursor: 'pointer',
-                                fontSize: '20px',
-                                fontFamily: 'Orbitron',
-                                // animation: 'pulse 1.5s infinite',
-                                display: 'flex',
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                                position: 'absolute', // Position above the menu
-                                top: '-50px', // Adjust spacing above the menu
-                                zIndex: 10, // Ensure it's above other elements
-                            }}
-                            onClick={() => setNavigateToPage('/')}
+                        onClick={() => setNavigateToPage('/')}
                         >
-                            LET'S KRASH
-                            {/* <span
-                                style={{
-                                    marginLeft: '10px',
-                                }}
-                                dangerouslySetInnerHTML={{
-                                    __html: feather.icons['play-circle'].toSvg({ width: 20, height: 20 }),
-                                }}
-                            /> */}
-                        </button>
+                            <div className="container">
+                            <div className="btn" id="btn-main-div">
+                            <div id="btn-bg">
+                                
+                            </div>
+                            <a onClick={() => setNavigateToPage('/')}>LET'S KRASH</a>
+                            </div>
+                        </div>
+                      </button>
+                    
+                        // <button
+                        //     style={{
+                        //         paddingTop: '5px',
+                        //         textShadow: '2px 2px 4px rgba(0, 0, 0, 0.9)',
+                        //         borderRadius: '8px',
+                        //         cursor: 'pointer',
+                        //         fontSize: '20px',
+                        //         fontFamily: 'Orbitron',
+                        //         // animation: 'pulse 1.5s infinite',
+                        //         display: 'flex',
+                        //         justifyContent: 'center',
+                        //         alignItems: 'center',
+                        //         position: 'absolute', // Position above the menu
+                        //         top: '-50px', // Adjust spacing above the menu
+                        //         zIndex: 10, // Ensure it's above other elements
+                        //     }}
+                        //     onClick={() => setNavigateToPage('/')}
+                        // >
+                        //     LET'S KRASH
+                        //     {/* <span
+                        //         style={{
+                        //             marginLeft: '10px',
+                        //         }}
+                        //         dangerouslySetInnerHTML={{
+                        //             __html: feather.icons['play-circle'].toSvg({ width: 20, height: 20 }),
+                        //         }}
+                        //     /> */}
+                        // </button>
                     )}
 
                     {/* Main Menu Buttons */}
