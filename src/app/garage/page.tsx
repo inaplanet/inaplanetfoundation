@@ -68,7 +68,7 @@ export default function GaragePage() {
             parts: {
                 backlights: '/models/car/default/showroombacklights.glb',
                 headlights: '/models/car/default/showroomheadlights.glb',
-                chassisbottom: '/models/car/default/showroomchassisbottom.glb',
+                chassisbottom: '/models/car/default/showroomchassisbottom1.glb',
                 chassis: '/models/car/default/chassisbody.glb',
                 spoiler: '/models/car/default/spoiler.glb',
                 window: '/models/car/default/window.glb',
@@ -612,7 +612,7 @@ export default function GaragePage() {
                 engine: '/models/car/default/empty.glb',
                 headlights: '/models/car/default/headlights.glb',
                 saloon: '/models/car/default/empty.glb',
-                chassisbottom: '/models/car/default/showroomchassisbottom.glb',
+                chassisbottom: '/models/car/default/showroomchassisbottom1.glb',
                 chassis: '/models/car/default/chassisbody.glb',
                 spoiler: '/models/car/default/spoiler.glb',
                 window: '/models/car/default/window.glb',
