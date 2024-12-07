@@ -181,17 +181,13 @@ export default function GaragePage() {
             name: 'Wreckslinger',
             price: 7500000,
             parts: {
-                accessories: '/models/wreckslinger/accessories.glb',
-                backlights: '/models/wreckslinger/backlights2.glb',
-                backlightsReverse: '/models/wreckslinger/backlightsReverse1.glb',
-                bumper: '/models/wreckslinger/bumper.glb',
-                chassis: '/models/wreckslinger/chassis.glb',
-                chassisbottom: '/models/wreckslinger/chassisbottom.glb',
-                doors: '/models/wreckslinger/doors.glb',
-                headlights: '/models/wreckslinger/headlights1.glb',
+                backlights: '/models/wreckslinger/showroombacklights.glb',
+                chassis: '/models/wreckslinger/showroomchassis.glb',
+                chassisbottom: '/models/wreckslinger/showroomchassisbottom.glb',
+                headlights: '/models/wreckslinger/showroomheadlights.glb',
                 tire: '/models/wreckslinger/tire.glb',
                 wheel: '/models/wreckslinger/wheel.glb',
-                window: '/models/wreckslinger/window.glb',
+                window: '/models/wreckslinger/showroomwindow.glb',
             },
             attributes: {
                 PWR: 110,
@@ -225,17 +221,13 @@ export default function GaragePage() {
             name: 'Gangover',
             price: 7500000,
             parts: {
-                backlights: '/models/gangover/backlights1.glb',
-                backlightsReverse: '/models/gangover/backlightsReverse1.glb',
-                brake: '/models/gangover/brake.glb',
-                chassis: '/models/gangover/chassis.glb',
-                chassisbottom: '/models/gangover/chassisbottom.glb',
-                headlights: '/models/gangover/headlights1.glb',
+                backlights: '/models/gangover/showroombacklights.glb',
+                chassis: '/models/gangover/showroomchassis.glb',
+                chassisbottom: '/models/gangover/showroomchassisbottom.glb',
+                headlights: '/models/gangover/showroomheadlights.glb',
                 rims: '/models/gangover/rims.glb',
                 tire: '/models/gangover/tire.glb',
-                turn: '/models/gangover/turn.glb',
-                vehicle: '/models/gangover/vehicle.glb',
-                windows: '/models/gangover/windows.glb',
+                windows: '/models/gangover/showroomwindows.glb',
             },
             attributes: {
                 PWR: 110,
@@ -248,18 +240,11 @@ export default function GaragePage() {
             name: 'McLaren',
             price: 7500000,
             parts: {
-                backlights: '/models/mclaren/backlights1.glb',
-                backlightsReverse: '/models/mclaren/backlightsReverse1.glb',
-                chassis: '/models/mclaren/chassis.glb',
-                chassisbottom: '/models/mclaren/chassisbottom.glb',
-                chassisbottom1: '/models/mclaren/chassisbottom1.glb',
-                chassisbottom2: '/models/mclaren/chassisbottom2.glb',
-                doors: '/models/mclaren/doors.glb',
-                headlights: '/models/mclaren/headlights.glb',
-                mirrors: '/models/mclaren/mirrors.glb',
-                salon: '/models/mclaren/salon.glb',
-                spoiler: '/models/mclaren/spoiler.glb',
-                vehicle: '/models/mclaren/vehicle.glb',
+                backlights: '/models/mclaren/showroombacklights.glb',
+                chassis: '/models/mclaren/showroomchassis.glb',
+                chassisbottom: '/models/mclaren/showroomchassisbottom.glb',
+                headlights: '/models/mclaren/showroomheadlights.glb',
+                mirrors: '/models/mclaren/showroommirrors.glb',
                 wheels: '/models/mclaren/wheels.glb',
             },
             attributes: {
@@ -273,11 +258,10 @@ export default function GaragePage() {
             name: '240 GTI',
             price: 7500000,
             parts: {
-                backlights: '/models/240gti/backlights1.glb',
-                backlightsReverse: '/models/240gti/backlightsReverse1.glb',
                 chassis: '/models/240gti/chassis.glb',
                 chassisbottom: '/models/240gti/chassisbottom.glb',
-                headlights: '/models/240gti/headlights.glb',
+                headlights: '/models/240gti/showroomheadlights.glb',
+                backlights: '/models/240gti/showroombacklights.glb',
                 tire: '/models/240gti/tire1.glb',
                 wheels: '/models/240gti/wheels1.glb',
                 windows: '/models/240gti/windows.glb',
@@ -367,8 +351,7 @@ export default function GaragePage() {
                 chassisbottom: '/models/goodwing/chassisbottom.glb',
                 chassis: '/models/goodwing/chassisobject.glb',
                 foglights: '/models/goodwing/foglights.glb',
-                headlights: '/models/goodwing/headlights.glb',
-                lightsdown: '/models/goodwing/lightsdown.glb',
+                headlights: '/models/goodwing/showroomheadlights.glb',
                 showroomtire: '/models/goodwing/showroomtire.glb',
                 showroomwheel: '/models/goodwing/showroomwheel.glb',
                 windows: '/models/goodwing/windows.glb',
@@ -2341,7 +2324,7 @@ export default function GaragePage() {
                                     {car.price} ❖
                                 </p> */}
                                 {/* Car Name and Price */}
-                                <h4 style={{ fontFamily: 'Orbitron', fontSize: '28px', marginBottom: '0px', textShadow: '2px 2px 4px rgba(0, 0, 0, 0.9)' }}>
+                                <h4 style={{ fontFamily: 'Orbitron', fontSize: '21px', marginBottom: '0px', textShadow: '2px 2px 4px rgba(0, 0, 0, 0.9)' }}>
                                     {car.name}
                                 </h4>
                                 {/* Select Button */}
