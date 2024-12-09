@@ -303,7 +303,7 @@ export default class Physics
                 chassisHeight: 1.16,
                 chassisDepth: 2.57,
                 chassisOffset: new CANNON.Vec3(0, 0, 0.41),
-                chassisMass: 45,
+                chassisMass: 48,
                 wheelFrontOffsetDepth: 0.724,
                 wheelBackOffsetDepth: - 0.634,
                 wheelOffsetWidth: 0.63,
@@ -8104,94 +8104,7 @@ export default class Physics
                 } else {
                     this.car.flightMode = false;
                 }
-
-                // Check if the car is in flight mode
-                if (this.car.flightMode) {
-                    const flightOffsetZ = 0.1; // Adjust this value as needed to visually connect wheels in flight mode
-            
-                    // Dynamically update the Z offset for all wheels
-                    this.car.vehicle.wheelInfos.forEach((wheelInfo, index) => {
-                        if (index === 0) {
-                            // Front left
-                            wheelInfo.chassisConnectionPointLocal.set(
-                                carConfig.wheelFrontOffsetDepth,
-                                carConfig.wheelOffsetWidth,
-                                flightOffsetZ
-                            );
-                        } else if (index === 1) {
-                            // Front right
-                            wheelInfo.chassisConnectionPointLocal.set(
-                                carConfig.wheelFrontOffsetDepth,
-                                -carConfig.wheelOffsetWidth,
-                                flightOffsetZ
-                            );
-                        } else if (index === 2) {
-                            // Back left
-                            wheelInfo.chassisConnectionPointLocal.set(
-                                carConfig.wheelBackOffsetDepth,
-                                carConfig.wheelOffsetWidth,
-                                flightOffsetZ
-                            );
-                        } else if (index === 3) {
-                            // Back right
-                            wheelInfo.chassisConnectionPointLocal.set(
-                                carConfig.wheelBackOffsetDepth,
-                                -carConfig.wheelOffsetWidth,
-                                flightOffsetZ
-                            );
-                        }
-                    });
-                } else {
-                    // Reset Z offset when not in flight mode
-                    this.car.vehicle.wheelInfos.forEach((wheelInfo, index) => {
-                        if (index === 0) {
-                            wheelInfo.chassisConnectionPointLocal.set(
-                                carConfig.wheelFrontOffsetDepth,
-                                carConfig.wheelOffsetWidth,
-                                0
-                            );
-                        } else if (index === 1) {
-                            wheelInfo.chassisConnectionPointLocal.set(
-                                carConfig.wheelFrontOffsetDepth,
-                                -carConfig.wheelOffsetWidth,
-                                0
-                            );
-                        } else if (index === 2) {
-                            wheelInfo.chassisConnectionPointLocal.set(
-                                carConfig.wheelBackOffsetDepth,
-                                carConfig.wheelOffsetWidth,
-                                0
-                            );
-                        } else if (index === 3) {
-                            wheelInfo.chassisConnectionPointLocal.set(
-                                carConfig.wheelBackOffsetDepth,
-                                -carConfig.wheelOffsetWidth,
-                                0
-                            );
-                        }
-                    });
-                }
-            
-                // Ensure the updated offsets are applied
-                this.car.vehicle.wheelInfos.forEach((_, index) => {
-                    this.car.vehicle.updateWheelTransform(index);
-                });
-
-                // const localUp = new CANNON.Vec3(0, 0, 1);
-                // const worldUp = new CANNON.Vec3();
-                // this.car.chassis.body.vectorToWorldFrame(localUp, worldUp);
-            
-                // this.car.vehicle.wheelInfos.forEach((wheelInfo) => {
-                //     if (worldUp.z < 0) {
-                //         // Car is upside down, invert suspension direction
-                //         wheelInfo.directionLocal.set(0, 0, 1);
-                //     } else {
-                //         // Car is upright, use normal suspension direction
-                //         wheelInfo.directionLocal.set(0, 0, -1);
-                //     }
-                // });
             });
-            
 
             /**
              * Model

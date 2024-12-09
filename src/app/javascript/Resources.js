@@ -198,7 +198,7 @@ const pusherCrowdChassisSource = '/models/pushpushpush/auto.glb'
 const pusherCrowdBacklightsSource = '/models/pushpushpush/backlights2.glb'
 const pusherCrowdHeadlightsSource = '/models/pushpushpush/headlights2.glb'
 const pusherCrowdBacklightsReverseSource = '/models/pushpushpush/backlightsReverse.glb'
-const pusherCrowdWheelsSource = '/models/pushpushpush/wheel.glb'
+const pusherCrowdWheelsSource = '/models/pushpushpush/showroomwheel.glb'
 const pusherCrowdAntenaSource = '/models/pushpushpush/antena.glb'
 
 // Impactus
