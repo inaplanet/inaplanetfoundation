@@ -521,7 +521,7 @@ opacity: 0;
   box-sizing: border-box;
   border-top: 10px solid transparent;
   border-bottom: 10px solid transparent;
-  rotate: 270deg;
+  rotate: 90deg;
 }
 
 #garage-button:hover {

@@ -1043,8 +1043,10 @@ export default function GaragePage() {
                         // Apply matcap materials
                         if (['chassis', 'wheels'].includes(partName)) {
                             applyMatcap(part, 'darkEmerald');
-                        } else if (['tire', 'chassisbottom', 'bumper', 'spoiler', 'window'].includes(partName)) {
+                        } else if (['tire', 'bumper', 'spoiler', 'window'].includes(partName)) {
                             applyMatcap(part, 'black');
+                        } else if (['chassisbottom'].includes(partName)) {
+                            applyMatcap(part, 'darkEmerald');
                         }
         
                         carGroupRef.current.add(part);
@@ -1209,7 +1211,7 @@ export default function GaragePage() {
                                         } else if (partName === 'tire') {
                                             applyMatcap(part, 'black');
                                         } else if (partName === 'chassisbottom') {
-                                            applyMatcap(part, 'black');
+                                            applyMatcap(part, 'darkEmerald');
                                         } else if (partName === 'bumper') {
                                             applyMatcap(part, 'black');
                                         } else if (partName === 'spoiler') {
