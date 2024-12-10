@@ -399,7 +399,7 @@ export default class Physics
                 chassisMass: 50,
                 wheelFrontOffsetDepth: 0.635,
                 wheelBackOffsetDepth: -0.475,
-                wheelOffsetWidth: 0.46,
+                wheelOffsetWidth: 0.50,
                 wheelRadius: 0.25,
                 wheelHeight: 0.24,
                 wheelSuspensionStiffness: 50,
@@ -408,7 +408,7 @@ export default class Physics
                 wheelDampingRelaxation: 1.8,
                 wheelDampingCompression: 1.5,
                 wheelMaxSuspensionForce: 100000,
-                wheelRollInfluence:  0.01,
+                wheelRollInfluence:  0.0001,
                 wheelMaxSuspensionTravel: 0.3,
                 wheelCustomSlidingRotationalSpeed: - 30,
                 wheelMass: 5,
@@ -8260,6 +8260,8 @@ export default class Physics
          */
         this.world.addEventListener('postStep', () =>
         {
+            const chassisBody = this.car.chassis.body;
+
             // Update speed
             let positionDelta = new CANNON.Vec3()
             positionDelta = positionDelta.copy(this.car.chassis.body.position)
@@ -8279,8 +8281,6 @@ export default class Physics
             // Updise down
             const localUp = new CANNON.Vec3(0, 0, 1)
             const worldUp = new CANNON.Vec3()
-
-            const chassisBody = this.car.chassis.body;
             chassisBody.vectorToWorldFrame(localUp, worldUp)
 
             if(worldUp.dot(localUp) < 0.5)
@@ -8310,11 +8310,6 @@ export default class Physics
                     if (typeof window !== 'undefined') {
                         window.clearTimeout(this.car.upsideDown.pendingTimeout)
                     }
-                }
-
-                // Update wheels and chassis during flight mode or upside down state
-                if (this.car.flightMode || this.car.upsideDown.state === 'pending' || this.car.upsideDown.state === 'turning') {
-                    this.updateCar3DRepresentation(worldUp);
                 }
             }
 
@@ -8758,37 +8753,6 @@ export default class Physics
            
         }
     }  
-
-    updateCar3DRepresentation(worldUp) {
-        const chassisMesh = this.car.model.chassis;
-        const chassisBody = this.car.chassis.body;
-    
-        // Update chassis position and orientation
-        chassisMesh.position.copy(chassisBody.position);
-        chassisMesh.quaternion.copy(chassisBody.quaternion);
-    
-        // Update wheels relative to chassis
-        this.car.vehicle.wheelInfos.forEach((wheelInfo, index) => {
-            const wheelMesh = this.car.model.wheels[index];
-    
-            // Calculate the local wheel offset
-            const chassisPoint = wheelInfo.chassisConnectionPointLocal;
-            const wheelOffset = new CANNON.Vec3(chassisPoint.x || 0, chassisPoint.y || 0, chassisPoint.z || 0);
-    
-            // Check if applyQuaternion exists and is a function
-            if (typeof wheelOffset.applyQuaternion === 'function') {
-                // Apply chassis rotation to the wheel offset
-                wheelOffset.applyQuaternion(chassisBody.quaternion);
-            } else {
-                console.error("applyQuaternion is not a function on wheelOffset:", wheelOffset);
-                return; // Exit this iteration if applyQuaternion is unavailable
-            }
-    
-            // Update wheel position and orientation
-            wheelMesh.position.copy(chassisBody.position).add(wheelOffset);
-            wheelMesh.quaternion.copy(chassisBody.quaternion);
-        });
-    }    
 
     // Updated handleBulletCollision function to ensure bullet removal and state synchronization
     handleBulletCollision(bullet, index, carBody) {

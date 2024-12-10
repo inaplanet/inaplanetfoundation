@@ -157,6 +157,54 @@ const Application = ({ playerId, selectedWorldId, token, carName }) => {
     /**
      * Set camera
      */
+    // setCamera() {
+    //     this.camera = new Camera({
+    //         time: this.time,
+    //         sizes: this.sizes,
+    //         renderer: this.renderer,
+    //         debug: this.debug,
+    //         config: this.config,
+    //         car: this.car
+    //     });
+        
+    //     this.scene.add(this.camera.container);
+        
+    //     this.time.on('tick', () => {
+    //         if (this.world && this.world.car) {
+
+                
+    //             // Update camera target position to match the car's position
+    //             this.camera.target.x = this.world.car.chassis.object.position.x;
+    //             this.camera.target.y = this.world.car.chassis.object.position.y;
+    //             this.camera.target.z = this.world.car.chassis.object.position.z;
+                
+    //             // Handle car's rotation (quaternion) for better camera tracking
+    //             // const carQuaternion = this.world.car.chassis.object.quaternion;
+    //             // const cameraDistance = 10; // Distance between the car and the camera, adjust as needed
+
+    //             // Offset the camera based on the car's rotation (apply quaternion to offset)
+    //             // const offset = new THREE.Vector3(0, -cameraDistance, 5); // Offset the camera behind and above the car
+    //             // offset.applyQuaternion(carQuaternion);
+
+    //             // Set camera position based on the car's position and the offset
+    //             // this.camera.instance.position.copy(this.world.car.chassis.object.position).add(offset);
+
+    //             // Look at the car to keep it centered in the camera view
+    //             this.camera.instance.lookAt(this.world.car.chassis.object.position);
+    //         }
+
+    //         // Key event listener for camera action
+    //         document.addEventListener('keydown', (e) => {
+    //             if (e.key === 'Y' || e.key === 'y') {
+    //                 this.camera.triggerCameraAction();
+    //             }
+    //         });
+    //     });
+    // }
+
+    /**
+     * Set camera
+     */
     setCamera() {
         this.camera = new Camera({
             time: this.time,
@@ -166,39 +214,47 @@ const Application = ({ playerId, selectedWorldId, token, carName }) => {
             config: this.config,
             car: this.car
         });
-        
+
         this.scene.add(this.camera.container);
-        
+
+        // Set the initial camera mode
+        this.camera.isNewCameraActive = false; // Start with the old version
+        this.camera.actionInProgress = false; // Track if a camera action is in progress
+
         this.time.on('tick', () => {
             if (this.world && this.world.car) {
-
-                
-                // Update camera target position to match the car's position
-                this.camera.target.x = this.world.car.chassis.object.position.x;
-                this.camera.target.y = this.world.car.chassis.object.position.y;
-                this.camera.target.z = this.world.car.chassis.object.position.z;
-                
-                // Handle car's rotation (quaternion) for better camera tracking
-                // const carQuaternion = this.world.car.chassis.object.quaternion;
-                // const cameraDistance = 10; // Distance between the car and the camera, adjust as needed
-
-                // Offset the camera based on the car's rotation (apply quaternion to offset)
-                // const offset = new THREE.Vector3(0, -cameraDistance, 5); // Offset the camera behind and above the car
-                // offset.applyQuaternion(carQuaternion);
-
-                // Set camera position based on the car's position and the offset
-                // this.camera.instance.position.copy(this.world.car.chassis.object.position).add(offset);
-
-                // Look at the car to keep it centered in the camera view
-                this.camera.instance.lookAt(this.world.car.chassis.object.position);
-            }
-
-            // Key event listener for camera action
-            document.addEventListener('keydown', (e) => {
-                if (e.key === 'Y' || e.key === 'y') {
-                    this.camera.triggerCameraAction();
+                const chassisObject = this.world.car.chassis.object;
+        
+                if (this.camera.isNewCameraActive) {
+                    // New camera logic
+                    const forwardVector = new THREE.Vector3(1, 0, 0);
+                    forwardVector.applyQuaternion(chassisObject.quaternion);
+        
+                    const cameraOffset = forwardVector.clone().multiplyScalar(-15);
+                    cameraOffset.z = 10;
+        
+                    this.camera.instance.position.copy(chassisObject.position).add(cameraOffset);
+                    this.camera.instance.lookAt(chassisObject.position);
+                } else {
+                    // Old camera logic
+                    this.camera.target.x = chassisObject.position.x;
+                    this.camera.target.y = chassisObject.position.y;
+                    this.camera.target.z = chassisObject.position.z;
+                    this.camera.instance.lookAt(chassisObject.position);
                 }
-            });
+            }
+        });
+
+        // Key event listener for camera toggle
+        document.addEventListener('keydown', (e) => {
+            if ((e.key === 'Y' || e.key === 'y') && !this.camera.actionInProgress) {
+                this.camera.actionInProgress = true; // Mark the action as in progress
+
+                // Toggle the camera and reset the flag after the switch
+                this.camera.triggerCameraAction(() => {
+                    this.camera.actionInProgress = false; // Reset the flag
+                });
+            }
         });
     }
 

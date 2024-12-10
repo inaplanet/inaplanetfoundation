@@ -23,7 +23,8 @@ export default class Camera
         this.targetEased = new THREE.Vector3(0, 0, 0)
         this.easing = 0.15
 
-        // this.type = 'perspective'
+        this.type = 'perspective'
+        this.isNewCameraActive = false;
 
         // Debug
         if(this.debug)
@@ -39,20 +40,121 @@ export default class Camera
         this.setOrbitControls()
     }
 
-    triggerCameraAction() {
-        console.log("Y button pressed, triggering camera action...");
+    // triggerCameraAction() {
+    //     console.log("Y button pressed, triggering camera action...");
     
-        // Here, you can switch between different camera modes (e.g., perspective, orthographic, birds-eye)
-        if (this.type === 'perspective') {
-            this.setOrthographic();  // Switch to orthographic view
-        } else if (this.type === 'orthographic') {
-            this.setBirdsEye();      // Switch to birds-eye view
+    //     // Here, you can switch between different camera modes (e.g., perspective, orthographic, birds-eye)
+    //     if (this.type === 'perspective') {
+    //         this.setOrthographic();  // Switch to orthographic view
+    //     } else if (this.type === 'orthographic') {
+    //         this.setBirdsEye();      // Switch to birds-eye view
+    //     } else {
+    //         this.setPerspective();   // Default back to perspective
+    //     }
+    
+    //     console.log(`Camera switched to: ${this.type}`);
+    // }    
+
+    // triggerCameraAction(onComplete) {
+    //     console.log("Y button pressed, triggering camera action...");
+        
+    //     const transitionDuration = 1.5; // Duration in seconds for the transition
+    
+    //     if (this.isNewCameraActive) {
+    //         // Switch back to the old camera logic
+    //         console.log("Switching to Old Camera...");
+    //         this.type = 'oldCamera';
+    //         this.isNewCameraActive = false;
+    
+    //         // Perform the old camera toggle actions
+    //         if (this.type === 'perspective') {
+    //             this.setOrthographic(); // Switch to orthographic view
+    //         } else if (this.type === 'orthographic') {
+    //             this.setBirdsEye(); // Switch to birds-eye view
+    //         } else {
+    //             this.setPerspective(); // Default back to perspective
+    //         }
+    
+    //         console.log(`Old Camera Mode: ${this.type}`);
+    //     } else {
+    //         // Activate the new camera logic
+    //         console.log("Switching to New Camera...");
+    //         this.type = 'newCamera';
+    //         this.isNewCameraActive = true;
+    //     }
+    
+    //     // Perform any additional transitions or animations if needed
+    
+    //     // Invoke the callback after the transition
+    //     setTimeout(() => {
+    //         if (typeof onComplete === 'function') {
+    //             onComplete();
+    //         }
+    //     }, transitionDuration * 1000); // Convert seconds to milliseconds
+    // }
+    
+    triggerCameraAction(onComplete) {
+        console.log("Y button pressed, triggering camera action...");
+        
+        const transitionDuration = 1.5; // Duration in seconds for the transition
+    
+        if (this.isNewCameraActive) {
+            // Switch back to the old camera logic
+            console.log("Switching to Old Camera...");
+            this.isNewCameraActive = false;
+    
+            // Perform the old camera toggle actions
+            if (this.type === 'perspective') {
+                this.setOrthographic(() => {
+                    this.type = 'orthographic';
+                    console.log(`Old Camera Mode: Orthographic`);
+                });
+            } else if (this.type === 'orthographic') {
+                this.setBirdsEye(() => {
+                    this.type = 'birdsEye';
+                    console.log(`Old Camera Mode: Birds-Eye`);
+                });
+            } else {
+                this.setPerspective(() => {
+                    this.type = 'perspective';
+                    console.log(`Old Camera Mode: Perspective`);
+                });
+            }
         } else {
-            this.setPerspective();   // Default back to perspective
+            // Activate the new camera logic
+            console.log("Switching to New Camera...");
+            const newCameraOffset = { x: 0, y: -15, z: 10 }; // Example offset
+            const newCameraTarget = { x: 0, y: 0, z: 0 }; // Example target
+
+            this.setNewCamera(newCameraOffset, newCameraTarget, () => {
+                this.type = 'newCamera'; // Mark new camera as active
+                this.isNewCameraActive = true;
+                console.log("New Camera Activated");
+            });
         }
     
-        console.log(`Camera switched to: ${this.type}`);
-    }    
+        // Invoke the callback after the transition
+        setTimeout(() => {
+            if (typeof onComplete === 'function') {
+                onComplete();
+            }
+        }, transitionDuration * 1000); // Convert seconds to milliseconds
+    }
+    
+    setNewCamera(offset, target, onComplete) {
+        console.log("Setting New Camera...");
+    
+        // Apply the new camera offset and target
+        this.instance.position.set(offset.x, offset.y, offset.z);
+        this.instance.lookAt(target.x, target.y, target.z);
+    
+        console.log(`Camera positioned at (${offset.x}, ${offset.y}, ${offset.z}) and looking at (${target.x}, ${target.y}, ${target.z})`);
+    
+        // Invoke the callback if provided
+        if (typeof onComplete === 'function') {
+            onComplete();
+        }
+    }
 
     setPerspective() {
         this.type = 'perspective';

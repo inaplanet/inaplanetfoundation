@@ -599,7 +599,7 @@ const handleWorldSelection = (worldId: string, listItem: HTMLLIElement, worldLis
               <input 
                 type="text" 
                 id="search-bar" 
-                placeholder="Search worlds..." 
+                placeholder="Search for worlds..." 
                 onInput={(event) => filterWorlds(event)} 
               />
             
