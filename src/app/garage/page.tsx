@@ -646,15 +646,31 @@ export default function GaragePage() {
         video.muted = true;
         video.play();
 
+        // Prevent video interaction
+        video.controls = false; // Disable video controls
+        video.style.display = 'none'; // Hide the video element
+        video.addEventListener('contextmenu', (event) => event.preventDefault()); // Prevent right-click menu
+        video.addEventListener('dragstart', (event) => event.preventDefault()); // Prevent drag behavior
+
         const videoTexture = new THREE.VideoTexture(video);
         videoTexture.minFilter = THREE.LinearFilter;
         videoTexture.magFilter = THREE.LinearFilter;
         videoTexture.format = THREE.RGBAFormat;
 
+        // Calculate dimensions for 1920x1080
+        const targetWidth = 1920 / 4.2; // Adjust the divisor based on the desired scaling
+        const targetHeight = 1080 / 3.5; // Adjust the divisor based on the desired scaling
+
         const videoMaterial = new THREE.MeshBasicMaterial({ map: videoTexture });
-        const videoPlaneGeometry = new THREE.PlaneGeometry(window.innerWidth / 3.3, window.innerHeight / 2.5);
+        const videoPlaneGeometry = new THREE.PlaneGeometry(targetWidth, targetHeight);
         const videoPlane = new THREE.Mesh(videoPlaneGeometry, videoMaterial);
-        videoPlane.position.set(-170, -145, 0); // Position the video plane behind other objects
+        // Positioning: Adjust based on the 1920x1080 reference
+        videoPlane.position.set(-170, -145, 0); // Offset values are also calculated relative to 1920x1080
+
+        // const videoMaterial = new THREE.MeshBasicMaterial({ map: videoTexture });
+        // const videoPlaneGeometry = new THREE.PlaneGeometry(window.innerWidth / 0.9, window.innerHeight / 3.2);
+        // const videoPlane = new THREE.Mesh(videoPlaneGeometry, videoMaterial);
+        // videoPlane.position.set(-170, -144, 0); // Position the video plane behind other objects
         backgroundScene.add(videoPlane);
 
         // const textureLoader = new THREE.TextureLoader();
