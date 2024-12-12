@@ -31,6 +31,7 @@ export default function GaragePage() {
     const carGroupRef = useRef<THREE.Group>(new THREE.Group());
     const rocketGroupRef = useRef<THREE.Group>(new THREE.Group());
     const showroomGroupRef = useRef<THREE.Group>(new THREE.Group());
+    const backgroundGroupRef = useRef<THREE.Group>(new THREE.Group());
     const [currentCarIndex, setCurrentCarIndex] = useState(0);
     const [isOrbitEnabled, setIsOrbitEnabled] = useState(false);
     const [showCustomizationMenu, setShowCustomizationMenu] = useState(false);
@@ -611,17 +612,88 @@ export default function GaragePage() {
     
         // Initialize the scene
         scene = new THREE.Scene();
-        scene.background = new THREE.Color('#0213f7'); // Updated background color
+        // scene.background = new THREE.Color('#0213f7'); // Updated background color
+        scene.background = null; // Make the scene's background transparent
         cameraRef.current = new THREE.PerspectiveCamera(2.0, window.innerWidth / window.innerHeight, 1, 500);
         cameraRef.current.position.set(0, -200, 1);
 
-        const renderer = new THREE.WebGLRenderer({ antialias: true, canvas: canvasRef.current, logarithmicDepthBuffer: true });
+        // Background scene and camera
+        const backgroundScene = new THREE.Scene();
+        const backgroundCamera = new THREE.OrthographicCamera(
+            -window.innerWidth / 2,
+            window.innerWidth / 2,
+            window.innerHeight / 2,
+            -window.innerHeight / 2,
+            -1000,
+            1000
+        );
+        backgroundCamera.position.set(0, 0, 0);
+        backgroundCamera.lookAt(0, 0, 0);
+
+        // Add lighting to the background scene
+        const backgroundAmbientLight = new THREE.AmbientLight(0xffffff, 0.7); // Soft light for background
+        backgroundScene.add(backgroundAmbientLight);
+
+        const backgroundDirectionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        backgroundDirectionalLight.position.set(5, 5, 5);
+        backgroundScene.add(backgroundDirectionalLight);
+        backgroundScene.background = new THREE.Color('#000'); // Updated background color
+
+        // const textureLoader = new THREE.TextureLoader();
+        // textureLoader.load(
+        //     '/garage/skybackground.jpg', // Replace with the actual path to your background image
+        //     (texture) => {
+        //         backgroundScene.background = texture; // Set the loaded texture as the background
+        //         console.log('Background image loaded successfully');
+        //     },
+        //     undefined,
+        //     (error) => {
+        //         console.error('Error loading background image:', error);
+        //     }
+        // );
+
+        const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, canvas: canvasRef.current, logarithmicDepthBuffer: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.autoClear = false;
+
+        // Load background
+        const loadBackground = async () => {
+            const loader = new GLTFLoader();
+            loader.load(
+                '/garage/background1.glb',
+                (gltf) => {
+                    const backgroundMesh = gltf.scene;
+                    backgroundMesh.position.set(0, 0, 0);
+                    backgroundMesh.rotation.x = -Math.PI / 2
+                    backgroundMesh.scale.set(50, 50, 50);
+
+                    // Iterate over child meshes and apply random matcap materials
+                    backgroundMesh.traverse((child) => {
+                        if (child instanceof THREE.Mesh) {
+                            const randomMatcapName = 'darkMetal'
+                            const matcapTexture = matcapTextures.current[randomMatcapName];
+                            child.material = new THREE.MeshMatcapMaterial({
+                                matcap: matcapTexture,
+                            });
+                        }
+                    });
+                    backgroundScene.add(backgroundMesh);
+                    console.log('Background loaded successfully');
+                },
+                undefined,
+                (error) => {
+                    console.error('Error loading background:', error);
+                }
+            );
+        };
+
+        loadBackground();
     
         // Add lighting
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
         scene.add(ambientLight);
+
         const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
         directionalLight.position.set(5, 5, 5);
         scene.add(directionalLight);
@@ -671,18 +743,18 @@ export default function GaragePage() {
             if (controlsRef.current) {
                 controlsRef.current.update();
             }
+
+            // Render background first
+            renderer.clear();
+            if (backgroundCamera) {
+                renderer.render(backgroundScene, backgroundCamera);
+            }
+            
             if (cameraRef.current) {
                 renderer.render(scene, cameraRef.current);
             }
         };
         animate();
-
-        // return () => {
-        //     cancelAnimationFrame(animationFrameId); // Properly clean up
-        //     window.removeEventListener('resize', handleResize);
-        //     window.removeEventListener('click', handleMouseClick);
-        //     renderer.dispose();
-        // };
 
         const handleResize = () => {
             renderer.setSize(window.innerWidth, window.innerHeight);
@@ -816,6 +888,42 @@ export default function GaragePage() {
 
         //     addHeadlightEffect(carGroupRef.current);
         // };  
+
+        // const loadBackground = async () => {
+        //     const loader = new GLTFLoader();
+        
+        //     // Initialize or clear the background group
+        //     if (backgroundGroupRef?.current) {
+        //         backgroundGroupRef.current.clear();
+        //     } else {
+        //         backgroundGroupRef.current = new THREE.Group();
+        //     }
+        
+        //     // Load the background GLB
+        //     loader.load(
+        //         '/garage/background1.glb',
+        //         (gltf) => {
+        //             const backgroundMesh = gltf.scene;
+        
+        //             // Position and scale the background
+        //             backgroundMesh.position.set(0, 0, 0); // Place the background behind other objects
+        //             backgroundMesh.scale.set(1, 1, 1);  // Scale appropriately
+        
+        //             backgroundGroupRef.current.add(backgroundMesh);
+        
+        //             // Add the background to the scene
+        //             if (scene) {
+        //                 scene.add(backgroundGroupRef.current);
+        //             }
+        
+        //             console.log('Background loaded successfully');
+        //         },
+        //         undefined,
+        //         (error) => {
+        //             console.error('Error loading background:', error);
+        //         }
+        //     );
+        // };
 
         const loadCar = async (index: number) => {
 
@@ -1214,6 +1322,7 @@ export default function GaragePage() {
         const loadAssets = async () => {
             // await loadStaticShowroom();
             // await loadCar(currentCarIndex); // Load the dynamically selected car
+            // await loadBackground();
             await loadShowroomCar(cars);   // Load all cars in the showroom
             await loadRocket();
             showroomLoaded.current = true;
