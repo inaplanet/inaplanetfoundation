@@ -635,9 +635,27 @@ export default function GaragePage() {
         backgroundScene.add(backgroundAmbientLight);
 
         const backgroundDirectionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-        backgroundDirectionalLight.position.set(5, 5, 5);
+        backgroundDirectionalLight.position.set(0, 0, 0);
         backgroundScene.add(backgroundDirectionalLight);
         backgroundScene.background = new THREE.Color('#000'); // Updated background color
+
+        // Load the video and apply it as a texture
+        const video = document.createElement('video');
+        video.src = '/images/videos/video.mp4'; // Replace with the actual path to your video file
+        video.loop = true;
+        video.muted = true;
+        video.play();
+
+        const videoTexture = new THREE.VideoTexture(video);
+        videoTexture.minFilter = THREE.LinearFilter;
+        videoTexture.magFilter = THREE.LinearFilter;
+        videoTexture.format = THREE.RGBAFormat;
+
+        const videoMaterial = new THREE.MeshBasicMaterial({ map: videoTexture });
+        const videoPlaneGeometry = new THREE.PlaneGeometry(window.innerWidth / 3.3, window.innerHeight / 2.5);
+        const videoPlane = new THREE.Mesh(videoPlaneGeometry, videoMaterial);
+        videoPlane.position.set(-170, -145, 0); // Position the video plane behind other objects
+        backgroundScene.add(videoPlane);
 
         // const textureLoader = new THREE.TextureLoader();
         // textureLoader.load(
@@ -751,6 +769,8 @@ export default function GaragePage() {
             }
             
             if (cameraRef.current) {
+                // Render the main scene on top
+                renderer.clearDepth();
                 renderer.render(scene, cameraRef.current);
             }
         };
@@ -789,6 +809,8 @@ export default function GaragePage() {
             window.removeEventListener('resize', handleResize);
             window.removeEventListener('click', handleMouseClick);
             renderer.dispose();
+            video.pause();
+            video.src = '';
         };
     }, [currentCarIndex]);
 
@@ -1961,7 +1983,7 @@ export default function GaragePage() {
                     }}
                 >
                     {currentCarAttributes && (
-                        <div className="flex flex-col items-center" style={{ marginTop: '20px', width: '100%' }}>
+                        <div className="flex flex-col items-center" style={{ marginTop: '40px', width: '100%' }}>
                             {(Object.keys(currentCarAttributes) as Array<keyof typeof currentCarAttributes>).map((attr) => {
                                 const value = currentCarAttributes[attr];
                                 const getBarColor = (value: number) => {
