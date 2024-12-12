@@ -728,7 +728,7 @@ export default function GaragePage() {
 
                             // Example: Custom material logic for specific names
                             if (child.name === 'logo') {
-                                const rndMatcap = randomMatcap();
+                                const rndMatcap = 'shadeMetal'
                                 child.material = new THREE.MeshMatcapMaterial({
                                     matcap: matcapTextures.current[rndMatcap],
                                 });
@@ -736,7 +736,15 @@ export default function GaragePage() {
                             }
 
                             if (child.name === 'shadeTransparent') {
-                                const rndMatcap = randomMatcap();
+                                const rndMatcap = 'shadeMetal'
+                                child.material = new THREE.MeshMatcapMaterial({
+                                    matcap: matcapTextures.current[rndMatcap],
+                                });
+                                console.log('Applied random matcap to chassis:', rndMatcap);
+                            }
+
+                            if (child.name === 'decorationpart' || child.name === 'decorationpart1') {
+                                const rndMatcap = 'shadeMetal'
                                 child.material = new THREE.MeshMatcapMaterial({
                                     matcap: matcapTextures.current[rndMatcap],
                                 });
