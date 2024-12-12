@@ -710,6 +710,13 @@ export default function GaragePage() {
                     backgroundMesh.rotation.x = -Math.PI / 2
                     backgroundMesh.scale.set(50, 50, 50);
 
+                    // Apply a random matcap from the available options
+                    const randomMatcap = () => {
+                        const matcapKeys = Object.keys(matcapTextures.current);
+                        const randomIndex = Math.floor(Math.random() * matcapKeys.length);
+                        return matcapKeys[randomIndex];
+                    };
+
                     // Iterate over child meshes and apply random matcap materials
                     backgroundMesh.traverse((child) => {
                         if (child instanceof THREE.Mesh) {
@@ -718,6 +725,23 @@ export default function GaragePage() {
                             child.material = new THREE.MeshMatcapMaterial({
                                 matcap: matcapTexture,
                             });
+
+                            // Example: Custom material logic for specific names
+                            if (child.name === 'logo') {
+                                const rndMatcap = randomMatcap();
+                                child.material = new THREE.MeshMatcapMaterial({
+                                    matcap: matcapTextures.current[rndMatcap],
+                                });
+                                console.log('Applied random matcap to chassis:', rndMatcap);
+                            }
+
+                            if (child.name === 'shadeTransparent') {
+                                const rndMatcap = randomMatcap();
+                                child.material = new THREE.MeshMatcapMaterial({
+                                    matcap: matcapTextures.current[rndMatcap],
+                                });
+                                console.log('Applied random matcap to chassis:', rndMatcap);
+                            }
                         }
                     });
                     backgroundScene.add(backgroundMesh);
