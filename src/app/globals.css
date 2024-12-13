@@ -530,8 +530,8 @@ opacity: 0;
 
 #garage-button:hover,
 #chatbox-button:hover {
-  background-color: #8CFF80;
-  color: #000;
+  background-color: rgba(0, 0, 0, 0.1);
+  /* color: #000; */
   transition: background-color 0.2s ease;
 }
 
@@ -621,8 +621,8 @@ opacity: 0;
 
   #garage-button:hover,
   #chatbox-button:hover {
-    background-color: #8CFF80;
-    color: #000;
+    background-color: rgba(0, 0, 0, 0.1);
+    /* color: #000; */
   }
 }
 
@@ -755,7 +755,7 @@ opacity: 0;
     /* background-color: hsl(231, 100%, 50%); */
     color: #fff;
     cursor: pointer;
-    border-radius: 10px;
+    /* border-radius: 10px; */
     text-align: center;
     transition: background-color 0.2s ease;
     backdrop-filter: blur(5px);
@@ -827,14 +827,14 @@ opacity: 0;
 
 /* Hover effect for selectable worlds */
 #world-list li:hover:not(.selected):not(.disabled) {
-  background-color: #8CFF80;
-  color: black;
+  background-color: rgba(0, 0, 0, 0.1);
+  /* color: black; */
 }
 
 /* Style for selected world */
 #world-list li.selected {
-  background-color: #8CFF80;
-  color: black;
+  background-color: rgba(0, 0, 0, 0.1);
+  /* color: black; */
   cursor: default;
 }
 
