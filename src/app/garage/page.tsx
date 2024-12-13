@@ -336,6 +336,25 @@ export default function GaragePage() {
     ];
 
     useEffect(() => {
+        const preventRotation = () => {
+            const landscapeStyles = `
+                @media screen and (orientation: landscape) {
+                    body {
+                        display: none !important;
+                    }
+                }
+            `;
+
+            const styleSheet = document.createElement('style');
+            styleSheet.type = 'text/css';
+            styleSheet.innerHTML = landscapeStyles;
+            document.head.appendChild(styleSheet);
+        };
+
+        preventRotation();
+    }, []);
+
+    useEffect(() => {
         const updateViewport = () => {
             const viewportMetaTag = document.querySelector('meta[name="viewport"]');
             if (viewportMetaTag) {
