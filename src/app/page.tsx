@@ -578,10 +578,7 @@ const handleWorldSelection = (worldId: string, listItem: HTMLLIElement, worldLis
           </div>
 
           <div id="w3m-layer" className='w3m-layer overflow-hidden'>
-
             <w3m-button />
-              
-                
             </div>
             {/* Show pulsing message while setting up WebSocket */}
             {!isWebSocketReady ? (
