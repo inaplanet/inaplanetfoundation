@@ -32,6 +32,8 @@ export default function Home() {
   const [isWebSocketReady, setIsWebSocketReady] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
   const [playerAccount, setPlayerAccount] = useState(0);
+  // const [matcaps, setMatcaps] = useState<{ [key: string]: { matcap: string } }>({});
+  const [matcaps, setMatcaps] = useState({});
 
   const router = useRouter();
   const maxRetries = 5;  // Limit retries to avoid infinite reconnect loop
@@ -209,15 +211,37 @@ export default function Home() {
       }
 
       // Handle `selectedCar` message
-      if (message.type === 'selectedCar') {
-        if (message.selectedCar) {
-            setCarName(message.selectedCar);
-            console.log('Selected car set to:', message.selectedCar);
-        } else {
-            console.warn('No selected car found. Defaulting to kybertruck.');
-            setCarName('kybertruck');
-        }
-    }
+    //   if (message.type === 'selectedCar') {
+    //     if (message.selectedCar) {
+    //         setCarName(message.selectedCar);
+    //         console.log('Selected car set to:', message.selectedCar);
+    //     } else {
+    //         console.warn('No selected car found. Defaulting to kybertruck.');
+    //         setCarName('kybertruck');
+    //     }
+    // }
+
+    // Handle `selectedCar` message
+    if (message.type === 'selectedCar') {
+      console.log('SelectedCar message received:', message); // Log full message
+      if (message.selectedCar) {
+          setCarName(message.selectedCar);
+          console.log('Selected car set to:', message.selectedCar);
+  
+          if (message.matcaps) {
+              console.log('Matcaps before setting state:', message.matcaps); // Log matcaps
+              setMatcaps(message.matcaps);
+              console.log('Matcaps state updated to:', message.matcaps);
+          } else {
+              console.warn('No matcaps data received. Defaulting to empty object.');
+              setMatcaps({});
+          }
+      } else {
+          console.warn('No selected car found. Defaulting to kybertruck.');
+          setCarName('kybertruck');
+          setMatcaps({});
+      }
+  }  
 
       // Player score
       if (message.type === 'playerScore') {
@@ -633,7 +657,7 @@ const handleWorldSelection = (worldId: string, listItem: HTMLLIElement, worldLis
 
         {/* Conditionally render the Application only once */}
         {isConnected && playerId && selectedWorldId && token && application && (
-          <Application playerId={playerId} selectedWorldId={selectedWorldId} token={token} carName={carName}/>
+          <Application playerId={playerId} selectedWorldId={selectedWorldId} token={token} carName={carName} matcaps={matcaps}/>
         )}
 
         {/* Once connected, display the game UI */}

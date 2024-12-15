@@ -16,7 +16,7 @@ import BlurPass from './Passes/Blur.js'
 import GlowsPass from './Passes/Glows.js'
 
 // Main Application as a React component
-const Application = ({ playerId, selectedWorldId, token, carName }) => {
+const Application = ({ playerId, selectedWorldId, token, carName, matcaps }) => {
     const canvasRef = useRef(null);
     const appInstanceRef = useRef(null);
   
@@ -36,8 +36,9 @@ const Application = ({ playerId, selectedWorldId, token, carName }) => {
           this.worldId = selectedWorldId;
           this.token = token;
           this.carName = carName;
+          this.matcaps = matcaps;
 
-          console.log("CAR NAME APP:", this.carName);
+        //   console.log("CAR NAME APP:", this.matcaps);
   
           this.time = new Time();
           this.sizes = new Sizes();
@@ -47,7 +48,7 @@ const Application = ({ playerId, selectedWorldId, token, carName }) => {
           this.setRenderer();
           this.setCamera();
           this.setPasses();
-          this.setWorld(this.worldId, this.carName);
+          this.setWorld(this.worldId, this.carName, this.matcaps);
           this.animate();
 
           // Resize canvas when window size changes
@@ -408,7 +409,7 @@ const Application = ({ playerId, selectedWorldId, token, carName }) => {
     /**
      * Set world
      */
-    setWorld(worldId, carName, ws)
+    setWorld(worldId, carName, ws, matcaps)
     {
         this.world = new World({
             config: this.config,
@@ -426,11 +427,14 @@ const Application = ({ playerId, selectedWorldId, token, carName }) => {
             playerId: this.playerId,
             token: this.token,
             carName: this.carName,
+            matcaps: this.matcaps,
             worldId,
             ws: this.ws
         })
         this.scene.add(this.world.container)
         console.log("Game World:", this.world)
+        console.log("Game World Texture panel:", this.world.matcaps)
+
     }
 
     /**

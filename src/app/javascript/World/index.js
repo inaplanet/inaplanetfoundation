@@ -66,7 +66,8 @@ export default class
         this.worldId = _options.worldId;
         this.token = _options.token;
         this.carName = _options.carName;
-        console.log("INDEX CAR NAME", this.carName);
+        this.matcaps = _options.matcaps;
+        console.log("INDEX MATCAP", this.matcaps);
         this.otherPlayers = [];
         this.bullets = [];
         
@@ -373,14 +374,14 @@ export default class
         this.setWalls();
         this.setSections();
 
-        this.setupMultiplayer(this.playerId, this.token, this.carName);
+        this.setupMultiplayer(this.playerId, this.token, this.carName, this.matcaps);
 
         this.createMiniMap();
         this.setReveal();
         this.setClock();
     }
 
-    setCar(carName) {
+    setCar(carName, matcaps) {
         console.log("This car car name", carName)
 
         this.car = new Car({
@@ -402,7 +403,8 @@ export default class
             battery: this.battery,
             score: this.score,
             ws: this.ws,
-            carName: this.carName
+            carName: this.carName,
+            matcaps: this.matcaps
         });
         this.container.add(this.car.container);
         this.updateBatteryStatus(this.car.battery);
@@ -516,7 +518,7 @@ export default class
             }
         }       
 
-        setupMultiplayer = async (playerId, token, carName) => {
+        setupMultiplayer = async (playerId, token, carName, matcaps) => {
             try {
                 // Retrieve the token from localStorage
                 // token = localStorage.getItem('token');
@@ -880,7 +882,7 @@ export default class
                         }
                 };
 
-                this.setCar(this.playerId, this.carName);
+                this.setCar(this.playerId, this.carName, this.matcaps);
                 const playerCar = this.car;
 
                 this.initializeTargetDetection();

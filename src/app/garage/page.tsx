@@ -40,6 +40,7 @@ export default function GaragePage() {
     const [showMatcapMenu, setShowMatcapMenu] = useState(false);
     const [selectedPart, setSelectedPart] = useState<string | null>(null);
     const [selectedCar, setSelectedCar] = useState<Car | null>(null);
+    const [matcaps, setMatcaps] = useState({});
     const [currentCarAttributes, setCurrentCarAttributes] = useState<{ [key: string]: number } | null>(null);
     const [filteredPngIcons, setFilteredPngIcons] = useState<{ [key: string]: string }>({});
     const [isBlinking, setIsBlinking] = useState(false);
@@ -70,12 +71,12 @@ export default function GaragePage() {
             parts: {
                 backlights: '/models/car/default/showroombacklights.glb',
                 headlights: '/models/car/default/showroomheadlights.glb',
-                chassisbottom: '/models/car/default/showroomchassisbottom2.glb',
-                chassis: '/models/car/default/chassisbody.glb',
+                chassisbottom: '/models/car/default/showroomchassisbottom3.glb',
+                chassis: '/models/car/default/chassisbody2.glb',
                 spoiler: '/models/car/default/spoiler.glb',
                 window: '/models/car/default/window.glb',
-                wheels: '/models/car/default/showroomwheels.glb',
-                tire: '/models/car/default/showroomtire.glb',
+                wheels: '/models/car/default/showroomwheels1.glb',
+                tire: '/models/car/default/showroomtire1.glb',
                 antena: '/models/car/default/antena.glb',
             },
             attributes: {
@@ -860,140 +861,24 @@ export default function GaragePage() {
         };
     }, [currentCarIndex]);
 
-        // Function to apply a matcap texture to parts
-        const applyMatcap = (part: THREE.Object3D, matcapName: string) => {
-            const texture = matcapTextures.current[matcapName];
-            if (texture) {
-                part.traverse((child) => {
-                    if (child instanceof THREE.Mesh) {
-                        child.material = new THREE.MeshMatcapMaterial({ matcap: texture });
-                        child.material.needsUpdate = true;
-                    }
-                });
-            }
-        };
+    const applyMatcap = (part: THREE.Object3D, matcapName: string) => {
+        const texture = matcapTextures.current[matcapName]; // Retrieve the texture from matcapTextures
+        if (texture) {
+            part.traverse((child) => {
+                if (child instanceof THREE.Mesh) {
+                    child.material = new THREE.MeshMatcapMaterial({ matcap: texture });
+                    child.material.needsUpdate = true;
+                    console.log(`Matcap '${matcapName}' applied to '${child.name}'`);
+                }
+            });
+        } else {
+            console.warn(`Matcap '${matcapName}' not found`);
+        }
+    };      
 
-        // const loadCar = async (index: number) => {
-        //     carGroupRef.current.clear();
+        const loadCar = async (index: number, matcaps: Record<string, string>) => {
 
-        //     showroomGroupRef.current.visible = false;
-        //     rocketGroupRef.current.visible = false;
-        
-        //     const loader = new GLTFLoader();
-        //     const carParts = index < kybertruck.length ? kybertruck[index] : cars[index]?.parts;
-        //     if (!carParts) return;
-        
-        //     const loadingPromises = Object.entries(carParts).map(([partName, partPath]) =>
-        //         new Promise<void>((resolve) => {
-        //             loader.load(partPath, (gltf) => {
-        //                 const part = gltf.scene;
-        //                 part.name = partName;
-
-        //                 // Apply a random matcap from the available options
-        //                 const randomMatcap = () => {
-        //                     const matcapKeys = Object.keys(matcapTextures.current);
-        //                     const randomIndex = Math.floor(Math.random() * matcapKeys.length);
-        //                     return matcapKeys[randomIndex];
-        //                 };
-
-        //                 const randomMatcapName = randomMatcap();
-
-        //                 // Apply transformations or material settings
-        //                 if (partName === 'headlights') {
-        //                     part.traverse((child) => {
-        //                         if (child instanceof THREE.Mesh) {
-        //                             child.material = new THREE.MeshStandardMaterial({
-        //                                 emissive: new THREE.Color(0xffffff),
-        //                                 metalness: 1,
-        //                                 emissiveIntensity: 1.5,
-        //                             });
-        //                         }
-        //                     });
-        //                 } else if (partName === 'backlights') {
-        //                     part.traverse((child) => {
-        //                         if (child instanceof THREE.Mesh) {
-        //                             child.material = new THREE.MeshStandardMaterial({
-        //                                 emissive: new THREE.Color(0xFF0000),
-        //                                 metalness: 1,
-        //                                 emissiveIntensity: 1.5,
-        //                             });
-        //                         }
-        //                     });
-        //                 }
-                        
-        //                 if (partName === 'chassis') {
-        //                     applyMatcap(part, 'darkEmerald');
-        //                 } else if (partName === 'wheels') {
-        //                     applyMatcap(part, 'darkEmerald');
-        //                 } else if (partName === 'tire') {
-        //                     applyMatcap(part, 'black');
-        //                 } else if (partName === 'chassisbottom') {
-        //                     applyMatcap(part, 'black');
-        //                 } else if (partName === 'bumper') {
-        //                     applyMatcap(part, 'black');
-        //                 } else if (partName === 'spoiler') {
-        //                     applyMatcap(part, 'black');
-        //                 } else if (partName === 'window') {
-        //                     applyMatcap(part, 'black');
-        //                 }
-                        
-        //                 carGroupRef.current.add(part);
-        //                 resolve();
-        //             });
-        //         })
-        //     );
-        
-        //     await Promise.all(loadingPromises);
-
-        //     // Position the car in the center
-        //     carGroupRef.current.position.set(0, 0, -0.5);
-
-        //      // Adjust camera to look at the car
-        //     if (cameraRef.current) {
-        //         cameraRef.current.position.set(0, -200, 5); // Pull camera twice the distance out
-        //         cameraRef.current.lookAt(carGroupRef.current.position);
-        //     }
-
-        //     addHeadlightEffect(carGroupRef.current);
-        // };  
-
-        // const loadBackground = async () => {
-        //     const loader = new GLTFLoader();
-        
-        //     // Initialize or clear the background group
-        //     if (backgroundGroupRef?.current) {
-        //         backgroundGroupRef.current.clear();
-        //     } else {
-        //         backgroundGroupRef.current = new THREE.Group();
-        //     }
-        
-        //     // Load the background GLB
-        //     loader.load(
-        //         '/garage/background1.glb',
-        //         (gltf) => {
-        //             const backgroundMesh = gltf.scene;
-        
-        //             // Position and scale the background
-        //             backgroundMesh.position.set(0, 0, 0); // Place the background behind other objects
-        //             backgroundMesh.scale.set(1, 1, 1);  // Scale appropriately
-        
-        //             backgroundGroupRef.current.add(backgroundMesh);
-        
-        //             // Add the background to the scene
-        //             if (scene) {
-        //                 scene.add(backgroundGroupRef.current);
-        //             }
-        
-        //             console.log('Background loaded successfully');
-        //         },
-        //         undefined,
-        //         (error) => {
-        //             console.error('Error loading background:', error);
-        //         }
-        //     );
-        // };
-
-        const loadCar = async (index: number) => {
+            console.log("LOAD CAR MATCAPS", matcaps)
 
             setIsCarLoading(true); // Start loading animation
 
@@ -1022,6 +907,17 @@ export default function GaragePage() {
                 console.error('Car parts not found for the specified index.');
                 return;
             }
+
+            // Dynamically generate icon paths and set filteredPngIcons
+            const excludedParts = ['headlights', 'backlights', 'tire', 'antena'];
+            const filteredIcons = Object.keys(carParts)
+                .filter((partName) => !excludedParts.includes(partName)) // Exclude unwanted parts
+                .reduce((icons, partName) => {
+                    icons[partName] = constructPngIconPath(cars[index]?.name || 'defaultCar', partName);
+                    return icons;
+                }, {} as { [key: string]: string });
+
+            setFilteredPngIcons(filteredIcons);
         
             const loadingPromises = Object.entries(carParts).map(([partName, partPath]) =>
                 new Promise<void>((resolve) => {
@@ -1053,15 +949,59 @@ export default function GaragePage() {
                             });
                         }
         
-                        // Apply matcap materials
-                        if (['chassis', 'wheels'].includes(partName)) {
-                            applyMatcap(part, 'darkEmerald');
-                        } else if (['tire', 'bumper', 'spoiler', 'window'].includes(partName)) {
-                            applyMatcap(part, 'black');
-                        } else if (['chassisbottom'].includes(partName)) {
-                            applyMatcap(part, 'darkEmerald');
+                        // Apply material or transformations based on part type
+                        if (partName === 'chassis') {
+                            part.traverse((child) => {
+                                if (child instanceof THREE.Mesh) {
+                                    const matcapName = matcaps.chassis || 'white';
+                                    applyMatcap(child, matcapName);
+                                    console.log(`Applied matcap '${matcapName}' to part: ${partName}`);
+                                }
+                            });
+                        } else if (partName === 'spoiler') {
+                            part.traverse((child) => {
+                                if (child instanceof THREE.Mesh) {
+                                    const matcapName = matcaps.spoiler || 'white';
+                                    applyMatcap(child, matcapName);
+                                    console.log(`Applied matcap '${matcapName}' to part: ${partName}`);
+                                }
+                            });
+                        } else if (partName === 'window') {
+                            part.traverse((child) => {
+                                if (child instanceof THREE.Mesh) {
+                                    const matcapName = matcaps.window || 'white';
+                                    applyMatcap(child, matcapName);
+                                    console.log(`Applied matcap '${matcapName}' to part: ${partName}`);
+                                }
+                            });
+                        } else if (partName === 'chassisbottom') {
+                            part.traverse((child) => {
+                                if (child instanceof THREE.Mesh) {
+                                    const matcapName = matcaps.chassisbottom || 'white';
+                                    applyMatcap(child, matcapName);
+                                    console.log(`Applied matcap '${matcapName}' to part: ${partName}`);
+                                }
+                            });
+                        } else if (partName === 'wheels') {
+                            part.traverse((child) => {
+                                if (child instanceof THREE.Mesh) {
+                                    const matcapName = matcaps.wheels || 'white';
+                                    applyMatcap(child, matcapName);
+                                    console.log(`Applied matcap '${matcapName}' to part: ${partName}`);
+                                }
+                            });
+                        } else if (partName === 'tire') {
+                            part.traverse((child) => {
+                                if (child instanceof THREE.Mesh) {
+                                    const matcapName = 'black';
+                                    applyMatcap(child, matcapName);
+                                    console.log(`Applied matcap '${matcapName}' to part: ${partName}`);
+                                }
+                            });
+                        } else {
+                            console.warn(`No matcap mapping for part: ${partName}`);
                         }
-        
+
                         carGroupRef.current.add(part);
                         resolve();
                     });
@@ -1316,74 +1256,6 @@ export default function GaragePage() {
             switchShowroomCar(index); // Toggle visibility of cars
             setCurrentCarIndex(index); // Update the selected car index
         };
-
-        // const loadCoinModel = async () => {
-        //     if (!coinCanvasRef.current) return;
-        
-        //     const canvas = coinCanvasRef.current;
-        //     const renderer = new THREE.WebGLRenderer({ antialias: true, canvas });
-        //     renderer.setSize(window.innerWidth, window.innerHeight);
-        //     renderer.setPixelRatio(window.devicePixelRatio);
-        
-        //     // Create scene, camera, and lighting
-        //     const scene = new THREE.Scene();
-        //     const camera = new THREE.PerspectiveCamera(
-        //         45,
-        //         window.innerWidth / window.innerHeight,
-        //         0.1,
-        //         1000
-        //     );
-        //     camera.position.set(0, 0, 5);
-        
-        //     const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-        //     scene.add(ambientLight);
-        
-        //     const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-        //     directionalLight.position.set(10, 10, 10);
-        //     scene.add(directionalLight);
-        
-        //     // Load the coin model
-        //     const loader = new GLTFLoader();
-        //     loader.load(
-        //         "/models/coin/coin.glb", // Path to your coin model
-        //         (gltf) => {
-        //             const coin = gltf.scene;
-        //             coin.scale.set(1.5, 1.5, 1.5);
-        //             coin.rotation.set(0, 0, 0); // Initial rotation
-        //             scene.add(coin);
-        
-        //             // Render the coin
-        //             const animate = () => {
-        //                 requestAnimationFrame(animate);
-        
-        //                 // Add rotation for animation later
-        //                 coin.rotation.y += 0.01;
-        
-        //                 renderer.render(scene, camera);
-        //             };
-        
-        //             animate();
-        //         },
-        //         undefined,
-        //         (error) => {
-        //             console.error("Error loading coin model:", error);
-        //         }
-        //     );
-        
-        //     // Adjust on resize
-        //     const handleResize = () => {
-        //         renderer.setSize(window.innerWidth, window.innerHeight);
-        //         camera.aspect = window.innerWidth / window.innerHeight;
-        //         camera.updateProjectionMatrix();
-        //     };
-        
-        //     window.addEventListener("resize", handleResize);
-        
-        //     return () => {
-        //         window.removeEventListener("resize", handleResize);
-        //         renderer.dispose();
-        //     };
-        // };
         
 
     useEffect(() => {
@@ -1399,37 +1271,6 @@ export default function GaragePage() {
 
         loadAssets();
     }, [currentCarIndex]);  
-
-    // const loadStaticShowroom = async () => {
-    //     const loader = new GLTFLoader();
-    
-    //     loader.load(
-    //         '/garage/background.glb',
-    //         (gltf) => {
-    //             const showroomModel = gltf.scene;
-    
-    //             // Position the showroom model
-    //             showroomModel.position.set(0, 0, 0);
-    //             showroomModel.rotation.set(0, 0, 0);
-    //             showroomModel.scale.set(1, 1, 1);
-    
-    //             // Add the model to the scene
-    //             scene.add(showroomModel);
-    
-    //             // Ensure it's static by not attaching OrbitControls
-    //             showroomModel.traverse((child) => {
-    //                 if (child instanceof THREE.Mesh) {
-    //                     child.castShadow = false;
-    //                     child.receiveShadow = true;
-    //                 }
-    //             });
-    //         },
-    //         undefined,
-    //         (error) => {
-    //             console.error('Error loading showroom GLTF:', error);
-    //         }
-    //     );
-    // };    
 
     const switchShowroomCar = (index: number) => {
         const selectedCar = cars[index]; // Get the car associated with the current slide
@@ -1535,16 +1376,6 @@ export default function GaragePage() {
         }
     }, [isOrbitEnabled]);
 
-    // const handleNextCar = () => {
-    //     setCurrentCarIndex((prevIndex) => (prevIndex + 1) % kybertruck.length);
-    //     setIsOrbitEnabled(false);
-    // };
-
-    // const handlePreviousCar = () => {
-    //     setCurrentCarIndex((prevIndex) => (prevIndex - 1 + kybertruck.length) % kybertruck.length);
-    //     setIsOrbitEnabled(false);
-    // };
-
     const handleCarClick = () => {
         setIsOrbitEnabled(true);
         setShowCustomizationMenu(true);
@@ -1569,11 +1400,15 @@ export default function GaragePage() {
             setCurrentCarIndex(selectedIndex);
     
             // Dynamically generate icon paths based on the selected car
-            const filteredIcons = Object.keys(selectedCar.parts).reduce((icons, partName) => {
+            const excludedParts = ['headlights', 'backlights', 'tire', 'antena'];
+
+            const filteredIcons = Object.keys(selectedCar.parts)
+            .filter((partName) => !excludedParts.includes(partName)) // Exclude unwanted parts
+            .reduce((icons, partName) => {
                 icons[partName] = constructPngIconPath(carName, partName);
                 return icons;
             }, {} as { [key: string]: string });
-    
+
             setFilteredPngIcons(filteredIcons);
     
             // Send the selected car to the server
@@ -1584,12 +1419,13 @@ export default function GaragePage() {
                         type: 'setSelectedCar',
                         playerId,
                         carName,
+                        matcaps,
                     })
                 );
             }
     
             // Load the car and toggle the view to 'car' only when it's ready
-            await loadCar(selectedIndex);
+            await loadCar(selectedIndex, matcaps);
             setIsCarLoading(false); // Set loading state to false once the car is fully loaded
             toggleView('car');
         } else {
@@ -1597,39 +1433,36 @@ export default function GaragePage() {
         }
     };    
 
-    // const handleCarSelection = async (carName: string) => {
-
-    //     const selectedCar = cars.find((car) => car.name === carName);
-    //     if (selectedCar) {
-    //         const selectedIndex = cars.indexOf(selectedCar);
-    //         setCurrentCarIndex(selectedIndex);
-
-    //         // Send the selected car to the server
-    //         const playerId = new URLSearchParams(window.location.search).get('playerId');
-    //         if (playerId) {
-    //             wsRef.current?.send(
-    //                 JSON.stringify({
-    //                     type: 'setSelectedCar',
-    //                     playerId,
-    //                     carName,
-    //                 })
-    //             );
-    //         }
-            
-    //         toggleView('car');
-    //         await loadCar(selectedIndex);
+    // Send the selected car to the server
+    const sendSelectedCarToServer = () => {
+        const playerId = new URLSearchParams(window.location.search).get("playerId");
+        const carName = localStorage.getItem("selectedCarName") || "kybertruck";
+        const matcaps = JSON.parse(localStorage.getItem("matcaps") || "{}");
     
-    //     } else {
-    //         console.warn(`Car not found for name: ${carName}`);
-    //     }
-    // };    
+        if (playerId && Object.keys(matcaps).length > 0) {
+            wsRef.current?.send(
+                JSON.stringify({
+                    type: "setSelectedCar",
+                    playerId,
+                    carName,
+                    matcaps,
+                })
+            );
+            console.log("Matcaps sent to server:", { playerId, carName, matcaps });
+        } else {
+            console.warn("Missing data to send to server:", { playerId, carName, matcaps });
+        }
+    };    
 
     // Trigger navigation when `navigateToPage` is set
     React.useEffect(() => {
         if (navigateToPage) {
+            sendSelectedCarToServer();
             router.push(navigateToPage); // Perform navigation
             setNavigateToPage(null); // Reset navigation state
+            localStorage.removeItem("matcaps");
         }
+
     }, [navigateToPage, router]);
 
     // Smooth camera transition function
@@ -1685,58 +1518,28 @@ export default function GaragePage() {
     
         console.log("Applying texture to part:", selectedPart);
     
-        // Separate traversal for chassis and wheels
-        if (selectedPart === 'chassis') {
-            // Apply the texture only to chassis
-            carGroupRef.current.traverse((child) => {
-                console.log("Checking child for chassis:", child.name); // Debugging log
-
-                if (child instanceof THREE.Mesh && child.name === 'shadeTransparentLand003') {
-                    console.log(`Applying matcap texture to chassis: ${child.name}`);
-                    child.material = new THREE.MeshMatcapMaterial({ matcap: texture });
-                    child.material.needsUpdate = true;
-                    console.log(`Updated chassis with ${matcapName} matcap`);
-                }
-            });
-        } else if (selectedPart === 'wheels') {
-        // Apply the texture only to wheels
-        carGroupRef.current.traverse((child) => {
-            console.log("Checking child for wheels:", child.name); // Debugging log
-            if (child instanceof THREE.Mesh 
-                    && (child.name.includes('wheels') 
-                    || child.name === 'shadeelevator005' 
-                    || child.name === 'shadeelevator006'
-                    || child.name === 'shadeelevator007'
-                    || child.name === 'shadeelevator008'
-                    || child.name === 'shadeelevator009' 
-                    || child.name === 'shadeelevator010'
-                    || child.name === 'shadeelevator011'
-                    || child.name === 'shadeelevator012'
-                )) {
-                console.log(`Applying matcap texture to wheel: ${child.name}`);
-                child.material = new THREE.MeshMatcapMaterial({ matcap: texture });
-                child.material.needsUpdate = true;
-                console.log(`Updated wheel ${child.name} with ${matcapName} matcap`);
-            }
-        });
-    } else if (selectedPart === 'tires') {
-        // Apply the texture only to tires
-        carGroupRef.current.traverse((child) => {
-            console.log("Checking child for tires:", child.name); // Debugging log
-            if (child instanceof THREE.Mesh && 
-                (child.name.includes('tires') || 
-                 ['tirePart1', 'tirePart2', 'tirePart3', 'tirePart4'].includes(child.name))
-            ) {
-                console.log(`Applying matcap texture to tire: ${child.name}`);
-                child.material = new THREE.MeshMatcapMaterial({ matcap: texture });
-                child.material.needsUpdate = true;
-                console.log(`Updated tire ${child.name} with ${matcapName} matcap`);
-            }
-        });
-    }
+        // Retrieve existing matcaps from localStorage or initialize a new object
+        const savedMatcaps = JSON.parse(localStorage.getItem("matcaps") || "{}");
     
-        setShowMatcapMenu(false);
+        // Update the part in the carGroup
+        carGroupRef.current.traverse((child) => {
+            if (child instanceof THREE.Mesh && child.name === selectedPart) {
+                child.material = new THREE.MeshMatcapMaterial({ matcap: texture });
+                child.material.needsUpdate = true;
+                console.log(`Updated ${selectedPart} with ${matcapName} matcap`);
+            }
+        });
+    
+        // Update the matcaps object with the new texture for the selected part
+        savedMatcaps[selectedPart] = matcapName;
+    
+        // Save the updated matcaps to localStorage
+        localStorage.setItem("matcaps", JSON.stringify(savedMatcaps));
+        console.log("Updated matcaps saved to localStorage:", savedMatcaps);
+    
+        setShowMatcapMenu(false); // Close the matcap selection menu
     };
+    
 
     function SampleNextArrow({ onClick }: { onClick?: () => void }) {
         return (
@@ -1926,9 +1729,17 @@ export default function GaragePage() {
                 const selectedCar = message.selectedCar || 'kybertruck'; // Default to kybertruck
                 setSelectedCar(selectedCar);
 
+                // Retrieve matcaps and store them
+                const receivedMatcaps = message.matcaps || {};
+                setMatcaps(receivedMatcaps); // Store retrieved matcaps in state
+
+                // Save retrieved matcaps to localStorage
+                localStorage.setItem("matcaps", JSON.stringify(receivedMatcaps));
+                console.log("Retrieved and saved matcaps:", receivedMatcaps);
+
                 const carIndex = cars.findIndex((car) => car.name === selectedCar);
                 setCurrentCarIndex(carIndex !== -1 ? carIndex : 0); // Default to the first car if not found
-                loadCar(carIndex !== -1 ? carIndex : 0);
+                loadCar(carIndex !== -1 ? carIndex : 0, receivedMatcaps);
             }
         };
 
@@ -2426,7 +2237,7 @@ export default function GaragePage() {
                         <Slider
                         className="texture-slider"
                         slidesToShow={4}
-                        slidesToScroll={5}
+                        slidesToScroll={1}
                         infinite={true}
                         arrows={false}
                         >
