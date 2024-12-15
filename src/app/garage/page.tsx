@@ -953,7 +953,7 @@ export default function GaragePage() {
                         if (partName === 'chassis') {
                             part.traverse((child) => {
                                 if (child instanceof THREE.Mesh) {
-                                    const matcapName = matcaps.chassis || 'white';
+                                    const matcapName = matcaps.chassis || 'black';
                                     applyMatcap(child, matcapName);
                                     console.log(`Applied matcap '${matcapName}' to part: ${partName}`);
                                 }
@@ -961,7 +961,7 @@ export default function GaragePage() {
                         } else if (partName === 'spoiler') {
                             part.traverse((child) => {
                                 if (child instanceof THREE.Mesh) {
-                                    const matcapName = matcaps.spoiler || 'white';
+                                    const matcapName = matcaps.spoiler || 'black';
                                     applyMatcap(child, matcapName);
                                     console.log(`Applied matcap '${matcapName}' to part: ${partName}`);
                                 }
@@ -969,7 +969,7 @@ export default function GaragePage() {
                         } else if (partName === 'window') {
                             part.traverse((child) => {
                                 if (child instanceof THREE.Mesh) {
-                                    const matcapName = matcaps.window || 'white';
+                                    const matcapName = matcaps.window || 'black';
                                     applyMatcap(child, matcapName);
                                     console.log(`Applied matcap '${matcapName}' to part: ${partName}`);
                                 }
@@ -977,7 +977,7 @@ export default function GaragePage() {
                         } else if (partName === 'chassisbottom') {
                             part.traverse((child) => {
                                 if (child instanceof THREE.Mesh) {
-                                    const matcapName = matcaps.chassisbottom || 'white';
+                                    const matcapName = matcaps.chassisbottom || 'black';
                                     applyMatcap(child, matcapName);
                                     console.log(`Applied matcap '${matcapName}' to part: ${partName}`);
                                 }
@@ -985,7 +985,7 @@ export default function GaragePage() {
                         } else if (partName === 'wheels') {
                             part.traverse((child) => {
                                 if (child instanceof THREE.Mesh) {
-                                    const matcapName = matcaps.wheels || 'white';
+                                    const matcapName = matcaps.wheels || 'black';
                                     applyMatcap(child, matcapName);
                                     console.log(`Applied matcap '${matcapName}' to part: ${partName}`);
                                 }

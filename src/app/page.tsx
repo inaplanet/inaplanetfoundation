@@ -163,21 +163,7 @@ export default function Home() {
           );
       } else {
           console.error('Player ID is missing or invalid');
-      }    
-
-      // Send a message to request the player's score
-      // const playerId = localStorage.getItem('playerId'); // Replace with how you store playerId
-      // if (playerId) {
-      //     wsRef.current?.send(
-      //         JSON.stringify({
-      //             type: 'getScore',
-      //             playerId: playerId
-      //         })
-      //     );
-      // } else {
-      //     console.error('Player ID not found in localStorage');
-      // }
-
+      }
     };
 
     // Initialize a flag to prevent repeated updates
@@ -192,56 +178,69 @@ export default function Home() {
       }
 
       let message;
-      try {
-          // Parse the message from the WebSocket event
-          message = JSON.parse(event.data);
-      } catch (error) {
-          console.error("Error parsing message:", event.data);
-          return;
-      }
-  
-      // Debug log to check the full message structure
-      console.log("Received message:", message);
-  
-      // Check if the 'counts' property exists
-      if (!message.hasOwnProperty('counts')) {
-          console.log("No 'counts' property found in message.");
-      } else {
-          console.log("Counts found:", message.counts);
-      }
+        try {
+            // Parse the message from the WebSocket event
+            message = JSON.parse(event.data);
+        } catch (error) {
+            console.error("Error parsing message:", event.data);
+            return;
+        }
+    
+        // Debug log to check the full message structure
+        console.log("Received message:", message);
+    
+        // Check if the 'counts' property exists
+        if (!message.hasOwnProperty('counts')) {
+            console.log("No 'counts' property found in message.");
+        } else {
+            console.log("Counts found:", message.counts);
+        }
 
-      // Handle `selectedCar` message
-    //   if (message.type === 'selectedCar') {
-    //     if (message.selectedCar) {
-    //         setCarName(message.selectedCar);
-    //         console.log('Selected car set to:', message.selectedCar);
-    //     } else {
-    //         console.warn('No selected car found. Defaulting to kybertruck.');
-    //         setCarName('kybertruck');
-    //     }
-    // }
-
-    // Handle `selectedCar` message
-    if (message.type === 'selectedCar') {
-      console.log('SelectedCar message received:', message); // Log full message
-      if (message.selectedCar) {
-          setCarName(message.selectedCar);
-          console.log('Selected car set to:', message.selectedCar);
-  
-          if (message.matcaps) {
-              console.log('Matcaps before setting state:', message.matcaps); // Log matcaps
-              setMatcaps(message.matcaps);
-              console.log('Matcaps state updated to:', message.matcaps);
+        // Handle `selectedCar` message
+        if (message.type === 'selectedCar') {
+          console.log('SelectedCar message received:', message); // Log full message
+          if (message.selectedCar) {
+              setCarName(message.selectedCar);
+              console.log('Selected car set to:', message.selectedCar);
+      
+              if (message.matcaps) {
+                  console.log('Matcaps before setting state:', message.matcaps); // Log matcaps
+                  setMatcaps(message.matcaps);
+                  console.log('Matcaps state updated to:', message.matcaps);
+              } else {
+                  console.warn('No matcaps data received. Defaulting to empty object.');
+                  setMatcaps({});
+              }
           } else {
-              console.warn('No matcaps data received. Defaulting to empty object.');
+              console.warn('No selected car found. Defaulting to kybertruck.');
+              setCarName('kybertruck');
               setMatcaps({});
           }
-      } else {
-          console.warn('No selected car found. Defaulting to kybertruck.');
-          setCarName('kybertruck');
-          setMatcaps({});
+      }  
+
+      // User count
+      if (message.type === 'playerCount') {
+        // Update the player count display
+        const playerCountElement = document.getElementById('userCountDisplay');
+        if (playerCountElement) {
+          playerCountElement.innerText = `${message.count}`;
+        }
+
+        // Update the signal bars
+        const playerCount = message.count;
+        const barThresholds = [1, 150, 300, 500]; // Thresholds for bar activation
+        const signalBars = document.querySelectorAll('.signal-bars .bar');
+
+        signalBars.forEach((bar, index) => {
+          const htmlBar = bar as HTMLElement; // Cast Element to HTMLElement
+          if (playerCount >= barThresholds[index]) {
+            htmlBar.style.opacity = '1'; // Fully visible
+          } else {
+            htmlBar.style.opacity = '0.5'; // Dimmed
+          }
+        });
+
       }
-  }  
 
       // Player score
       if (message.type === 'playerScore') {
@@ -601,8 +600,16 @@ const handleWorldSelection = (worldId: string, listItem: HTMLLIElement, worldLis
             {/* <h3 style={{paddingLeft: '12px', fontSize: '50px', fontFamily: 'Orbitron, sans-serif'}}>6,363,000–12,663,000 km</h3> */}
           </div>
 
-          <div id="w3m-layer" className='w3m-layer overflow-hidden'>
+          <div id="w3m-layer" className='w3m-layer overflow-hidden flex-container'>
+          <div id="signalBars" className="signal-bars">
+              <div className="bar bar-1"></div>
+              <div className="bar bar-2"></div>
+              <div className="bar bar-3"></div>
+              <div className="bar bar-4"></div>
+            </div>
             <w3m-button />
+            <span id='userCountDisplay' className="user-count-display">0</span>
+            
             </div>
             {/* Show pulsing message while setting up WebSocket */}
             {!isWebSocketReady ? (
