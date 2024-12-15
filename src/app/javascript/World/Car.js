@@ -1030,7 +1030,26 @@ export default class Car
                     this.models.backLightsBrake = this.resources.items.carDefaultBackLightsBrake;
                     this.models.backLightsReverse = this.resources.items.carDefaultBackLightsReverse;
                     this.models.backLightsBattery = this.resources.items.carDefaultBackLightsBattery;
+
                     this.models.wheel = this.resources.items.carDefaultWheel;
+                        if (this.models.wheel && this.models.wheel.scene) {
+                            console.log(`Wheel model children for ${carName}:`);
+                            this.models.wheel.scene.traverse((child) => {
+                                if (child instanceof THREE.Mesh) {
+                                    console.log(`Original Child Name: ${child.name}`);
+                                    
+                                    // Check if the child name matches 'wheels' and matcaps.wheels is available
+                                    if (child.name.toLowerCase().includes('wheels') && matcaps.wheels) {
+                                        const matcapName = matcaps.wheels;
+                                        const formattedMatcapName = matcapName.charAt(0).toUpperCase() + matcapName.slice(1);
+                                        child.name = `shade${formattedMatcapName}`; // Update child name to match matcap name
+                                        console.log(`Updated Child Name: ${child.name}`);
+                                    }
+                                }
+                            });
+                        } else {
+                            console.warn('Wheel model is not defined or missing scene');
+                        }
                     break;                
         }
     }
