@@ -2034,13 +2034,14 @@ opacity: 0;
   width: 100px;
   top: 0px;
   margin-top: -5px;
-  border-radius: 10px;
+  /* border-radius: 10px; */
   max-height: 70px;
   backdrop-filter: blur(5px);
   background: rgba(255, 255, 255, 0.01);
   border-top: 10px solid transparent;
   border-bottom: 10px solid transparent;
   box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+  animation: waveBorder 10s infinite ease-in-out;
 }
 
 .user-count-display {
@@ -2050,11 +2051,30 @@ opacity: 0;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9);
 }
 
+@keyframes waveBorder {
+  0%, 100% {
+    box-shadow: 0px 0px 5px #fff, 0px 0px 4px #fff;
+    transform: skew(0deg, 0deg);
+  }
+  25% {
+    box-shadow: 0px 0px 3px #fff, 0px 0px 3px #18FF00;
+    transform: skew(1deg, 0.5deg);
+  }
+  50% {
+    box-shadow: 0px 0px 4px #fff, 0px 0px 4px #fff;
+    transform: skew(-0.5deg, -1deg);
+  }
+  75% {
+    box-shadow: 0px 0px 3px #fff, 0px 0px 3px #fff;
+    transform: skew(0deg, 0deg);
+  }
+}
+
 .stream-label {
   position: absolute;
   top: -16px; /* Position above the player count */
   font-size: 10px;
-  color: #fff;
+  color: #18ff00;
   font-family: 'Orbitron', sans-serif;
   text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7);
   letter-spacing: 5px;

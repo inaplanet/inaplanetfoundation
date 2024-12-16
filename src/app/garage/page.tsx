@@ -1973,7 +1973,7 @@ export default function GaragePage() {
                             <div id="btn-bg">
                                 
                             </div>
-                            <a onClick={() => setNavigateToPage('/')}>LET'S KRASH</a>
+                            <a onClick={() => setNavigateToPage('/')}>LET'S BANG</a>
                             </div>
                         </div>
                       </button>
