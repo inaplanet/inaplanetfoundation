@@ -5,7 +5,7 @@ import React from 'react';
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAccount } from 'wagmi';
-import initGlobe from './globe'; // Adjust path as necessary
+import { initGlobe, addSignalEffect } from './globe'; // Adjust path as necessary
 
 // Dynamically import the Application component and disable SSR
 const Application = dynamic(() => import('./javascript/Application'), {
@@ -54,6 +54,16 @@ export default function Home() {
     'Boston', 'Milan', 'Bangkok', 'Mumbai', 'Barcelona',
     'Amsterdam', 'Athens', 'Monaco', 'Venice', 'Peru',
   ];
+
+  const worldLocations: Record<string, { lat: number; lng: number }> = {
+    Baku: { lat: 40.4093, lng: 49.8671 },
+    Tokyo: { lat: 35.6764, lng: 139.6500 },
+    amsterdam: { lat: 52.3676, lng: 4.9041 },
+    newyork: { lat: 40.7128, lng: -74.0060 },
+    tokyo: { lat: 35.6895, lng: 139.6917 },
+    london: { lat: 51.5074, lng: -0.1278 },
+    sydney: { lat: -33.8688, lng: 151.2093 },
+};
 
   // const worldIcons = predefinedWorldIds.map(
   //   (worldId) => `/flags/${worldId.toLowerCase().replace(/\s+/g, '_')}.svg`
@@ -173,10 +183,10 @@ export default function Home() {
     wsRef.current.onmessage = (event) => {
 
       // Check if the message should be ignored
-      if (hasReceivedWorldCounts) {
-          console.log("World counts already received, ignoring further messages.");
-          return;
-      }
+      // if (hasReceivedWorldCounts) {
+      //     console.log("World counts already received, ignoring further messages.");
+      //     return;
+      // }
 
       let message;
         try {
@@ -268,6 +278,19 @@ export default function Home() {
           if (!selectedWorldId) {
               console.log("Updating world list with counts:", message.counts);
               updateWorldList(message.counts);
+
+              // Iterate through world counts to add signals
+              Object.entries(message.counts).forEach(([worldId, count]) => {
+                console.log('Processing worldId:', worldId, 'Count:', count);
+            
+                const location = worldLocations[worldId as keyof typeof worldLocations];
+                if (location) {
+                    console.log(`Adding signal for ${worldId} at ${location.lat}, ${location.lng}`);
+                    addSignalEffect(worldId, location);
+                } else {
+                    console.warn(`World location not found for worldId: ${worldId}`);
+                }
+            });
 
               hasReceivedWorldCounts = true;
 
