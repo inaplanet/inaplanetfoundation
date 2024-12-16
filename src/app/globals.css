@@ -872,7 +872,7 @@ opacity: 0;
 }
 
 .loading-layer {
-  background-image: url('/images/mobile/worldmap1.png'); 
+  /* background-image: url('/images/mobile/worldmap1.png');  */
   background-size: cover;
   background-position: center;
   position: absolute;

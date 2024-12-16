@@ -5,6 +5,7 @@ import React from 'react';
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAccount } from 'wagmi';
+import initGlobe from './globe'; // Adjust path as necessary
 
 // Dynamically import the Application component and disable SSR
 const Application = dynamic(() => import('./javascript/Application'), {
@@ -510,6 +511,21 @@ const handleWorldSelection = (worldId: string, listItem: HTMLLIElement, worldLis
   
         // Fetch the token for the connected player
         getToken(address);
+
+        // Initialize Globe with Retry Logic
+        let retryCount = 0;
+        const interval = setInterval(() => {
+          const container = document.getElementById('loading-layer');
+          if (container) {
+            console.log('Initializing Globe...');
+            initGlobe('loading-layer');
+            clearInterval(interval); // Stop retrying
+          } else if (retryCount >= 5) {
+            console.warn('Failed to find #loading-layer after 5 retries.');
+            clearInterval(interval); // Stop retrying
+          }
+          retryCount++;
+        }, 500);
 
       }
     }, [isConnected, address, hasAppInitialized, initializeWebSocket]);
