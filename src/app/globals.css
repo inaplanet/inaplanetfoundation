@@ -2236,6 +2236,18 @@ opacity: 0;
 .loadingLayer {
   width: 100vw;
   height: 100vh;
+  background: #000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: fixed;
+  font-size: 24px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .showroomBackToMenu {

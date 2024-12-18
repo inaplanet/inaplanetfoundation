@@ -850,6 +850,7 @@ export default function GaragePage() {
         };
         window.addEventListener('click', handleMouseClick);
         
+        // setIsLoading(false);
 
 
         return () => {
@@ -1217,6 +1218,7 @@ export default function GaragePage() {
         
             // Add the showroom group to the scene
             scene.add(showroomGroupRef.current);
+            
         };        
         
         const loadRocket = async () => {
@@ -1257,23 +1259,40 @@ export default function GaragePage() {
         };
         
 
+    // useEffect(() => {
+    //     const loadAssets = async () => {
+    //         await loadShowroomCar(cars);   // Load all cars in the showroom
+    //         await loadRocket();
+    //         showroomLoaded.current = true;
+    //     };
+
+    //     loadAssets();
+    //     setIsLoading(false);
+
+    // }, [currentCarIndex]);  
+
     useEffect(() => {
         const loadAssets = async () => {
-            // await loadStaticShowroom();
-            // await loadCar(currentCarIndex); // Load the dynamically selected car
-            // await loadBackground();
-
-            await loadShowroomCar(cars);   // Load all cars in the showroom
-            await loadRocket();
-            showroomLoaded.current = true;
-            setIsLoading(false);
-
-            // switchShowroomCar(1);
+            try {
+                // Set loading state to true until all assets are loaded
+                setIsLoading(true);
+    
+                // Load all assets in parallel
+                await Promise.all([
+                    loadShowroomCar(cars),  // Load all cars in the showroom
+                    loadRocket(),            // Load rocket
+                ]);
+    
+                showroomLoaded.current = true; // Mark showroom as loaded
+            } catch (error) {
+                console.error('Error loading assets:', error);
+            } finally {
+                setIsLoading(false); // Ensure loading state is turned off after loading is complete
+            }
         };
-
-        loadAssets();
-
-    }, [currentCarIndex]);  
+    
+        loadAssets(); // Invoke the loading function
+    }, [currentCarIndex]); // This will re-run the effect when the car index changes    
 
     const switchShowroomCar = (index: number) => {
         const selectedCar = cars[index]; // Get the car associated with the current slide
@@ -1433,6 +1452,7 @@ export default function GaragePage() {
             // Load the car and toggle the view to 'car' only when it's ready
             await loadCar(selectedIndex, matcaps);
             setIsCarLoading(false); // Set loading state to false once the car is fully loaded
+            setIsLoading(false);
             toggleView('car');
         } else {
             console.warn(`Car not found for name: ${carName}`);
@@ -1770,36 +1790,18 @@ export default function GaragePage() {
     // Initialize WebSocket when component mounts
     useEffect(() => {
         initializeWebSocket();
-        // return () => {
-        //     // Clean up WebSocket connection
-        //     if (wsRef.current) {
-        //         wsRef.current.close();
-        //     }
-        // };
-
     }, [initializeWebSocket]);
-
-     // Flag to check WS connection
-     if (isLoading) {
-        return (
-          <div className="pulsing-message">
-              <h2 style={{textShadow: '2px 2px 4px rgba(0, 0, 0, 0.9)'}}>Loading...</h2>
-            </div>
-        );
-      }
-
-    // Flag to check WS connection
-    // if (!isWebSocketReady) {
-    //     return (
-    //       <div className="pulsing-message">
-    //           <h2 style={{textShadow: '2px 2px 4px rgba(0, 0, 0, 0.9)'}}>Loading...</h2>
-    //         </div>
-    //     );
-    //   }
 
     return (
         <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+            {isLoading && (
+                <div className="loadingLayer">
+                <h2 style={{textShadow: '2px 2px 4px rgba(0, 0, 0, 0.9)'}}>Initializing...</h2>
+              </div>
+            )}
             <canvas ref={canvasRef} style={{ width: '100%', height: '100%' }} />
+            
+            
             
             <div className="coin-element">
                 <div className="coin-container">
@@ -1826,7 +1828,7 @@ export default function GaragePage() {
                     {/* <div className="coin-layer">{loadingAccount ? 'Loading...' : formatBalance(playerAccount)}</div> */}
                     <div className="coin-layer-wrapper">
                         <h2 className="account-title">ACCOUNT FUNDS</h2>
-                        <div className="coin-layer">{loadingAccount ? 'Loading...' : formatBalance(playerAccount)}</div>
+                        <div className="coin-layer">{loadingAccount ? '...' : formatBalance(playerAccount)}</div>
                     </div>
                     <div
                         className="button-element"
