@@ -5,6 +5,7 @@ import React from 'react';
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAccount } from 'wagmi';
+import { useWebSocket } from './context/WebSocketContext';
 import { initGlobe, addSignalEffect, removeSignalEffect } from './globe'; // Adjust path as necessary
 
 // Dynamically import the Application component and disable SSR
@@ -14,6 +15,8 @@ const Application = dynamic(() => import('./javascript/Application'), {
 
 export default function Home() {
   const wsRef = useRef<WebSocket | null>(null);
+  // const { initializeWebSocket, wsRef, isWebSocketReady } = useWebSocket();
+
   const { address, isConnected } = useAccount();
   const [playerId, setPlayerId] = useState<string | null>(null);
   const [isCanvasInitialized, setIsCanvasInitialized] = useState(false); // State for canvas initialization
@@ -546,6 +549,11 @@ const handleWorldSelection = (worldId: string, listItem: HTMLLIElement, worldLis
     setApplication(false);
     setTimeout(() => setApplication(true), 500);
 
+    if (wsRef.current) {
+      wsRef.current.close();
+      wsRef.current = null;
+    }
+
     // Disable all other items visually and clear their onclick events
     Array.from(worldList.children).forEach((item) => {
       const element = item as HTMLElement;
@@ -560,8 +568,8 @@ const handleWorldSelection = (worldId: string, listItem: HTMLLIElement, worldLis
 
     // Close WebSocket on world selection
     if (wsRef.current) {
-      wsRef.current.close();
-      wsRef.current = null;
+      // wsRef.current.close();
+      // wsRef.current = null;
     }
   }
 };
@@ -715,6 +723,10 @@ const handleWorldSelection = (worldId: string, listItem: HTMLLIElement, worldLis
   const handleGarageButtonClick = () => {
       if (playerId) {
         router.push(`/garage?playerId=${encodeURIComponent(playerId)}`);
+        if (wsRef.current) {
+          wsRef.current.close();
+          wsRef.current = null;
+        }
     } else {
         console.error('Player ID is missing');
     }
@@ -831,7 +843,7 @@ const handleWorldSelection = (worldId: string, listItem: HTMLLIElement, worldLis
       {/* Pulsing "Select World" message */}
       {isConnected && !selectedWorldId && (
               <div className="pulsing-message">
-                <h2 style={{textShadow: '2px 2px 4px rgba(0, 0, 0, 0.9)'}}>Select Server</h2>
+                <h2 style={{textShadow: '2px 2px 4px rgba(0, 0, 0, 0.9)', userSelect: 'none'}}>Select Server</h2>
               </div>
             )}
 

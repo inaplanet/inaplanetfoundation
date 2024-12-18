@@ -1,8 +1,9 @@
+import { WebSocketProvider } from './context/WebSocketContext'; // Adjust path accordingly
+import ContextProvider from "../../context"; // Adjust path accordingly
 import type { Metadata } from "next";
 import './globals.css'
 
 import { headers } from 'next/headers';
-import ContextProvider from "../../context";
 
 export const metadata: Metadata = {
   title: 'Krashbox│▌▌│▌▌ ▌ │▌ ▌ ▌│▌',
@@ -15,7 +16,6 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
-
   // Check if we're in a server-side context before calling headers
   let cookies: string | null = null;
   if (typeof headers === 'function') {
@@ -25,14 +25,15 @@ export default function RootLayout({
 
   return (
     <html lang="en">
-    <head>
-    {/* Favicon using PNG */}
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet" />
-    </head>
+      <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        {/* Other head elements */}
+      </head>
       <body>
-        {/* Wrap everything in the ContextProvider and pass cookies */}
-        <ContextProvider cookies={cookies}>{children}</ContextProvider>
+        {/* <WebSocketProvider> */}
+          {/* Wrap everything in the ContextProvider and pass cookies */}
+          <ContextProvider cookies={cookies}>{children}</ContextProvider>
+        {/* </WebSocketProvider> */}
       </body>
     </html>
   );

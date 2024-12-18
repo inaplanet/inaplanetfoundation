@@ -1460,6 +1460,10 @@ export default function GaragePage() {
             sendSelectedCarToServer();
             router.push(navigateToPage); // Perform navigation
             setNavigateToPage(null); // Reset navigation state
+            if (wsRef.current) {
+                wsRef.current.close();
+                wsRef.current = null;
+              }
             localStorage.removeItem("matcaps");
             localStorage.removeItem("selectedCarName");
         }
@@ -1973,7 +1977,7 @@ export default function GaragePage() {
                             <div id="btn-bg">
                                 
                             </div>
-                            <a onClick={() => setNavigateToPage('/')}>LET'S BANG</a>
+                            <a onClick={() => setNavigateToPage('/')}>LET'S RULE</a>
                             </div>
                         </div>
                       </button>
