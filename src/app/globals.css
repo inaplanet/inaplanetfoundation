@@ -674,7 +674,7 @@ opacity: 0;
     display: block; /* Initially hidden */
     /* border: 1.5px solid rgba(255, 255, 255, 0.05); */
     text-align: center;
-    max-height: 44%; /* Maximum height */
+    max-height: 44.5%; /* Maximum height */
     overflow-y: auto; /* Vertical scrolling */
     font-family: 'Orbitron', sans-serif;
     backdrop-filter: blur(2px);
@@ -915,7 +915,7 @@ opacity: 0;
   .w3m-layer {
     position: absolute;
     top: 10px;
-    left: -45px;
+    left: -55px;
     padding-left: 90px;
     width: 100%;
     height: 100%;
@@ -1986,7 +1986,7 @@ opacity: 0;
   display: flex;
   align-items: flex-start;
   justify-content: flex-start;
-  gap: 10px; /* Space between the button and player count */
+  gap: 15px; /* Space between the button and player count */
 }
 
 @media (max-width: 767px) {
@@ -2006,7 +2006,6 @@ opacity: 0;
     border: 1px solid transparent;
     /* Set border animation with conic gradient */
     border-image: conic-gradient(from var(--angle), var(--c2), var(--c1) 0.1turn, var(--c1) 0.15turn, var(--c2) 0.25turn) 1;
-    
     /* Animation applied to the border */
     animation: rotateGradient 7s linear infinite;
   }
