@@ -526,7 +526,6 @@ opacity: 0;
   border-top: 10px solid transparent;
   border-bottom: 10px solid transparent;
   text-shadow: '2px 2px 4px rgba(0, 0, 0, 0.9)';
-  user-select: none;
 }
 
 #garage-button:hover,
@@ -554,7 +553,6 @@ opacity: 0;
   border-top: 10px solid transparent;
   border-bottom: 10px solid transparent;
   text-shadow: '2px 2px 4px rgba(0, 0, 0, 0.9)';
-  user-select: none;
 }
 
 @media (max-width: 767px) {
@@ -590,7 +588,6 @@ opacity: 0;
     rotate: 0deg; /* No rotation needed on mobile */
     cursor: pointer;
     transition: background-color 0.3s ease;
-    user-select: none;
   }
 
   #chatbox-button {
@@ -612,7 +609,6 @@ opacity: 0;
     rotate: 0deg; /* No rotation needed on mobile */
     cursor: pointer;
     transition: background-color 0.3s ease;
-    user-select: none;
   }
 
   #garage-button {
@@ -1797,7 +1793,6 @@ opacity: 0;
   flex-direction: column;
   align-items: center; /* Align content horizontally */
   justify-content: center; /* Align content vertically */
-  user-select: none;
 }
 
 .account-title {
@@ -2010,7 +2005,7 @@ opacity: 0;
     border: 1px solid transparent;
     /* Set border animation with conic gradient */
     border-image: conic-gradient(from var(--angle), var(--c2), var(--c1) 0.1turn, var(--c1) 0.15turn, var(--c2) 0.25turn) 1;
-    user-select: none;
+    
     /* Animation applied to the border */
     animation: rotateGradient 7s linear infinite;
   }
@@ -2094,7 +2089,6 @@ opacity: 0;
   z-index: 100;
   /* Animation applied to the border */
   animation: rotateGradient 7s linear infinite;
-  user-select: none;
 }
 
 .user-count-display {

@@ -843,7 +843,7 @@ const handleWorldSelection = (worldId: string, listItem: HTMLLIElement, worldLis
       {/* Pulsing "Select World" message */}
       {isConnected && !selectedWorldId && (
               <div className="pulsing-message">
-                <h2 style={{textShadow: '2px 2px 4px rgba(0, 0, 0, 0.9)', userSelect: 'none'}}>Select Server</h2>
+                <h2 style={{textShadow: '2px 2px 4px rgba(0, 0, 0, 0.9)'}}>Select Server</h2>
               </div>
             )}
 
