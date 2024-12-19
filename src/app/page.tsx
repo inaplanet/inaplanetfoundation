@@ -706,13 +706,7 @@ const handleWorldSelection = (worldId: string, listItem: HTMLLIElement, worldLis
     // Flag to check WS connection
     if (!isWebSocketReady && showLoadingLayer) {
       return (
-        <div className="spinner-box">
-        <div className="blue-orbit leo"></div>
-        <div className="green-orbit leo"></div>
-        <div className="red-orbit leo"></div>
-        <div className="white-orbit w1 leo"></div>
-        <div className="white-orbit w2 leo"></div>
-        <div className="white-orbit w3 leo"></div>
+        <div className="pulse">
       </div>
       );
     }
@@ -843,7 +837,6 @@ const handleWorldSelection = (worldId: string, listItem: HTMLLIElement, worldLis
               /> */}
                <div style={{ display: 'flex', alignItems: 'center', position: 'relative' }}>
                 <input
-                  style={{animation: "pulse 1.5s infinite"}}
                   type="text"
                   id="search-bar"
                   placeholder="Search destination..."
@@ -855,11 +848,11 @@ const handleWorldSelection = (worldId: string, listItem: HTMLLIElement, worldLis
                     display: 'flex',
                     justifyContent: 'center',
                     alignItems: 'center',
-                    width: '50px',
-                    height: '50px',
+                    width: '40px',
+                    height: '40px',
                     background: 'none',
                     cursor: 'pointer',
-                    paddingRight: '5px'
+                    paddingRight: '10px'
                   }}
                 >
                   {/* Use the FaRedo icon from react-icons */}

@@ -1795,16 +1795,9 @@ export default function GaragePage() {
     return (
         <div >
             {isLoading && (
-            <div className="spinner-box">
-                <div className="blue-orbit leo"></div>
-                <div className="green-orbit leo"></div>
-                <div className="red-orbit leo"></div>
-                <div className="white-orbit w1 leo"></div>
-                <div className="white-orbit w2 leo"></div>
-                <div className="white-orbit w3 leo"></div>
+            <div className="pulse">
             </div>
             )}
-
             <canvas ref={canvasRef} style={{ width: '100%', height: '100%' }} />
             
             <div className="coin-element">
