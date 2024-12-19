@@ -355,7 +355,7 @@ export default function Home() {
         // Update the player count display
         const playerCountElement = document.getElementById('userCountDisplay');
         if (playerCountElement) {
-          playerCountElement.innerHTML = `${message.count}`;
+          playerCountElement.innerText = `${message.count}`;
         }
 
         // Update the signal bars

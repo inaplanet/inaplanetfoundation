@@ -157,21 +157,26 @@ const chargetDefaultHeadlights = '/models/charger/default/headlights.glb'
 
 
 // Wreckslinger
-const wreckslingerChassisSource = '/models/wreckslinger/auto.glb'
-const wreckslingerHeadlightsSource = '/models/wreckslinger/headlights.glb'
-const wreckslingerBacklightsSource = '/models/wreckslinger/backlights5.glb'
-const wreckslingerBacklightsReverseSource = '/models/wreckslinger/backlightsReverse.glb'
-const wreckslingerWheelsSource = '/models/wreckslinger/wheels.glb'
-const wreckslingerAntenaSource = '/models/wreckslinger/antena.glb'
+const wreckslingerDefaultChassisSource = '/models/wreckslinger/default/chassis.glb'
+const wreckslingerDefaultChassisBottomSource = '/models/wreckslinger/default/chassisbottom.glb'
+const wreckslingerDefaultBacklightsSource = '/models/wreckslinger/default/backlights.glb'
+const wreckslingerDefaultBacklightsReverseSource = '/models/wreckslinger/default/backlightsReverse.glb'
+const wreckslingerDefaultHeadlightsSource = '/models/wreckslinger/default/headlights.glb'
+const wreckslingerDefaultWindowSource = '/models/wreckslinger/default/window.glb'
+const wreckslingerDefaultAntenaSource = '/models/wreckslinger/default/antena.glb'
+const wreckslingerDefaultWheelsSource = '/models/wreckslinger/default/wheels.glb'
 
 // Gangover
-const gangoverChassisSource = '/models/gangover/auto1.glb'
-const gangoverBacklightsSource = '/models/gangover/backlights.glb'
-const gangoverBacklightsReverseSource = '/models/gangover/backlightsReverse.glb'
-const gangoverHeadlightsSource = '/models/gangover/headlights3.glb'
-const gangoverHeadlightsBottomSource = '/models/gangover/headlightsBottom.glb'
-const gangoverWheelsSource = '/models/gangover/wheels.glb'
-const gangoverAntenaSource = '/models/gangover/antena.glb'
+const gangoverDefaultHeadlightsPartSource = '/models/gangover/default/headlightsPart.glb'
+
+const gangoverDefaultChassisSource = '/models/gangover/default/chassis.glb'
+const gangoverDefaultChassisBottomSource = '/models/gangover/default/chassisbottom.glb'
+const gangoverDefaultAntenaSource = '/models/gangover/default/antena.glb'
+const gangoverDefaultBacklightsSource = '/models/gangover/default/backlights.glb'
+const gangoverDefaultBacklightsReverseSource = '/models/gangover/default/backlightsReverse.glb'
+const gangoverDefaultHeadlightsSource = '/models/gangover/default/headlights.glb'
+const gangoverDefaultWindowsSource = '/models/gangover/default/windows.glb'
+const gangoverDefaultWheelsSource = '/models/gangover/default/wheels.glb'
 
 // McLaren
 const mclarenChassisSource = '/models/mclaren/auto.glb'
@@ -498,21 +503,26 @@ export default class Resources extends EventEmitter
             { name: 'chargerDefaultAntena', source: chargetDefaultAntena },
 
             // Wreckslinger
-            { name: 'wreckslingerChassis', source: wreckslingerChassisSource },
-            { name: 'wreckslingerHeadlights', source: wreckslingerHeadlightsSource },
-            { name: 'wreckslingerBacklights', source: wreckslingerBacklightsSource },
-            { name: 'wreckslingerBacklightsReverse', source: wreckslingerBacklightsReverseSource },
-            { name: 'wreckslingerWheels', source: wreckslingerWheelsSource },
-            { name: 'wreckslingerAntena', source: wreckslingerAntenaSource },
+            { name: 'wreckslingerChassis', source: wreckslingerDefaultChassisSource },
+            { name: 'wreckslingerChassisBottom', source: wreckslingerDefaultChassisBottomSource },
+            { name: 'wreckslingerWindow', source: wreckslingerDefaultWindowSource },
+            { name: 'wreckslingerHeadlights', source: wreckslingerDefaultHeadlightsSource },
+            { name: 'wreckslingerBacklights', source: wreckslingerDefaultBacklightsSource },
+            { name: 'wreckslingerBacklightsReverse', source: wreckslingerDefaultBacklightsReverseSource },
+            { name: 'wreckslingerWheels', source: wreckslingerDefaultWheelsSource },
+            { name: 'wreckslingerAntena', source: wreckslingerDefaultAntenaSource },
 
             // Gangover
-            { name: 'gangoverChassis', source: gangoverChassisSource },
-            { name: 'gangoverBacklights', source: gangoverBacklightsSource },
-            { name: 'gangoverHeadlights', source: gangoverHeadlightsSource },
-            { name: 'gangoverHeadlightsBottom', source: gangoverHeadlightsBottomSource },
-            { name: 'gangoverBacklightsReverse', source: gangoverBacklightsReverseSource },
-            { name: 'gangoverWheels', source: gangoverWheelsSource },
-            { name: 'gangoverAntena', source: gangoverAntenaSource },
+            { name: 'gangoverAntena', source: gangoverDefaultAntenaSource },
+            { name: 'gangoverBacklights', source: gangoverDefaultBacklightsSource },
+            { name: 'gangoverChassis', source: gangoverDefaultChassisSource },
+            { name: 'gangoverChassisBottom', source: gangoverDefaultChassisBottomSource },
+            { name: 'gangoverHeadlights', source: gangoverDefaultHeadlightsSource },
+            { name: 'gangoverWheels', source: gangoverDefaultWheelsSource },
+            { name: 'gangoverWindows', source: gangoverDefaultWindowsSource },
+            { name: 'gangoverHeadlightsPart', source: gangoverDefaultHeadlightsPartSource },       
+            { name: 'gangoverBacklightsReverse', source: gangoverDefaultBacklightsReverseSource },
+
 
             // McLaren
             { name: 'mclarenChassis', source: mclarenChassisSource },
