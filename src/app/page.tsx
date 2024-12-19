@@ -554,13 +554,17 @@ const handleWorldSelection = (worldId: string, listItem: HTMLLIElement, worldLis
     setApplication(false);
     setTimeout(() => setApplication(true), 500);
 
+    if (wsRef.current) {
+      wsRef.current.close();
+      wsRef.current = null;
+    }
     
     // setTimeout(() => {
-    //         if (wsRef.current) {
-    //           wsRef.current.close();
-    //           wsRef.current = null;
-    //         }
-    //       }, 60000);
+    //     if (wsRef.current) {
+    //       wsRef.current.close();
+    //       wsRef.current = null;
+    //   }
+    // }, 600);
 
     // Disable all other items visually and clear their onclick events
     Array.from(worldList.children).forEach((item) => {
@@ -742,7 +746,7 @@ const handleWorldSelection = (worldId: string, listItem: HTMLLIElement, worldLis
       if (playerId) {
         router.push(`/garage?playerId=${encodeURIComponent(playerId)}`);
           
-        // Clean up WebSocket connection
+          // Clean up WebSocket connection
           if (wsRef.current) {
               wsRef.current.close();
           }

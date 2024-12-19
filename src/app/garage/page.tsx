@@ -1486,10 +1486,10 @@ export default function GaragePage() {
             sendSelectedCarToServer();
             router.push(navigateToPage); // Perform navigation
             setNavigateToPage(null); // Reset navigation state
-            // if (wsRef.current) {
-            //     wsRef.current.close();
-            //     wsRef.current = null;
-            //   }
+            if (wsRef.current) {
+                wsRef.current.close();
+                wsRef.current = null;
+              }
             localStorage.removeItem("matcaps");
             localStorage.removeItem("selectedCarName");
         }
@@ -1859,7 +1859,7 @@ export default function GaragePage() {
                         fontFamily: 'Orbitron',
                     }}
                 >
-                    
+
                     {view === 'showroom' && (
                         <div className='showroomBackToMenu'
                                 onClick={() => toggleView('car')}
