@@ -1795,7 +1795,9 @@ export default function GaragePage() {
     return (
         <div >
             {isLoading && (
-            <div className="pulse">
+            <div className='pulse-container'>
+                <div className="pulse">
+                </div>
             </div>
             )}
             <canvas ref={canvasRef} style={{ width: '100%', height: '100%' }} />

@@ -2340,6 +2340,12 @@ opacity: 0;
   }
 }
 
+.pulse-container {
+  width: 100vw;
+  height: 100vh;
+  background: black;
+}
+
 /* Pulse Animation Styles */
 .pulse {
   position: absolute;
