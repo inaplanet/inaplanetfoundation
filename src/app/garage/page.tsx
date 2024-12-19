@@ -1827,6 +1827,7 @@ export default function GaragePage() {
                         <h2 className="account-title">ACCOUNT FUNDS</h2>
                         <div className="coin-layer">{loadingAccount ? '...' : formatBalance(playerAccount)}</div>
                     </div>
+
                     <div
                         className="button-element"
                         style={{
@@ -1858,6 +1859,15 @@ export default function GaragePage() {
                         fontFamily: 'Orbitron',
                     }}
                 >
+                    
+                    {view === 'showroom' && (
+                        <div className='showroomBackToMenu'
+                                onClick={() => toggleView('car')}
+                            >
+                                BACK TO MENU
+                            </div>
+                        )}
+
                     {currentCarAttributes && (
                         <div className="flex flex-col items-center" style={{ marginTop: '40px', width: '100%' }}>
                             {(Object.keys(currentCarAttributes) as Array<keyof typeof currentCarAttributes>).map((attr) => {
@@ -2121,14 +2131,6 @@ export default function GaragePage() {
                     >
                         BACK TO MENU
                     </button>
-                )}
-
-                {view === 'showroom' && (
-                    <div className='showroomBackToMenu'
-                            onClick={() => toggleView('car')}
-                            >
-                                BACK TO MENU
-                            </div>
                 )}
             </div>
 

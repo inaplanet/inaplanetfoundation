@@ -2251,27 +2251,15 @@ opacity: 0;
 }
 
 .showroomBackToMenu {
-  top: 0px;
-  /* padding: 10px; */
-  margin-bottom: 520px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 50px;
   animation: pulse 1.5s infinite;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9);
   color: #fff;
   border-radius: 8px;
   cursor: pointer;
-}
-
-@media (max-width: 767px) {
-  .showroomBackToMenu {
-    top: 0px;
-    /* padding: 10px; */
-    margin-bottom: 750px !important;
-    animation: pulse 1.5s infinite;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9);
-    color: #fff;
-    border-radius: 8px;
-    cursor: pointer;
-  }
 }
 
 #load {
