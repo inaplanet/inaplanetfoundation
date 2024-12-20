@@ -301,11 +301,11 @@ export default function Home() {
         console.log("Received message:", message);
     
         // Check if the 'counts' property exists
-        if (!message.hasOwnProperty('counts')) {
-            console.log("No 'counts' property found in message.");
-        } else {
-            console.log("Counts found:", message.counts);
-        }
+        // if (!message.hasOwnProperty('counts')) {
+        //     console.log("No 'counts' property found in message.");
+        // } else {
+        //     console.log("Counts found:", message.counts);
+        // }
 
         // Handle `selectedCar` message
         if (message.type === 'selectedCar') {
@@ -331,49 +331,16 @@ export default function Home() {
 
       // User count
       if (message.type === 'playerCount') {
-        console.log('Received playerCount message:', message); // Debug log
-        // Update the player count display
-        const playerCountElement = document.getElementById('userCountDisplay');
-        if (playerCountElement) {
-          playerCountElement.innerText = `${message.count}`;
-        }
-
-        // Update the signal bars
-        const playerCount = message.count;
-        const barThresholds = [1, 150, 300, 500]; // Thresholds for bar activation
-        const signalBars = document.querySelectorAll('.signal-bars .bar');
-
-        signalBars.forEach((bar, index) => {
-          const htmlBar = bar as HTMLElement; // Cast Element to HTMLElement
-          if (playerCount >= barThresholds[index]) {
-            htmlBar.style.opacity = '1'; // Fully visible
-          } else {
-            htmlBar.style.opacity = '0.5'; // Dimmed
-          }
-        });
-
-      }
-
-      // Player score
-      if (message.type === 'playerScore') {
-          if (typeof message.score === 'number') {
-              console.log(`Player score received for player ${message.playerId}:`, message.score);
-              setPlayerAccount(message.score); // Update the state with the player's score
-          } else {
-              console.error("Invalid score received:", message.score);
-          }
-
-      } else {
-          console.log("Unknown message type:", message.type);
+        updatePlayerCount(message.count);
       }
   
       // Handle the 'worldCounts' type message
       if (message.type === 'worldCounts') {
           // Validate counts property
-          if (!message.hasOwnProperty('counts') || typeof message.counts !== 'object' || message.counts === null) {
-              console.log("Invalid counts in worldCounts message:", message.counts);
-              return;
-          }
+          // if (!message.hasOwnProperty('counts') || typeof message.counts !== 'object' || message.counts === null) {
+          //     console.log("Invalid counts in worldCounts message:", message.counts);
+          //     return;
+          // }
   
           // Only update the world list if no world has been selected
           if (!selectedWorldId) {
@@ -438,6 +405,25 @@ const filterWorlds = (event: React.FormEvent<HTMLInputElement>) => {
 
 let currentCounts: Record<string, number> = {}; // Define the shape of `counts`
 
+const updatePlayerCount = (count: number) => {
+  const playerCountElement = document.getElementById('userCountDisplay');
+  if (playerCountElement) {
+    playerCountElement.innerText = `${count}`;
+  }
+
+  const barThresholds = [1, 150, 300, 500];
+  const signalBars = document.querySelectorAll('.signal-bars .bar');
+
+  signalBars.forEach((bar, index) => {
+    const htmlBar = bar as HTMLElement;
+    if (count >= barThresholds[index]) {
+      htmlBar.style.opacity = '1';
+    } else {
+      htmlBar.style.opacity = '0.5';
+    }
+  });
+};
+
 const updateWorldList = (counts: Record<string, number>) => {
   currentCounts = counts; // Store the counts for reuse
   const worldList = document.getElementById('world-list');
@@ -462,11 +448,6 @@ const updateWorldList = (counts: Record<string, number>) => {
         const playerCountDiv = document.createElement('div');
         playerCountDiv.textContent = `${playerCount}/20`;
         playerCountDiv.classList.add('player-count');
-
-        // Flag div
-        // const flagDiv = document.createElement('div');
-        // flagDiv.textContent = worldIcons[index] || '🏳️'; // Use corresponding flag or default
-        // flagDiv.classList.add('flag');
 
         // Flag div
         const flagDiv = document.createElement('div');
@@ -541,27 +522,27 @@ const handleWorldSelection = (worldId: string, listItem: HTMLLIElement, worldLis
     // Initialize the application only when the wallet connects
     useEffect(() => {
       setIsMounted(true);
-  
+      setShowLoadingLayer(true);
+
       if (isConnected && address && !hasAppInitialized) {
         setPlayerId(address);
 
-        // Only initialize WebSocket once after wallet connects and app initializes
-        initializeWebSocket(address);
+        // Initialize WebSocket after setting the playerId
+        setTimeout(() => {
+          initializeWebSocket(address);
+        }, 1000);
 
         // localStorage.setItem('playerId', address);
         console.log('Wallet connected:', address);
-        // localStorage.removeItem('playerId');
+        localStorage.removeItem('playerId');
         localStorage.removeItem('worldId');
-        // Show the loading layer when the wallet connects
-        setShowLoadingLayer(true);
-  
-        // Set a flag to ensure the Application only initializes once
+
         setHasAppInitialized(true);
   
-        
-  
-        // Fetch the token for the connected player
-        getToken(address);
+        // Fetch the token after WebSocket initialization
+        setTimeout(() => {
+          getToken(address);
+        }, 1000);
 
         // Initialize Globe with Retry Logic
         let retryCount = 0;
@@ -579,34 +560,16 @@ const handleWorldSelection = (worldId: string, listItem: HTMLLIElement, worldLis
         }, 500);
 
       }
-
       
     }, [isConnected, address, hasAppInitialized]);
 
     // Flag to check WS connection
-    if (!isWebSocketReady && showLoadingLayer) {
+    if (!showLoadingLayer) {
       return (
         <div className="pulse">
       </div>
       );
     }
-
-  // useEffect(() => {
-  //   const interval = setInterval(() => {
-  //     setCurrentTime(new Date());
-  //   }, 1000);
-
-  //   return () => {
-  //     clearInterval(interval);
-  //   };
-  // }, []); // Initialize once on mount
-
-  // useEffect(() => {
-  //   if (selectedWorldId && wsRef.current) {
-  //     console.log("Closing WebSocket early due to world selection.");
-  //     // wsRef.current.close();
-  //   }
-  // }, [selectedWorldId]); // Close WebSocket as soon as a world is selected
 
   if (!isMounted) {
     // Return null on the server (or before the component is mounted on the client)
@@ -697,11 +660,7 @@ const handleWorldSelection = (worldId: string, listItem: HTMLLIElement, worldLis
             
             </div>
             {/* Show pulsing message while setting up WebSocket */}
-            {!isWebSocketReady ? (
-              <div id="world-layer">
-                  <h1 className="server-message">Setting up servers...</h1>
-                </div>
-            ) : (
+            {isWebSocketReady && (
             <>
             {/* <div id='worldclock'>
               <h1 style={{ paddingTop: '10px', fontSize: '15px', fontWeight: '500', fontFamily: 'Orbitron, sans-serif', color: '#fff', textAlign: 'center'}}>
@@ -709,12 +668,6 @@ const handleWorldSelection = (worldId: string, listItem: HTMLLIElement, worldLis
                 </h1>
             </div> */}
             <div id="world-layer">
-              {/* <input 
-                type="text" 
-                id="search-bar" 
-                placeholder="Search destination..." 
-                onInput={(event) => filterWorlds(event)} 
-              /> */}
                <div style={{ display: 'flex', alignItems: 'center', position: 'relative' }}>
                 <input
                   type="text"
