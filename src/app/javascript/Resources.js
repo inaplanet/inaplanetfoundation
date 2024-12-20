@@ -179,20 +179,25 @@ const gangoverDefaultWindowsSource = '/models/gangover/default/windows.glb'
 const gangoverDefaultWheelsSource = '/models/gangover/default/wheels.glb'
 
 // McLaren
-const mclarenChassisSource = '/models/mclaren/auto.glb'
-const mclarenBacklightsSource = '/models/mclaren/backlights.glb'
-const mclarenHeadlightsSource = '/models/mclaren/headlights1.glb'
-const mclarenBacklightsReverseSource = '/models/mclaren/backlightsReverse.glb'
-const mclarenWheelsSource = '/models/mclaren/wheel.glb'
-const mclarenAntenaSource = '/models/mclaren/antena.glb'
+const mclarenDefaultChassisSource = '/models/mclaren/default/chassis.glb'
+const mclarenDefaultChassisBottomSource = '/models/mclaren/default/chassisbottom.glb'
+const mclarenDefaultAntenaSource = '/models/mclaren/default/antena.glb'
+const mclarenDefaultBacklightsSource = '/models/mclaren/default/backlights.glb'
+const mclarenBacklightsReverseSource = '/models/mclaren/default/backlightsReverse.glb'
+const mclarenDefaultHeadlightsSource = '/models/mclaren/default/headlights.glb'
+const mclarenDefaultWindowsSource = '/models/mclaren/default/windows.glb'
+const mclarenDefaultWheelsSource = '/models/mclaren/default/wheel.glb'
+
 
 // 240 GTI
-const gtiChassisSource = '/models/240gti/auto.glb'
-const gtiBacklightsSource = '/models/240gti/backlights.glb'
-const gtiBacklightsReverseSource = '/models/240gti/backlightsReverse.glb'
-const gtiHeadlightsSource = '/models/240gti/headlights1.glb'
-const gtiWheelsSource = '/models/240gti/wheel.glb'
-const gtiAntenaSource = '/models/240gti/antena.glb'
+const gtiChassisSource = '/models/240gti/default/chassis.glb'
+const gtiChassisBottomSource = '/models/240gti/default/chassisbottom.glb'
+const gtiWindowsSource = '/models/240gti/default/windows.glb'
+const gtiBacklightsSource = '/models/240gti/default/backlights.glb'
+const gtiBacklightsReverseSource = '/models/240gti/default/backlightsReverse.glb'
+const gtiHeadlightsSource = '/models/240gti/default/headlights.glb'
+const gtiWheelsSource = '/models/240gti/default/wheels.glb'
+const gtiAntenaSource = '/models/240gti/default/antena.glb'
 
 // Howler Packard
 const howlerChassisSource = '/models/howler/auto.glb'
@@ -525,15 +530,19 @@ export default class Resources extends EventEmitter
 
 
             // McLaren
-            { name: 'mclarenChassis', source: mclarenChassisSource },
-            { name: 'mclarenBacklights', source: mclarenBacklightsSource },
-            { name: 'mclarenHeadlights', source: mclarenHeadlightsSource },
+            { name: 'mclarenChassis', source: mclarenDefaultChassisSource },
+            { name: 'mclarenChassisBottom', source: mclarenDefaultChassisBottomSource },
+            { name: 'mclarenWindows', source: mclarenDefaultWindowsSource },
+            { name: 'mclarenHeadlights', source: mclarenDefaultHeadlightsSource },
+            { name: 'mclarenBacklights', source: mclarenDefaultBacklightsSource },
             { name: 'mclarenBacklightsReverse', source: mclarenBacklightsReverseSource },
-            { name: 'mclarenWheels', source: mclarenWheelsSource },
-            { name: 'mclarenAntena', source: mclarenAntenaSource },
+            { name: 'mclarenWheels', source: mclarenDefaultWheelsSource },
+            { name: 'mclarenAntena', source: mclarenDefaultAntenaSource },
 
             // 240 GTI
             { name: 'gtiChassis', source: gtiChassisSource },
+            { name: 'gtiChassisBottom', source: gtiChassisBottomSource },
+            { name: 'gtiWindows', source: gtiWindowsSource },     
             { name: 'gtiBacklights', source: gtiBacklightsSource },
             { name: 'gtiHeadlights', source: gtiHeadlightsSource },
             { name: 'gtiBacklightsReverse', source: gtiBacklightsReverseSource },
