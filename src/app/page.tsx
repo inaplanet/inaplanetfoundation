@@ -650,15 +650,15 @@ const handleWorldSelection = (worldId: string, listItem: HTMLLIElement, worldLis
       {/* Show the loading layer if the wallet is connected but the canvas isn't initialized */}
       {isConnected && !isCanvasInitialized && (
         <div id="loading-container">
-          
-          <div className="signal-container">
+
+          {/* <div className="signal-container">
             <div id="signalBars" className="signal-bars">
                 <div className="bar bar-1"></div>
                 <div className="bar bar-2"></div>
                 <div className="bar bar-3"></div>
                 <div className="bar bar-4"></div>
               </div>
-            </div>
+            </div> */}
 
           <div id="loading-layer" className="loading-layer overflow-hidden">
           </div>
