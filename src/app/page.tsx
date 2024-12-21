@@ -398,8 +398,8 @@ export default function Home() {
         console.error('WebSocket closed unexpectedly with code:', event.code);
         console.error('Reason:', event.reason);
       }
-
-      setIsWebSocketReady(false);
+      
+      // setIsWebSocketReady(false);
     };
     // localStorage.removeItem('token');
   }, []);
@@ -650,19 +650,19 @@ const handleWorldSelection = (worldId: string, listItem: HTMLLIElement, worldLis
       {/* Show the loading layer if the wallet is connected but the canvas isn't initialized */}
       {isConnected && !isCanvasInitialized && (
         <div id="loading-container">
-
-          {/* <div className="signal-container">
+          
+          <div className="signal-container">
             <div id="signalBars" className="signal-bars">
                 <div className="bar bar-1"></div>
                 <div className="bar bar-2"></div>
                 <div className="bar bar-3"></div>
                 <div className="bar bar-4"></div>
               </div>
-            </div> */}
+            </div>
 
           <div id="loading-layer" className="loading-layer overflow-hidden">
           </div>
-          
+
           <div id="w3m-layer" className='w3m-layer flex-container'>
           
             <button className='my-wallet'> <w3m-button /> </button>
