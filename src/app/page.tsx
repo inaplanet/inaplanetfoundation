@@ -19,6 +19,7 @@ export default function Home() {
   // const { initializeWebSocket, wsRef, isWebSocketReady } = useWebSocket();
 
   const { address, isConnected, isDisconnected } = useAccount();
+  const [isEverythingReady, setIsEverythingReady] = useState(false);
   const [playerId, setPlayerId] = useState<string | null>(null);
   const [isCanvasInitialized, setIsCanvasInitialized] = useState(false); // State for canvas initialization
   const [application, setApplication] = useState(false); // State for canvas initialization
@@ -578,11 +579,16 @@ const handleWorldSelection = (worldId: string, listItem: HTMLLIElement, worldLis
           console.error('Error fetching token:', error);
         });
 
-        setShowLoadingLayer(false);
+        // Track when everything is ready
+        setIsEverythingReady(true);
 
+        // Switch off the loading layer when everything is ready
+        if (isEverythingReady) {
+          setShowLoadingLayer(false);
+        }
       }
       
-    }, [isConnected, address, hasAppInitialized]);
+    }, [isConnected, address, hasAppInitialized, isEverythingReady]);
     
     // Flag to check WS connection
     if (!showLoadingLayer && !isWebSocketReady) {
