@@ -18,7 +18,7 @@ export default function Home() {
   const wsRef = useRef<WebSocket | null>(null);
   // const { initializeWebSocket, wsRef, isWebSocketReady } = useWebSocket();
 
-  const { address, isConnected } = useAccount();
+  const { address, isConnected, isDisconnected } = useAccount();
   const [playerId, setPlayerId] = useState<string | null>(null);
   const [isCanvasInitialized, setIsCanvasInitialized] = useState(false); // State for canvas initialization
   const [application, setApplication] = useState(false); // State for canvas initialization
@@ -398,7 +398,6 @@ export default function Home() {
 
      wsRef.current.onclose = (event) => {
       console.log('WebSocket closed', event);
-
       if (event.code !== 1000) {
         console.error('WebSocket closed unexpectedly with code:', event.code);
         console.error('Reason:', event.reason);
@@ -537,6 +536,12 @@ const handleWorldSelection = (worldId: string, listItem: HTMLLIElement, worldLis
     useEffect(() => {
       setIsMounted(true);
       setShowLoadingLayer(true);
+
+      // If the wallet is disconnected, trigger page reload
+      if (isDisconnected) {
+        console.log('Wallet disconnected. Reloading the page...');
+        window.location.reload();
+      }
 
       if (isConnected && address && !hasAppInitialized) {
         setPlayerId(address);
