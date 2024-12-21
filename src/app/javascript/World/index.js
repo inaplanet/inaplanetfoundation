@@ -67,9 +67,10 @@ export default class
         this.token = _options.token;
         this.carName = _options.carName;
         this.matcaps = _options.matcaps;
-        console.log("INDEX MATCAP", this.matcaps);
         this.otherPlayers = [];
         this.bullets = [];
+
+        this.messageQueue = [];
         
         this.lastKnownPositions = {};
         this.coinActive = false;
@@ -518,374 +519,1154 @@ export default class
             }
         }       
 
+        setupWebSocketHandlers(ws) {
+
+            ws.onopen = () => {
+
+                // Clear old party state in case the player was previously in a party
+                this.inParty = false;
+                this.partyMembers = [];
+
+                ws.send(JSON.stringify({ type: 'join', playerId: this.playerId, worldId: this.worldId }));
+                console.log('Connected to WebSocket server with worldId', this.worldId);
+
+                // Request the player's score from the server
+                this.requestPlayerScore(this.playerId);
+
+                while (this.messageQueue.length > 0) {
+                    ws.send(JSON.stringify(this.messageQueue.shift()));
+                }
+            };
+    
+            ws.onmessage = (event) => {
+                const message = JSON.parse(event.data);
+
+                if (message.type === 'playerCount') {
+                    // Safely access the element and update its text content
+                    const playerCountElement = document.getElementById('playerCountDisplay');
+                    if (playerCountElement) {
+                        playerCountElement.innerText = `${message.count}`;
+                    } else {
+                        console.warn('playerCountDisplay element not found');
+                    }
+                }
+    
+                switch (message.type) {
+                    case 'stateUpdate':
+                        // Initialize all existing players' cars
+                        message.state.forEach(playerState => {
+                            if (playerState.playerId !== this.playerId) {
+                                this.createOtherPlayerCar(playerState.playerId, playerState);
+                            }
+                        });
+                        break;
+
+                    case 'playerScore':
+                        // Update the player's score upon retrieval from the server
+                        if (message.playerId === this.playerId) {
+                            if (!this.cars[message.playerId]) {
+                                this.cars[message.playerId] = {}; // Initialize if not present
+                            }
+                            this.cars[message.playerId].score = message.score;
+                            this.updateScoreStatus(this.cars[message.playerId].score); // Display updated score
+                            if(this.cars[message.playerId.score] !== 0) {
+                                // dropAirdrop(this.cars[message.playerId]);
+                            } else {
+                                console.log("Player score is 0")
+                            }
+                        }
+                        break;
+    
+                    case 'playerJoined':
+                        if (message.playerId !== this.playerId) {
+                            this.createOtherPlayerCar(message.playerId, message.state);
+                        }
+                        break;
+
+                    case 'worldFull':
+                            console.error(`The world ${message.worldId} is full. Please try joining another world.`);
+                            // Handle world full situation (e.g., prompt the user to join another world or retry)
+                            // For example, you might want to retry joining with a different worldId or notify the user
+                            break;
+    
+                    case 'update':
+                        if (message.playerId !== this.playerId) {
+                            const car = this.otherPlayers[message.playerId];
+                            if (car) {
+                                this.updateCarState(car, message);
+                                this.updateMiniMap(
+                                    message.playerId,
+                                    message.position.x,
+                                    message.position.y,
+                                    message.rotation,
+                                    true
+                                );
+                            }
+                        }
+                        break;
+
+                    case 'coinUpdate':
+                            const { position: coinPosition } = message;
+                            if (this.currentCoin) {
+                                this.currentCoin.position.set(coinPosition.x, coinPosition.y, coinPosition.z);
+                            } else {
+                                console.log('Coin is not defined')
+                            }
+                            break;
+
+                    case 'bulletFired':
+                            if (message.shooterId !== this.playerId) {
+                                const shooterCar = this.otherPlayers[message.shooterId];
+                                if (shooterCar) {
+                                    shooterCar.createAndShootBullet({
+                                        shooterId: message.shooterId,
+                                        bulletData: {
+                                            position: message.position,
+                                            rotation: message.rotation,
+                                            velocity: message.velocity
+                                        }
+                                    });
+                                } else {
+                                    console.error(`Shooter's car not found for playerId: ${message.shooterId}`);
+                                }
+                            }
+                            break;
+
+                    // Client-side bulletCollision handling in setupMultiplayer
+                    case 'bulletCollision':
+                        console.log("Bullet collision detected:", message);
+                        
+                        if (message.carId !== this.playerId) { // Ensure we update the correct car
+                            const car = this.otherPlayers[message.carId];
+                            if (car) {
+                                car.battery = message.battery;
+                                car.createSparkEffect();
+                                this.updateScoreStatus(message.score);
+                                console.log("Updating bullet collision score info", message.score)
+
+                            
+                                if (message.battery <= 0) {
+                                    // Trigger the crash effect before putting the car to sleep
+                                    // car.createCrashEffect(car.chassis.object.position, car.chassis.object.quaternion);
+                                
+                                    // Put the car to sleep
+                                    // car.physics.car.sleep();
+                                
+                                    // Set a timeout to recreate the car after 5 seconds
+                                    // setTimeout(() => {
+                                    //     // Recreate the car
+                                    //     car.physics.car.recreate();
+                                
+                                    //     // Reset the battery to 100
+                                    //     car.battery = 100;
+                                    // }, 5000); // 5 seconds delay
+                                }                                
+                            
+                                const twitchForce = new CANNON.Vec3(Math.random() * 10 - 5, Math.random() * 10 - 5, Math.random() * 10 - 5);
+                                car.physics.car.chassis.body.applyImpulse(twitchForce, car.physics.car.chassis.body.position);
+                            }
+                        }
+                        break;
+
+                    case 'invite':
+                        console.log(`Received invite from ${message.inviterId}`);
+                        this.showInvitePrompt(message.inviterId, message.targetPlayerId, ws);
+                        break;
+
+                    case 'inviteResponse':
+                            if (message.response === 'yes') {
+                                this.addPlayerToParty(message.inviterId, message.playerId);
+                            }
+                        break;
+
+                    case 'partyUpdate':
+                        this.inParty = true;
+                        this.isPartyLeader = message.party.leader === this.playerId;  // Check if current player is the leader
+                        this.updateToggleButtonVisibility(this.inParty);
+
+                        const partyInfo = document.getElementById('party-info');
+                        if (partyInfo) {
+                            partyInfo.style.opacity = 1;
+                        }
+                        
+                        // Ensure no duplicate players are added
+                        const uniqueMembers = new Set([...this.partyMembers, ...message.party.members]);
+                        this.partyMembers = Array.from(uniqueMembers); // Deduplicate members
+                        
+                        this.updatePartyUI(message.party.leader, this.partyMembers, this.physics, ws);
+                        
+                        break;                            
+
+                    case 'partyMessage':  // New case for party messages
+                        if (this.inParty) {
+                            this.displayPartyMessage(message.senderId, message.text, message.senderId === this.playerId); // Display the incoming message in chat
+                            // handleNewMessage(message);
+                        }
+                        break;
+
+                    // case 'partyCall':
+                    //     if (this.inParty && message.senderId === message.party.leader) {
+                    //         promptPartyCallParticipation(message.senderId);  // Prompt other party members to join the call
+                    //     }
+                    //     break;
+
+                    // case 'partyCallResponse':
+                    //     handlePartyCallResponse(message.senderId, message.response);
+                    //     break;
+
+                    // case 'batteryStatus':
+                    //     updateBatteryStatus(message.playerId, message.battery);
+                    //     break;
+                    
+                    // case 'partyDisbanded':
+                    //     this.inParty = false;
+                    //     this.partyMembers = [];
+                    //     clearChatContainer();
+                    //     hideChatContainer();
+                    //     updateToggleButtonVisibility(this.inParty);
+                    //     document.getElementById('party-info').style.display = 'none';
+                    //     if (this.physics) {
+                    //         this.physics.nonCollidablePlayers.clear(); // Clear all non-collidable pairs
+                    //         console.log("Party disbanded")
+                    //     }
+                    //     break;
+
+                    case 'partyDisbanded':
+                        this.inParty = false;
+                        this.partyMembers = [];
+                        this.clearChatContainer();
+                        this.hideChatContainer();
+                        this.updateToggleButtonVisibility(this.inParty);
+
+                        document.getElementById('party-info').style.display = 'none';
+
+                        // Additional clear logic
+                        if (this.otherPlayers) {
+                            Object.keys(this.otherPlayers).forEach(playerId => {
+                                if (this.partyMembers.includes(playerId)) {
+                                    delete this.otherPlayers[playerId];
+                                }
+                            });
+                        }
+
+                        if (this.physics) {
+                            this.physics.nonCollidablePlayers.clear(); // Clear all non-collidable pairs
+                            console.log("Party disbanded")
+                        }
+                    break;
+
+                    case 'partyTwoLeft':
+                        alert("Only two players are left in the party.");
+                        break;
+
+                    case 'playerRemoved':
+                        this.removePlayerCar(message.playerId);
+                        this.inParty = false;
+                        this.partyMembers = [];
+                        this.clearChatContainer();
+                        this.hideChatContainer();
+                        this.updateToggleButtonVisibility(this.inParty);
+
+                        const partyInfoElement = document.getElementById('party-info');
+                            if (partyInfoElement) {
+                                partyInfoElement.style.display = 'none';
+                            }
+                            if (this.physics) {
+                            this.physics.nonCollidablePlayers.clear(); // Clear all non-collidable pairs
+                            console.log("Party disbanded")
+                        }
+                        break;
+
+                    case 'dropKrashcoin':
+
+                            // Check if a coin is already active
+                            if (this.coinActive) {
+                                console.log("Coin is already active, skipping drop.");
+                                return; // Exit the function to prevent multiple coins
+                            }
+
+                            const { position } = message;
+                            console.log("Client side position", position)
+                        
+                            this.dropCoinAtPosition(position); // Use the server-sent position
+                            this.coinActive = true;
+                        
+                            break;  
+                            
+                        case 'hideCoin':
+                            if (this.coinActive) {
+                                    this.hideCoin();
+                                    this.coinActive = false;
+                                }
+                            break;
+
+                        case 'updateNonCollidablePairs':
+                            // Update the local non-collidable pairs list on the client side
+                            const newNonCollidablePairs = new Set(message.nonCollidablePairs);
+
+                            // Update the physics or collision detection logic with the new non-collidable pairs
+                            this.physics.nonCollidableCars = newNonCollidablePairs;
+                            break;
+
+                        case 'checkBattery':
+                            // const car = this.otherPlayers[message.carId];
+                            const car = playerCar
+                    
+                            if (car && message.battery <= 0) {
+                                // Update non-collidable cars since battery is zero
+                                this.physics.updateNonCollidableCars(car, Object.values(this.otherPlayers));
+                                console.log("Non collidable cars", this.physics.nonCollidableCars)
+                    
+                                // Trigger crash effect and put the car to sleep (optional, based on desired behavior)
+                                if (typeof car.createCrashEffect === 'function') {
+                                    car.createCrashEffect(car.chassis.object.position, car.chassis.object.quaternion);
+                                }
+                                // Set a timeout to recreate the car after 5 seconds
+                                setTimeout(() => {
+                                    car.recreate(); // Recreate the car
+                                    car.battery = 100; // Reset battery after recreation
+                                }, 15000); // 5 seconds delay
+                            }
+                            break;
+    
+                    default:
+                        // console.error('Unknown message type:', message.type);
+                }
+            };
+    
+            ws.onclose = () => {
+                console.log('Disconnected from WebSocket server');
+                
+                    // Clear party state on disconnect
+                    this.inParty = false;
+                    this.partyMembers = [];
+                    this.clearChatContainer();
+                    this.hideChatContainer();
+                    this.updateToggleButtonVisibility(this.inParty);
+
+                    const partyInfoElement = document.getElementById('party-info');
+                    if (partyInfoElement) {
+                        partyInfoElement.style.display = 'none';
+                    }
+                
+                    // Clear physics non-collidable pairs if necessary
+                    if (this.physics) {
+                        this.physics.nonCollidablePlayers.clear();
+                    }         
+                    
+                    // Redirect to the home or wallet connection page
+                    if (typeof window !== 'undefined') {
+                        // window.location.href = 'https://krashbox.world';
+                        window.location.href = 'localhost:3000';
+                    }
+            };
+        }
+
+        createOtherPlayerCar = (playerId, data) => {
+
+            // if (this.otherPlayers[playerId]) {
+            //     removePlayerCar(playerId);
+            // }
+
+            const carClasses = [
+                Car1, 
+                Car2, 
+                Car3, 
+                Car4, 
+                Car5, 
+                Car6, 
+                Car7, 
+                Car8, 
+                Car9, 
+                Car10, 
+                Car11, 
+                Car12, 
+                Car13, 
+                Car14, 
+                Car15,
+                Car16,
+                Car17,
+                Car18,
+                Car19
+            ];
+            const carClassIndex = Object.keys(this.otherPlayers).length % carClasses.length;
+            const CarClass = carClasses[carClassIndex];
+
+            this.physics.updateCarClass(CarClass);
+
+            const otherPlayerCar = new CarClass({
+                time: this.time,
+                resources: this.resources,
+                objects: this.objects,
+                physics: this.physics,
+                shadows: this.shadows,
+                materials: this.materials,
+                renderer: this.renderer,
+                camera: this.camera,
+                controls: this.controls,
+                playerId: playerId,
+                bullets: this.bullets,
+                battery: this.battery,
+                worldId: this.worldId,
+                score: this.score,
+                ws: this.ws
+            });
+
+            this.otherPlayers[playerId] = otherPlayerCar;
+
+            this.container.add(otherPlayerCar.container);
+            
+            console.log("Other player car container", otherPlayerCar)
+            this.physics.cars[playerId] = otherPlayerCar;
+            this.updateCarState(otherPlayerCar, data);
+        };
+
+        updateCarState = (car, data) => {
+            if (!car || !data) return;
+
+            let carKey;
+            if (car instanceof Car1) carKey = 'car1';
+            else if (car instanceof Car2) carKey = 'car2';
+            else if (car instanceof Car3) carKey = 'car3';
+            else if (car instanceof Car4) carKey = 'car4';
+            else if (car instanceof Car5) carKey = 'car5';
+            else if (car instanceof Car6) carKey = 'car6';
+            else if (car instanceof Car7) carKey = 'car7';
+            else if (car instanceof Car8) carKey = 'car8';
+            else if (car instanceof Car9) carKey = 'car9';
+            else if (car instanceof Car10) carKey = 'car10';
+            else if (car instanceof Car11) carKey = 'car11';
+            else if (car instanceof Car12) carKey = 'car12';
+            else if (car instanceof Car13) carKey = 'car13';
+            else if (car instanceof Car14) carKey = 'car14';
+            else if (car instanceof Car15) carKey = 'car15';
+            else if (car instanceof Car16) carKey = 'car16';
+            else if (car instanceof Car17) carKey = 'car17';
+            else if (car instanceof Car18) carKey = 'car18';
+            else if (car instanceof Car19) carKey = 'car19';
+
+            if (data.position) car.physics[carKey].chassis.body.position.set(data.position.x, data.position.y, data.position.z);
+            if (data.rotation) car.physics[carKey].chassis.body.quaternion.set(data.rotation.x, data.rotation.y, data.rotation.z, data.rotation.w);
+            if (data.battery !== undefined) car.battery = data.battery;
+            if (data.score !== undefined) car.score = data.score;
+
+            if (data.battery) {
+                car.battery = data.battery;
+                const batteryLevelWidth = data.battery / 100;
+            
+                if (!car.chassis.object.children.includes(car.backLightsBattery.object)) {
+                    car.chassis.object.add(car.backLightsBattery.object);
+                    car.chassis.object.add(car.objects.getConvertedMesh(car.models.chassis.scene.children));
+                }
+            
+                if (car.backLightsBattery) {
+                    // Add the battery visual representation
+                    if (car.backLightsBattery.object.children.length === 0) {
+                        const defaultChild = new THREE.Mesh(new THREE.BoxGeometry(0.055, 2.32, 0.18), car.backLightsBattery.materialRed);
+                        car.backLightsBattery.object.add(defaultChild);
+                        car.backLightsBattery.object.position.set(-0.22, 0, 1.1);
+                        car.backLightsBattery.object.rotation.set(0, 1, 0);
+                    }
+            
+                    // Update the battery color and scale based on battery level
+                    car.backLightsBattery.object.children.forEach(child => {
+                        const greenColor = data.battery / 100;
+                        const redValue = 1 - greenColor;
+                        child.material.color.setRGB(redValue, greenColor, 0.5);
+                        child.scale.set(batteryLevelWidth, 4, 3);
+                        child.material.opacity = 1;
+                    });
+            
+                    // Format playerId for display
+                    const formatPlayerId = (playerId) => {
+                        const firstPart = playerId.substring(0, 4);
+                        const lastPart = playerId.substring(playerId.length - 4);
+                        return `${firstPart}...${lastPart}`;
+                    };
+            
+                    // Create or update playerId text separately, positioned above the battery
+                    let playerIdText = car.playerIdText; // Use car.playerIdText for storing the text mesh
+                    const font = this.resources.items.orbitronFont; // Ensure the font is correctly loaded
+                    
+                    if (!playerIdText && font) {
+                        // Only create new text if it doesn't exist and the font is loaded
+                        const playerIdMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+                        const playerIdGeometry = new THREE.TextGeometry(formatPlayerId(data.playerId), {
+                            font: font, 
+                            size: 0.1, // Adjust size as needed
+                            height: 0.02, // Adjust depth of the text
+                            curveSegments: 12,
+                            bevelEnabled: false
+                        });
+            
+                        playerIdText = new THREE.Mesh(playerIdGeometry, playerIdMaterial);
+                        car.playerIdText = playerIdText; // Store reference to update later
+            
+                        // Add playerIdText separately, not as a child of the battery
+                        car.chassis.object.add(playerIdText); 
+                    }
+            
+                    if (playerIdText) {
+                        // Update the position of the playerId text to be just above the battery
+                        const batteryPosition = car.backLightsBattery.object.position; // Get the battery's position
+                        playerIdText.position.set(batteryPosition.x, batteryPosition.y - 0.45, batteryPosition.z + 0.3); // Offset on z-axis above the battery
+                        playerIdText.rotation.set(1.56, 1.56, 0); // Rotate to horizontal display
+                    }
+            
+                } else {
+                    console.error("We cannot find the battery object");
+                }
+            }                                                  
+
+            if (data.wheels) {
+                data.wheels.forEach((wheelData, index) => {
+                    const wheelBody = car.physics[carKey].wheels.bodies[index];
+                    wheelBody.position.set(wheelData.position.x, wheelData.position.y, wheelData.position.z);
+                    wheelBody.quaternion.set(wheelData.rotation.x, wheelData.rotation.y, wheelData.rotation.z, wheelData.rotation.w);
+                    car.physics[carKey].vehicle.wheelInfos[index].rotation = wheelData.rotationAngle;
+                    car.physics[carKey].vehicle.wheelInfos[index].brake = wheelData.brake
+                })
+            }
+
+            if (data.controls) {
+                car.controls.actions.left = data.controls.left;
+                car.controls.actions.right = data.controls.right;
+                car.controls.actions.up = data.controls.up;
+                car.controls.actions.down = data.controls.down;
+                car.controls.actions.boost = data.controls.boost;
+                car.controls.actions.brake = data.controls.brake;
+                car.controls.actions.shoot = data.controls.shoot;
+                car.controls.actions.siren = data.controls.siren;
+
+                const carSteeringValue = data.controls.steering;
+                car.physics[carKey].vehicle.setSteeringValue(-carSteeringValue, 0);
+                car.physics[carKey].vehicle.setSteeringValue(-carSteeringValue, 1);
+
+                if (data.controls.boost) {
+                    car.createNitroEffect(car.physics[carKey].chassis.body.position, car.physics[carKey].chassis.body.quaternion, car.chassis.object)
+                }
+
+                if (data.controls.siren) {
+                    car.createSirenEffect()
+                } else {
+                    console.log("There is no siren effect function")
+                }
+
+                if (data.controls.up) {
+                    car.physics[carKey].vehicle.applyEngineForce(car.physics[carKey].options.controlsAcceleratingSpeed, 2);
+                    car.physics[carKey].vehicle.applyEngineForce(car.physics[carKey].options.controlsAcceleratingSpeed, 3);
+                } else if (data.controls.down) {
+                    car.physics[carKey].vehicle.applyEngineForce(-car.physics[carKey].options.controlsAcceleratingSpeed, 2);
+                    car.physics[carKey].vehicle.applyEngineForce(-car.physics[carKey].options.controlsAcceleratingSpeed, 3);
+                    car.backLightsReverse.material.opacity = data.controls.down ? 1 : 0.5;
+                } else {
+                    car.physics[carKey].vehicle.applyEngineForce(0, 2);
+                    car.physics[carKey].vehicle.applyEngineForce(0, 3);
+                }
+
+                if (data.controls.brake) {
+                    car.physics[carKey].vehicle.setBrake(car.physics[carKey].options.controlsBrakeStrength, 0);
+                    car.physics[carKey].vehicle.setBrake(car.physics[carKey].options.controlsBrakeStrength, 1);
+                    car.physics[carKey].vehicle.setBrake(car.physics[carKey].options.controlsBrakeStrength, 2);
+                    car.physics[carKey].vehicle.setBrake(car.physics[carKey].options.controlsBrakeStrength, 3);
+
+                    car.backLightsBrake.material.opacity = data.controls.brake ? 1 : 0.5;
+
+                } else {
+                    car.physics[carKey].vehicle.setBrake(0, 0);
+                    car.physics[carKey].vehicle.setBrake(0, 1);
+                    car.physics[carKey].vehicle.setBrake(0, 2);
+                    car.physics[carKey].vehicle.setBrake(0, 3);
+                }
+            }
+            
+            if (car.backLightsBattery) {
+                const batteryLevelWidth = car.battery / 100;
+                car.backLightsBattery.object.children.forEach(child => {
+                    child.material = car.battery === 100 ? car.backLightsBattery.materialWhite : car.backLightsBattery.materialRed;
+                    child.scale.set(batteryLevelWidth, 0.41, 0.41);
+                    child.material.opacity = 1;
+                });
+            } else {
+                console.error("Cannot find the battery object");
+            }
+        };
+
+        removePlayerCar = (playerId) => {
+            const removedPlayerCar = this.otherPlayers[playerId];
+
+            if (removedPlayerCar) {
+                const carKey = removedPlayerCar instanceof Car ? 'car' :
+                               removedPlayerCar instanceof Car1 ? 'car1' :
+                               removedPlayerCar instanceof Car2 ? 'car2' :
+                               removedPlayerCar instanceof Car3 ? 'car3' :
+                               removedPlayerCar instanceof Car4 ? 'car4' :
+                               removedPlayerCar instanceof Car5 ? 'car5' :
+                               removedPlayerCar instanceof Car6 ? 'car6' :
+                               removedPlayerCar instanceof Car7 ? 'car7' :
+                               removedPlayerCar instanceof Car8 ? 'car8' :
+                               removedPlayerCar instanceof Car9 ? 'car9' :
+                               removedPlayerCar instanceof Car10 ? 'car10' :
+                               removedPlayerCar instanceof Car11 ? 'car11' :
+                               removedPlayerCar instanceof Car12 ? 'car12' :
+                               removedPlayerCar instanceof Car13 ? 'car13' :
+                               removedPlayerCar instanceof Car14 ? 'car14' :
+                               removedPlayerCar instanceof Car15 ? 'car15' :
+                               removedPlayerCar instanceof Car16 ? 'car16' :
+                               removedPlayerCar instanceof Car17 ? 'car17' :
+                               removedPlayerCar instanceof Car18 ? 'car18' :
+                               removedPlayerCar instanceof Car19 ? 'car19' : 'car20';
+
+                this.physics.world.removeBody(removedPlayerCar.physics[carKey].chassis.body);
+                // this.container.remove(removedPlayerCar.container)
+                // removedPlayerCar.physics[carKey].destroy();
+            }
+
+            delete this.physics.cars[playerId];
+            delete this.otherPlayers[playerId];
+            this.removeFromMiniMap(playerId);
+            console.log(`Player ${playerId} removed`);
+        };
+
+        // Show invite prompt
+        showInvitePrompt(inviterId, playerId, ws) {
+            let inviteElement = document.getElementById('invite-prompt');
+            if (!inviteElement) {
+                inviteElement = document.createElement('div');
+                inviteElement.id = 'invite-prompt';
+                inviteElement.style.position = 'absolute';
+                inviteElement.style.top = '50%';
+                inviteElement.style.left = '50%';
+                inviteElement.style.transform = 'translate(-50%, -50%)';
+                inviteElement.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+                inviteElement.style.color = 'white';
+                inviteElement.style.padding = '10px';
+                inviteElement.style.borderRadius = '10px';
+                inviteElement.style.zIndex = '1000';
+                inviteElement.style.backdropFilter = 'blur(5px)';
+                inviteElement.style.display = 'flex';
+                inviteElement.style.alignItems = 'center';
+                inviteElement.style.flexDirection = 'column';
+                inviteElement.style.width = '250px';
+
+                // Progress bar container
+                const progressBarContainer = document.createElement('div');
+                progressBarContainer.style.width = '100%';
+                progressBarContainer.style.height = '10px';
+                progressBarContainer.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
+                progressBarContainer.style.borderRadius = '5px';
+                progressBarContainer.style.overflow = 'hidden';
+                progressBarContainer.style.marginBottom = '10px';
+
+                // Progress bar
+                const progressBar = document.createElement('div');
+                progressBar.style.width = '100%';
+                progressBar.style.height = '100%';
+                progressBar.style.backgroundColor = '#8CFF80';
+                progressBarContainer.appendChild(progressBar);
+
+                inviteElement.appendChild(progressBarContainer);
+
+                const messageElement = document.createElement('div');
+                messageElement.id = 'invite-message';
+                messageElement.style.fontFamily = 'Orbitron, sans-serif';
+                inviteElement.appendChild(messageElement);
+
+                const buttonContainer = document.createElement('div');
+                buttonContainer.style.display = 'flex';
+                buttonContainer.style.justifyContent = 'space-between';
+                buttonContainer.style.width = '100%';
+
+                const yesButton = document.createElement('button');
+                yesButton.id = 'ordinaryButton';
+                yesButton.innerHTML = `${feather.icons['check-square'].toSvg({ width: 15, height: 15 })} CONFIRM`;
+                yesButton.style.marginRight = '10px';
+                yesButton.style.whiteSpace = 'pre';
+                yesButton.style.display = 'flex';
+                yesButton.style.justifyContent = 'center';
+                yesButton.style.backgroundColor = '#8CFF80';
+                yesButton.style.color = '#000';
+                yesButton.style.flex = '1';
+                yesButton.style.fontFamily = 'Orbitron, sans-serif';
+                yesButton.onclick = () => this.respondToInvite('yes', inviterId, playerId, ws);
+                buttonContainer.appendChild(yesButton);
+                feather.replace();
+
+                const noButton = document.createElement('button');
+                noButton.id = 'ordinaryButton';
+                noButton.innerHTML = `${feather.icons['x-square'].toSvg({ width: 15, height: 15 })} DENY`;
+                noButton.style.whiteSpace = 'pre';
+                noButton.style.backgroundColor = '#FF5733';
+                noButton.style.display = 'flex';
+                noButton.style.fontFamily = 'Orbitron, sans-serif';
+                noButton.style.justifyContent = 'center';
+                noButton.style.flex = '1';
+                noButton.onclick = () => this.respondToInvite( 'DENY', inviterId, playerId, ws);
+                buttonContainer.appendChild(noButton);
+
+                inviteElement.appendChild(buttonContainer);
+                document.body.appendChild(inviteElement);
+
+                // Start the progress bar animation (decrease width over 20 seconds)
+                setTimeout(() => {
+                    progressBar.style.transition = 'width 20s linear';  // Smooth transition for 20 seconds
+                    progressBar.style.width = '0%';  // Decrease the width to 0%
+                }, 100);  // Small delay to trigger the transition
+
+                // Auto-remove after 20 seconds
+                let timeLeft = 20;
+                const countdownInterval = setInterval(() => {
+                    timeLeft -= 1;
+                    if (timeLeft <= 0) {
+                        clearInterval(countdownInterval);
+                        this.hideInvitePrompt(inviteElement); // Automatically hide the invite prompt after timeout
+                    }
+                }, 1000);
+            }
+
+            const messageElement = document.getElementById('invite-message');
+            messageElement.innerText = `${inviterId.slice(0, 6)} invited you to a party. Accept?`;
+            messageElement.style.textAlign = 'left';
+            messageElement.style.marginLeft = '10px';
+            inviteElement.style.display = 'flex';
+            inviteElement.style.opacity = '1';
+            inviteElement.style.fontSize = '12px';
+        }
+
+        // Hide invite prompt
+        hideInvitePrompt(inviteElement) {
+            inviteElement.style.opacity = '0';
+            setTimeout(() => {
+                if (inviteElement && inviteElement.parentNode) {
+                    inviteElement.parentNode.removeChild(inviteElement);
+                }
+            }, 500); // Smooth fade out
+        }
+
+        // Respond to invite
+        respondToInvite(response, inviterId, playerId, ws) {
+            if (ws) {
+                ws.send(JSON.stringify({
+                    type: 'inviteResponse',
+                    response: response,
+                    inviterId: inviterId,
+                    playerId: playerId
+                }));
+            }
+
+            const inviteElement = document.getElementById('invite-prompt');
+            if (inviteElement) {
+                inviteElement.style.display = 'none';
+            }
+        }
+
+        // Function to clear the chat container
+        clearChatContainer = () => {
+            const chatBox = document.getElementById('party-chat-box');
+            chatBox.innerHTML = ''; // Clear the chat messages
+        };
+
+        // Function to show the chat container
+        showChatContainer = () => {
+            const chatContainer = document.getElementById('party-chat-container');
+            if (chatContainer) {
+            chatContainer.style.display = 'block'; // Show the chat container
+            }
+        };
+
+        // Function to hide the chat container
+        hideChatContainer = () => {
+            const chatContainer = document.getElementById('party-chat-container');
+            if (chatContainer) {
+            chatContainer.style.display = 'none'; // Hide the chat container
+            }
+        };
+
+        // Function to show the toggle button
+        showToggleButton = () => {
+            const toggleButton = document.getElementById('toggle-chat-button');
+            if (toggleButton) {
+                toggleButton.style.display = 'block';
+            }
+        };
+
+        // Function to hide the toggle button
+        hideToggleButton = () => {
+            const toggleButton = document.getElementById('toggle-chat-button');
+            if (toggleButton) {
+                toggleButton.style.display = 'none';
+            }
+        };
+
+        // Function to check if the player is in a party and update the toggle button visibility
+        updateToggleButtonVisibility = (inParty) => {
+            if (inParty) {
+                console.log('Player is in a party. Showing toggle button.');
+                this.showToggleButton();  // Show the button if the player is in a party
+            } else {
+                console.log('Player is not in a party. Hiding toggle button.');
+                this.hideToggleButton();  // Hide the button if the player is not in a party
+            }
+        };
+
+
+        // Add player to party
+        addPlayerToParty(inviterId, playerId) {
+            ws.send(JSON.stringify({
+                type: 'addToParty',
+                inviterId: inviterId,
+                playerId: playerId
+            }));
+            // updatePartyUI(inviterId, playerId);
+        }
+                
+        // Update party UI
+        updatePartyUI(inviterId, members, physics, ws) {
+            let partyElement = document.getElementById('party-info');              
+
+                if (!partyElement) {
+                    partyElement = document.createElement('div');
+                    partyElement.id = 'party-info';
+                        
+                    const updateStylesForOrientation = (orientation) => {
+                        if (orientation === 'portrait') {
+                            partyElement.style.top = '180px';
+                            partyElement.style.left = '235px';
+                            partyElement.style.width = '35%';
+                            partyElement.style.fontSize = '13px';
+                            partyElement.style.textAlign = 'left';
+                            partyElement.style.borderRadius = '5px';
+                            partyElement.style.display = 'block';
+                            partyElement.style.fontFamily = 'Orbitron, sans-serif';
+                            partyElement.style.backgroundColor = 'rgba(0, 0, 0, 0.2)';
+                        } else if (orientation === 'landscape') {
+                            partyElement.style.display = 'none';
+                            partyElement.style.top = '15px';
+                            partyElement.style.left = '345px';
+                            partyElement.style.width = '15%';
+                        }
+                    };
+                    
+                    // Check initial orientation
+                    let portrait = window.matchMedia("(orientation: portrait)");
+                    updateStylesForOrientation(portrait.matches ? 'portrait' : 'landscape');
+                    
+                    // Listen for orientation changes
+                    portrait.addEventListener("change", (e) => {
+                        if (e.matches) {
+                            updateStylesForOrientation('portrait');
+                        } else {
+                            updateStylesForOrientation('landscape');
+                        }
+                    });
+                    
+                    // Alternatively, using screen.orientation (if supported)
+                    if (screen.orientation) {
+                        screen.orientation.addEventListener("change", (e) => {
+                            updateStylesForOrientation(screen.orientation.type.includes('portrait') ? 'portrait' : 'landscape');
+                        });
+                    }
+                    
+                    // Set the common styles for the partyElement
+                    partyElement.style.position = 'absolute';
+                    partyElement.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+                    partyElement.style.color = 'white';
+                    partyElement.style.padding = '10px';
+                    partyElement.style.zIndex = '1000';
+                    partyElement.style.backdropFilter = 'blur(10px)';
+                    partyElement.style.fontFamily = 'Orbitron, sans-serif';
+                    partyElement.style.borderRadius = '5px';
+                    
+                    const leaveButton = document.createElement('button');
+                    leaveButton.id = 'ordinaryButton';
+                    leaveButton.onclick = () => this.leaveParty(this.cars[this.playerId], ws); // Pass playerCar
+                    partyElement.appendChild(leaveButton);
+                    
+                    document.body.appendChild(partyElement);
+                }
+                    
+                    // Ensure the party UI is visible
+                    partyElement.style.display = 'block';
+
+                    // Clear previous content except for the leave button
+                    partyElement.innerHTML = '';
+
+                    // Create the leave button
+                    const leaveButton = document.createElement('button');
+                    leaveButton.innerHTML = `${feather.icons['log-out'].toSvg({ width: 15, height: 15 })}`;
+                    leaveButton.style.display = 'flex';
+                    leaveButton.style.rotate = '180deg';
+                    leaveButton.style.marginBottom = '5px';
+                    leaveButton.style.paddingLeft = '5px';
+                    leaveButton.style.color = 'rgb(255, 87, 51)';
+                    leaveButton.style.background = 'unset';
+                    leaveButton.style.border = 'none';
+                    leaveButton.style.fontSize = '10px';
+                    leaveButton.style.fontWeight = 'bold';
+                    leaveButton.style.fontFamily = 'Orbitron, sans-serif';
+                    leaveButton.onclick = () => this.leaveParty(this.cars[this.playerId], ws); // Pass playerCar
+                    partyElement.appendChild(leaveButton);
+
+                    // Conditionally attach it to the switch button
+                    // const switchContainer = document.getElementById('switch-container');
+                    // if (switchContainer) {
+                    //     switchContainer.appendChild(partyElement);  // Append to the switch-container
+                    // }
+
+                function formatPlayerId(id) {
+                    const firstPart = id.substring(0, 4);
+                    const lastPart = id.substring(id.length - 4);
+                    return `${firstPart}...${lastPart}`;
+                }
+
+                // Create time display element
+                const timeElement = document.createElement('div');
+                timeElement.id = 'party-time-display';
+                timeElement.style.position = 'absolute';
+                timeElement.style.top = '8px';
+                timeElement.style.left = '50%';
+                timeElement.style.transform = 'translateX(-50%)';
+                timeElement.style.fontSize = '14px';
+                timeElement.style.padding = '3px';
+                timeElement.style.fontWeight = 'bold';
+                timeElement.style.marginLeft = '3px';
+                timeElement.style.fontSize = '10px';
+                partyElement.appendChild(timeElement);
+
+                // Update time every second
+                setInterval(() => {
+                    const currentTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    timeElement.innerText = currentTime;
+                }, 1000);
+
+                // Add inviter info
+                // const inviterInfo = document.createElement('div');
+                // inviterInfo.innerText = `♔ ${formatPlayerId(inviterId)}`;
+                // partyElement.appendChild(inviterInfo);
+
+                // Add the toggle chat button if it doesn't already exist
+                const toggleButton = document.createElement('button');
+                toggleButton.id = 'toggle-chat-button';
+                toggleButton.innerHTML = `${feather.icons['mail'].toSvg({ width: 15, height: 15 })}`;  // Chat icon
+                toggleButton.style.color = '#FF5733';
+                toggleButton.style.background = 'unset';
+                toggleButton.style.border = 'none';
+                toggleButton.style.marginLeft = '35%';
+                toggleButton.style.top = '0';
+                toggleButton.style.cursor = 'pointer';
+                partyElement.appendChild(toggleButton);
+
+                // Add event listener for toggling the chat visibility
+                toggleButton.addEventListener('click', this.toggleChatVisibility);
+
+                // Add member info
+                members.forEach(memberId => {
+                    const memberInfo = document.createElement('div');
+                    memberInfo.id = `member-${memberId}`;
+                    memberInfo.style.marginTop = '5px';
+                    memberInfo.innerText = `➤ ${this.formatPlayerId(memberId)}`;
+                    partyElement.appendChild(memberInfo);
+                });
+
+                // Pass the updated members to the physics engine
+                if (physics) {
+                    // Update non-collidable pairs only if there are remaining members
+                    if (members.length > 1) {
+                        physics.updateNonCollidablePlayers(members);
+                    } else {
+                        physics.nonCollidablePlayers.clear(); // Clear all non-collidable pairs if the party is disbanded
+                    }
+                } else {
+                    console.error('Physics engine is not defined.');
+                }  
+            }
+
+            formatPlayerId(id) {
+                const firstPart = id.substring(0, 4);
+                const lastPart = id.substring(id.length - 4);
+                return `${firstPart}...${lastPart}`;
+            }
+
+            // Function to send a message to party members
+            sendPartyMessage = (text) => {
+                if (text && this.ws && this.ws.readyState === WebSocket.OPEN && this.inParty) {
+                this.ws.send(JSON.stringify({
+                    type: 'partyMessage',
+                    senderId: this.playerId,
+                    text: text
+                }));
+                }
+            };
+
+            // Function to display a party message in the chat UI
+            displayPartyMessage = (senderId, text, isOwnMessage) => {
+                const chatBox = document.getElementById('party-chat-box');
+                const chatContainer = document.getElementById('party-chat-container');
+
+                // Check if the chat is hidden and show the notification badge
+                if (chatContainer.style.display !== 'block') {
+                    this.showNotificationBadge();  // Trigger notification if chat is hidden
+                }
+
+                // Create a container for the message
+                const messageElement = document.createElement('div');
+                messageElement.classList.add('chat-message');
+
+                // Apply the appropriate class for sent/received messages
+                if (isOwnMessage) {
+                    messageElement.classList.add('my-message');  // Apply style for own message
+                } else {
+                    messageElement.classList.add('other-message');  // Apply style for received message
+                }
+
+                // Format the senderId and create a sender element
+                const senderElement = document.createElement('span');
+                senderElement.classList.add('sender-id');
+                senderElement.innerText = `${this.formatPlayerId(senderId)}: `;
+
+                // Create a text element for the message text
+                const textElement = document.createElement('span');
+                textElement.classList.add('message-text');
+                textElement.innerText = text;
+
+                // Create a timestamp element
+                const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                const timeElement = document.createElement('span');
+                timeElement.classList.add('message-timestamp');
+                timeElement.innerText = ` ${timestamp}`;
+                timeElement.style.marginLeft = '8px';
+                timeElement.style.color = '#888';
+                timeElement.style.fontSize = '8px';
+
+                // Append sender, text, and timestamp to the message element
+                messageElement.appendChild(senderElement);
+                messageElement.appendChild(textElement);
+                messageElement.appendChild(timeElement);
+
+                // Append the message element to the chat box
+                chatBox.appendChild(messageElement);
+                chatBox.scrollTop = chatBox.scrollHeight;  // Auto-scroll to the latest message
+            };
+
+            // Update battery status in the UI
+            updateBatteryStatus(playerId, battery) {
+                const memberInfo = document.getElementById(`member-${playerId}`);
+                if (memberInfo) {
+                    memberInfo.innerText += `, HP: ${battery}%`;
+                }
+            }
+
+            // Leave party function
+            leaveParty(playerCar, ws) {
+
+                if (!playerCar) {
+                    console.error("Player car is not defined");
+                    return;
+                  }
+
+                const playerId = playerCar.playerId;
+                if (ws) {
+                    ws.send(JSON.stringify({ type: 'leaveParty', playerId }));
+                  } else {
+                    console.error("WebSocket connection is not available");
+                  }
+
+                const partyElement = document.getElementById('party-info');
+                if (partyElement) {
+                    partyElement.style.display = 'none';
+                }
+
+                // Clear the non-collidable players set to ensure all players can collide again
+                if (this.physics) {
+                    this.physics.nonCollidablePlayers.clear();
+                }
+            }
+
+            // Function to format playerId
+            formatPlayerId(playerId) {
+                const firstPart = playerId.substring(0, 4);
+                const lastPart = playerId.substring(playerId.length - 4);
+                return `${firstPart}...${lastPart}`;
+            }
+
+            // Function to show a notification badge on the toggle button
+            showNotificationBadge = () => {
+                const toggleButton = document.getElementById('toggle-chat-button');
+                let notificationBadge = document.getElementById('chat-notification-badge');
+
+                if (toggleButton && !notificationBadge) {
+                    // Create a new notification badge if it doesn't exist
+                    notificationBadge = document.createElement('div');
+                    notificationBadge.id = 'chat-notification-badge';
+                    notificationBadge.style.position = 'absolute';
+                    notificationBadge.style.top = '-15px';
+                    notificationBadge.innerHTML = `${feather.icons['mouse-pointer'].toSvg({ width: 15, height: 15 })}`;
+                    notificationBadge.style.right = '2px';
+                    notificationBadge.style.rotate = '270deg';
+                    notificationBadge.style.backgroundColor = 'transparent';
+                    notificationBadge.style.borderRadius = '50%';
+                    notificationBadge.style.zIndex = '1000';
+                    notificationBadge.style.fontSize = '30px';
+                    notificationBadge.style.color = '#18FF00';
+                    // toggleButton.style.position = 'relative'; // Ensure relative positioning
+                    toggleButton.appendChild(notificationBadge);
+                }
+
+                // Ensure the badge is visible
+                if (notificationBadge) {
+                    notificationBadge.style.display = 'block';
+                }
+            };
+        
+            // Toggle chat visibility on button click
+            toggleChatVisibility = () => {
+                const chatContainer = document.getElementById('party-chat-container');
+                const notificationBadge = document.getElementById('chat-notification-badge'); // Badge element
+
+                if (!chatContainer) {
+                    console.error('Chat container not found!');
+                    return;
+                }
+
+                console.log('Chat container found. Toggling visibility.');
+
+                // Toggle chat visibility
+                if (chatContainer.style.display === 'block') {
+                    chatContainer.style.display = 'none';
+                } else {
+                    chatContainer.style.display = 'block';
+                    // Hide the notification badge when the chat is opened
+                    if (notificationBadge) {
+                        notificationBadge.style.display = 'none';
+                    }
+                }
+            };
+
         setupMultiplayer = async (playerId, token, carName, matcaps) => {
             try {
-                // Retrieve the token from localStorage
-                // token = localStorage.getItem('token');
-
                 // Check if the token is provided
                 if (!token) {
                     console.error('JWT token is required for authentication');
                     return;
                 }
 
+                this.playerId = playerId;
+                this.carName = carName;
+                this.matcaps = matcaps;
+
                 // Add the token to the WebSocket URL query parameter
                 const serverAddress = `wss://krashbox.glitch.me?token=${token}`;
                 const ws = new WebSocket(serverAddress)
                 this.ws = ws;  // Store the WebSocket connection
 
-                // this.worldId = "world-1"
-
-                this.playerId = playerId;
-                // this.carName = carName;
-                // console.log("Setup multiplayer car name", this.carName);
-                this.otherPlayers = {};
                 this.cars = {};
-                this.inParty = false;
+                this.otherPlayers = {};
                 this.partyMembers = [];
+                this.inParty = false;
                 this.isPartyLeader = false;
 
-                const messageQueue = [];
-        
-                ws.onopen = () => {
-
-                    // Clear old party state in case the player was previously in a party
-                    this.inParty = false;
-                    this.partyMembers = [];
-
-                    ws.send(JSON.stringify({ type: 'join', playerId: this.playerId, worldId: this.worldId }));
-                    console.log('Connected to WebSocket server with worldId', this.worldId);
-
-                    // Request the player's score from the server
-                    this.requestPlayerScore(this.playerId);
-
-                    while (messageQueue.length > 0) {
-                        ws.send(JSON.stringify(messageQueue.shift()));
-                    }
-                };
-        
-                ws.onmessage = (event) => {
-                    const message = JSON.parse(event.data);
-
-                    if (message.type === 'playerCount') {
-                        // Safely access the element and update its text content
-                        const playerCountElement = document.getElementById('playerCountDisplay');
-                        if (playerCountElement) {
-                            playerCountElement.innerText = `${message.count}`;
-                        } else {
-                            console.warn('playerCountDisplay element not found');
-                        }
-                    }
-        
-                    switch (message.type) {
-                        case 'stateUpdate':
-                            // Initialize all existing players' cars
-                            message.state.forEach(playerState => {
-                                if (playerState.playerId !== this.playerId) {
-                                    createOtherPlayerCar(playerState.playerId, playerState);
-                                }
-                            });
-                            break;
-
-                        case 'playerScore':
-                            // Update the player's score upon retrieval from the server
-                            if (message.playerId === this.playerId) {
-                                if (!this.cars[message.playerId]) {
-                                    this.cars[message.playerId] = {}; // Initialize if not present
-                                }
-                                this.cars[message.playerId].score = message.score;
-                                this.updateScoreStatus(this.cars[message.playerId].score); // Display updated score
-                                if(this.cars[message.playerId.score] !== 0) {
-                                    // dropAirdrop(this.cars[message.playerId]);
-                                } else {
-                                    console.log("Player score is 0")
-                                }
-                            }
-                            break;
-        
-                        case 'playerJoined':
-                            if (message.playerId !== this.playerId) {
-                                createOtherPlayerCar(message.playerId, message.state);
-                            }
-                            break;
-
-                        case 'worldFull':
-                                console.error(`The world ${message.worldId} is full. Please try joining another world.`);
-                                // Handle world full situation (e.g., prompt the user to join another world or retry)
-                                // For example, you might want to retry joining with a different worldId or notify the user
-                                break;
-        
-                        case 'update':
-                            if (message.playerId !== this.playerId) {
-                                const car = this.otherPlayers[message.playerId];
-                                if (car) {
-                                    updateCarState(car, message);
-                                    this.updateMiniMap(
-                                        message.playerId,
-                                        message.position.x,
-                                        message.position.y,
-                                        message.rotation,
-                                        true
-                                    );
-                                }
-                            }
-                            break;
-
-                        case 'coinUpdate':
-                                const { position: coinPosition } = message;
-                                if (this.currentCoin) {
-                                    this.currentCoin.position.set(coinPosition.x, coinPosition.y, coinPosition.z);
-                                } else {
-                                    console.log('Coin is not defined')
-                                }
-                                break;
-
-                        case 'bulletFired':
-                                if (message.shooterId !== this.playerId) {
-                                    const shooterCar = this.otherPlayers[message.shooterId];
-                                    if (shooterCar) {
-                                        shooterCar.createAndShootBullet({
-                                            shooterId: message.shooterId,
-                                            bulletData: {
-                                                position: message.position,
-                                                rotation: message.rotation,
-                                                velocity: message.velocity
-                                            }
-                                        });
-                                    } else {
-                                        console.error(`Shooter's car not found for playerId: ${message.shooterId}`);
-                                    }
-                                }
-                                break;
-
-                        // Client-side bulletCollision handling in setupMultiplayer
-                        case 'bulletCollision':
-                            console.log("Bullet collision detected:", message);
-                            
-                            if (message.carId !== this.playerId) { // Ensure we update the correct car
-                                const car = this.otherPlayers[message.carId];
-                                if (car) {
-                                    car.battery = message.battery;
-                                    car.createSparkEffect();
-                                    this.updateScoreStatus(message.score);
-                                    console.log("Updating bullet collision score info", message.score)
-
-                                
-                                    if (message.battery <= 0) {
-                                        // Trigger the crash effect before putting the car to sleep
-                                        // car.createCrashEffect(car.chassis.object.position, car.chassis.object.quaternion);
-                                    
-                                        // Put the car to sleep
-                                        // car.physics.car.sleep();
-                                    
-                                        // Set a timeout to recreate the car after 5 seconds
-                                        // setTimeout(() => {
-                                        //     // Recreate the car
-                                        //     car.physics.car.recreate();
-                                    
-                                        //     // Reset the battery to 100
-                                        //     car.battery = 100;
-                                        // }, 5000); // 5 seconds delay
-                                    }                                
-                                
-                                    const twitchForce = new CANNON.Vec3(Math.random() * 10 - 5, Math.random() * 10 - 5, Math.random() * 10 - 5);
-                                    car.physics.car.chassis.body.applyImpulse(twitchForce, car.physics.car.chassis.body.position);
-                                }
-                            }
-                            break;
-
-                        case 'invite':
-                            console.log(`Received invite from ${message.inviterId}`);
-                            showInvitePrompt(message.inviterId, message.targetPlayerId);
-                            break;
-
-                        case 'inviteResponse':
-                                if (message.response === 'yes') {
-                                    addPlayerToParty(message.inviterId, message.playerId);
-                                }
-                            break;
-
-                        case 'partyUpdate':
-                            this.inParty = true;
-                            this.isPartyLeader = message.party.leader === this.playerId;  // Check if current player is the leader
-                            updateToggleButtonVisibility(this.inParty);
-
-                            const partyInfo = document.getElementById('party-info');
-                            if (partyInfo) {
-                                partyInfo.style.opacity = 1;
-                            }
-                            
-                            // Ensure no duplicate players are added
-                            const uniqueMembers = new Set([...this.partyMembers, ...message.party.members]);
-                            this.partyMembers = Array.from(uniqueMembers); // Deduplicate members
-                            
-                            updatePartyUI(message.party.leader, this.partyMembers, this.physics);
-                            
-                            break;                            
-
-                        case 'partyMessage':  // New case for party messages
-                            if (this.inParty) {
-                                displayPartyMessage(message.senderId, message.text, message.senderId === this.playerId); // Display the incoming message in chat
-                                // handleNewMessage(message);
-                            }
-                            break;
-
-                        // case 'partyCall':
-                        //     if (this.inParty && message.senderId === message.party.leader) {
-                        //         promptPartyCallParticipation(message.senderId);  // Prompt other party members to join the call
-                        //     }
-                        //     break;
-
-                        // case 'partyCallResponse':
-                        //     handlePartyCallResponse(message.senderId, message.response);
-                        //     break;
-
-                        // case 'batteryStatus':
-                        //     updateBatteryStatus(message.playerId, message.battery);
-                        //     break;
-                        
-                        // case 'partyDisbanded':
-                        //     this.inParty = false;
-                        //     this.partyMembers = [];
-                        //     clearChatContainer();
-                        //     hideChatContainer();
-                        //     updateToggleButtonVisibility(this.inParty);
-                        //     document.getElementById('party-info').style.display = 'none';
-                        //     if (this.physics) {
-                        //         this.physics.nonCollidablePlayers.clear(); // Clear all non-collidable pairs
-                        //         console.log("Party disbanded")
-                        //     }
-                        //     break;
-
-                        case 'partyDisbanded':
-                            this.inParty = false;
-                            this.partyMembers = [];
-                            clearChatContainer();
-                            hideChatContainer();
-                            updateToggleButtonVisibility(this.inParty);
-
-                            document.getElementById('party-info').style.display = 'none';
-
-                            // Additional clear logic
-                            if (this.otherPlayers) {
-                                Object.keys(this.otherPlayers).forEach(playerId => {
-                                    if (this.partyMembers.includes(playerId)) {
-                                        delete this.otherPlayers[playerId];
-                                    }
-                                });
-                            }
-
-                            if (this.physics) {
-                                this.physics.nonCollidablePlayers.clear(); // Clear all non-collidable pairs
-                                console.log("Party disbanded")
-                            }
-                        break;
-
-                        case 'partyTwoLeft':
-                            alert("Only two players are left in the party.");
-                            break;
-
-                        case 'playerRemoved':
-                            removePlayerCar(message.playerId);
-                            this.inParty = false;
-                            this.partyMembers = [];
-                            clearChatContainer();
-                            hideChatContainer();
-                            updateToggleButtonVisibility(this.inParty);
-
-                            const partyInfoElement = document.getElementById('party-info');
-                                if (partyInfoElement) {
-                                    partyInfoElement.style.display = 'none';
-                                }
-                                if (this.physics) {
-                                this.physics.nonCollidablePlayers.clear(); // Clear all non-collidable pairs
-                                console.log("Party disbanded")
-                            }
-                            break;
-
-                        case 'dropKrashcoin':
-
-                                // Check if a coin is already active
-                                if (this.coinActive) {
-                                    console.log("Coin is already active, skipping drop.");
-                                    return; // Exit the function to prevent multiple coins
-                                }
-
-                                const { position } = message;
-                                console.log("Client side position", position)
-                            
-                                this.dropCoinAtPosition(position); // Use the server-sent position
-                                this.coinActive = true;
-                            
-                                break;  
-                                
-                            case 'hideCoin':
-                                if (this.coinActive) {
-                                        this.hideCoin();
-                                        this.coinActive = false;
-                                    }
-                                break;
-
-                            case 'updateNonCollidablePairs':
-                                // Update the local non-collidable pairs list on the client side
-                                const newNonCollidablePairs = new Set(message.nonCollidablePairs);
-
-                                // Update the physics or collision detection logic with the new non-collidable pairs
-                                this.physics.nonCollidableCars = newNonCollidablePairs;
-                                break;
-
-                            case 'checkBattery':
-                                // const car = this.otherPlayers[message.carId];
-                                const car = playerCar
-                        
-                                if (car && message.battery <= 0) {
-                                    // Update non-collidable cars since battery is zero
-                                    this.physics.updateNonCollidableCars(car, Object.values(this.otherPlayers));
-                                    console.log("Non collidable cars", this.physics.nonCollidableCars)
-                        
-                                    // Trigger crash effect and put the car to sleep (optional, based on desired behavior)
-                                    if (typeof car.createCrashEffect === 'function') {
-                                        car.createCrashEffect(car.chassis.object.position, car.chassis.object.quaternion);
-                                    }
-                                    // Set a timeout to recreate the car after 5 seconds
-                                    setTimeout(() => {
-                                        car.recreate(); // Recreate the car
-                                        car.battery = 100; // Reset battery after recreation
-                                    }, 15000); // 5 seconds delay
-                                }
-                                break;
-        
-                        default:
-                            // console.error('Unknown message type:', message.type);
-                    }
-                };
-        
-                ws.onclose = () => {
-                    console.log('Disconnected from WebSocket server');
-                    
-                        // Clear party state on disconnect
-                        this.inParty = false;
-                        this.partyMembers = [];
-                        clearChatContainer();
-                        hideChatContainer();
-                        updateToggleButtonVisibility(this.inParty);
-
-                        const partyInfoElement = document.getElementById('party-info');
-                        if (partyInfoElement) {
-                            partyInfoElement.style.display = 'none';
-                        }
-                    
-                        // Clear physics non-collidable pairs if necessary
-                        if (this.physics) {
-                            this.physics.nonCollidablePlayers.clear();
-                        }         
-                        
-                        // Redirect to the home or wallet connection page
-                        if (typeof window !== 'undefined') {
-                            // window.location.href = 'https://krashbox.world';
-                            window.location.href = 'localhost:3000';
-                        }
-                };
+                // Set up WebSocket event handlers
+                this.setupWebSocketHandlers(ws);     
 
                 this.setCar(this.playerId, this.carName, this.matcaps);
                 const playerCar = this.car;
@@ -1043,307 +1824,6 @@ export default class
                     }
                 }
 
-                // Show invite prompt
-                function showInvitePrompt(inviterId, playerId) {
-                    let inviteElement = document.getElementById('invite-prompt');
-                    if (!inviteElement) {
-                        inviteElement = document.createElement('div');
-                        inviteElement.id = 'invite-prompt';
-                        inviteElement.style.position = 'absolute';
-                        inviteElement.style.top = '50%';
-                        inviteElement.style.left = '50%';
-                        inviteElement.style.transform = 'translate(-50%, -50%)';
-                        inviteElement.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
-                        inviteElement.style.color = 'white';
-                        inviteElement.style.padding = '10px';
-                        inviteElement.style.borderRadius = '10px';
-                        inviteElement.style.zIndex = '1000';
-                        inviteElement.style.backdropFilter = 'blur(5px)';
-                        inviteElement.style.display = 'flex';
-                        inviteElement.style.alignItems = 'center';
-                        inviteElement.style.flexDirection = 'column';
-                        inviteElement.style.width = '250px';
-
-                        // Progress bar container
-                        const progressBarContainer = document.createElement('div');
-                        progressBarContainer.style.width = '100%';
-                        progressBarContainer.style.height = '10px';
-                        progressBarContainer.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
-                        progressBarContainer.style.borderRadius = '5px';
-                        progressBarContainer.style.overflow = 'hidden';
-                        progressBarContainer.style.marginBottom = '10px';
-
-                        // Progress bar
-                        const progressBar = document.createElement('div');
-                        progressBar.style.width = '100%';
-                        progressBar.style.height = '100%';
-                        progressBar.style.backgroundColor = '#8CFF80';
-                        progressBarContainer.appendChild(progressBar);
-
-                        inviteElement.appendChild(progressBarContainer);
-
-                        const messageElement = document.createElement('div');
-                        messageElement.id = 'invite-message';
-                        messageElement.style.fontFamily = 'Orbitron, sans-serif';
-                        inviteElement.appendChild(messageElement);
-
-                        const buttonContainer = document.createElement('div');
-                        buttonContainer.style.display = 'flex';
-                        buttonContainer.style.justifyContent = 'space-between';
-                        buttonContainer.style.width = '100%';
-
-                        const yesButton = document.createElement('button');
-                        yesButton.id = 'ordinaryButton';
-                        yesButton.innerHTML = `${feather.icons['check-square'].toSvg({ width: 15, height: 15 })} CONFIRM`;
-                        yesButton.style.marginRight = '10px';
-                        yesButton.style.whiteSpace = 'pre';
-                        yesButton.style.display = 'flex';
-                        yesButton.style.justifyContent = 'center';
-                        yesButton.style.backgroundColor = '#8CFF80';
-                        yesButton.style.color = '#000';
-                        yesButton.style.flex = '1';
-                        yesButton.style.fontFamily = 'Orbitron, sans-serif';
-                        yesButton.onclick = () => respondToInvite('yes', inviterId, playerId);
-                        buttonContainer.appendChild(yesButton);
-                        feather.replace();
-
-                        const noButton = document.createElement('button');
-                        noButton.id = 'ordinaryButton';
-                        noButton.innerHTML = `${feather.icons['x-square'].toSvg({ width: 15, height: 15 })} DENY`;
-                        noButton.style.whiteSpace = 'pre';
-                        noButton.style.backgroundColor = '#FF5733';
-                        noButton.style.display = 'flex';
-                        noButton.style.fontFamily = 'Orbitron, sans-serif';
-                        noButton.style.justifyContent = 'center';
-                        noButton.style.flex = '1';
-                        noButton.onclick = () => respondToInvite( 'DENY', inviterId, playerId);
-                        buttonContainer.appendChild(noButton);
-
-                        inviteElement.appendChild(buttonContainer);
-                        document.body.appendChild(inviteElement);
-
-                        // Start the progress bar animation (decrease width over 20 seconds)
-                        setTimeout(() => {
-                            progressBar.style.transition = 'width 20s linear';  // Smooth transition for 20 seconds
-                            progressBar.style.width = '0%';  // Decrease the width to 0%
-                        }, 100);  // Small delay to trigger the transition
-
-                        // Auto-remove after 20 seconds
-                        let timeLeft = 20;
-                        const countdownInterval = setInterval(() => {
-                            timeLeft -= 1;
-                            if (timeLeft <= 0) {
-                                clearInterval(countdownInterval);
-                                hideInvitePrompt(inviteElement); // Automatically hide the invite prompt after timeout
-                            }
-                        }, 1000);
-                    }
-
-                    const messageElement = document.getElementById('invite-message');
-                    messageElement.innerText = `${inviterId.slice(0, 6)} invited you to a party. Accept?`;
-                    messageElement.style.textAlign = 'left';
-                    messageElement.style.marginLeft = '10px';
-                    inviteElement.style.display = 'flex';
-                    inviteElement.style.opacity = '1';
-                    inviteElement.style.fontSize = '12px';
-                }
-
-                // Hide invite prompt
-                function hideInvitePrompt(inviteElement) {
-                    inviteElement.style.opacity = '0';
-                    setTimeout(() => {
-                        if (inviteElement && inviteElement.parentNode) {
-                            inviteElement.parentNode.removeChild(inviteElement);
-                        }
-                    }, 500); // Smooth fade out
-                }
-
-                // Respond to invite
-                function respondToInvite(response, inviterId, playerId) {
-                    ws.send(JSON.stringify({
-                        type: 'inviteResponse',
-                        response: response,
-                        inviterId: inviterId,
-                        playerId: playerId
-                    }));
-
-                    const inviteElement = document.getElementById('invite-prompt');
-                    if (inviteElement) {
-                        inviteElement.style.display = 'none';
-                    }
-                }
-
-                // Add player to party
-                function addPlayerToParty(inviterId, playerId) {
-                    ws.send(JSON.stringify({
-                        type: 'addToParty',
-                        inviterId: inviterId,
-                        playerId: playerId
-                    }));
-                    // updatePartyUI(inviterId, playerId);
-                }
-                
-                // Update party UI
-                function updatePartyUI(inviterId, members, physics) {
-                    let partyElement = document.getElementById('party-info');              
-
-                    if (!partyElement) {
-                        partyElement = document.createElement('div');
-                        partyElement.id = 'party-info';
-                        
-                        const updateStylesForOrientation = (orientation) => {
-                            if (orientation === 'portrait') {
-                                partyElement.style.top = '180px';
-                                partyElement.style.left = '235px';
-                                partyElement.style.width = '35%';
-                                partyElement.style.fontSize = '13px';
-                                partyElement.style.textAlign = 'left';
-                                partyElement.style.borderRadius = '5px';
-                                partyElement.style.display = 'block';
-                                partyElement.style.fontFamily = 'Orbitron, sans-serif';
-                                partyElement.style.backgroundColor = 'rgba(0, 0, 0, 0.2)';
-                            } else if (orientation === 'landscape') {
-                                partyElement.style.display = 'none';
-                                partyElement.style.top = '15px';
-                                partyElement.style.left = '345px';
-                                partyElement.style.width = '15%';
-                            }
-                        };
-                    
-                        // Check initial orientation
-                        let portrait = window.matchMedia("(orientation: portrait)");
-                        updateStylesForOrientation(portrait.matches ? 'portrait' : 'landscape');
-                    
-                        // Listen for orientation changes
-                        portrait.addEventListener("change", (e) => {
-                            if (e.matches) {
-                                updateStylesForOrientation('portrait');
-                            } else {
-                                updateStylesForOrientation('landscape');
-                            }
-                        });
-                    
-                        // Alternatively, using screen.orientation (if supported)
-                        if (screen.orientation) {
-                            screen.orientation.addEventListener("change", (e) => {
-                                updateStylesForOrientation(screen.orientation.type.includes('portrait') ? 'portrait' : 'landscape');
-                            });
-                        }
-                    
-                        // Set the common styles for the partyElement
-                        partyElement.style.position = 'absolute';
-                        partyElement.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
-                        partyElement.style.color = 'white';
-                        partyElement.style.padding = '10px';
-                        partyElement.style.zIndex = '1000';
-                        partyElement.style.backdropFilter = 'blur(10px)';
-                        partyElement.style.fontFamily = 'Orbitron, sans-serif';
-                        partyElement.style.borderRadius = '5px';
-                    
-                        const leaveButton = document.createElement('button');
-                        leaveButton.id = 'ordinaryButton';
-                        leaveButton.onclick = leaveParty;
-                        partyElement.appendChild(leaveButton);
-                    
-                        document.body.appendChild(partyElement);
-                    }
-                    
-                    // Ensure the party UI is visible
-                    partyElement.style.display = 'block';
-
-                    // Clear previous content except for the leave button
-                    partyElement.innerHTML = '';
-
-                    // Create the leave button
-                    const leaveButton = document.createElement('button');
-                    leaveButton.innerHTML = `${feather.icons['log-out'].toSvg({ width: 15, height: 15 })}`;
-                    leaveButton.style.display = 'flex';
-                    leaveButton.style.rotate = '180deg';
-                    leaveButton.style.marginBottom = '5px';
-                    leaveButton.style.paddingLeft = '5px';
-                    leaveButton.style.color = 'rgb(255, 87, 51)';
-                    leaveButton.style.background = 'unset';
-                    leaveButton.style.border = 'none';
-                    leaveButton.style.fontSize = '10px';
-                    leaveButton.style.fontWeight = 'bold';
-                    leaveButton.style.fontFamily = 'Orbitron, sans-serif';
-                    leaveButton.onclick = leaveParty;
-                    partyElement.appendChild(leaveButton);
-
-                    // Conditionally attach it to the switch button
-                    // const switchContainer = document.getElementById('switch-container');
-                    // if (switchContainer) {
-                    //     switchContainer.appendChild(partyElement);  // Append to the switch-container
-                    // }
-
-                    function formatPlayerId(id) {
-                        const firstPart = id.substring(0, 4);
-                        const lastPart = id.substring(id.length - 4);
-                        return `${firstPart}...${lastPart}`;
-                    }
-
-                    // Create time display element
-                    const timeElement = document.createElement('div');
-                    timeElement.id = 'party-time-display';
-                    timeElement.style.position = 'absolute';
-                    timeElement.style.top = '8px';
-                    timeElement.style.left = '50%';
-                    timeElement.style.transform = 'translateX(-50%)';
-                    timeElement.style.fontSize = '14px';
-                    timeElement.style.padding = '3px';
-                    timeElement.style.fontWeight = 'bold';
-                    timeElement.style.marginLeft = '3px';
-                    timeElement.style.fontSize = '10px';
-                    partyElement.appendChild(timeElement);
-
-                    // Update time every second
-                    setInterval(() => {
-                        const currentTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                        timeElement.innerText = currentTime;
-                    }, 1000);
-
-                    // Add inviter info
-                    // const inviterInfo = document.createElement('div');
-                    // inviterInfo.innerText = `♔ ${formatPlayerId(inviterId)}`;
-                    // partyElement.appendChild(inviterInfo);
-
-                    // Add the toggle chat button if it doesn't already exist
-                    const toggleButton = document.createElement('button');
-                    toggleButton.id = 'toggle-chat-button';
-                    toggleButton.innerHTML = `${feather.icons['mail'].toSvg({ width: 15, height: 15 })}`;  // Chat icon
-                    toggleButton.style.color = '#FF5733';
-                    toggleButton.style.background = 'unset';
-                    toggleButton.style.border = 'none';
-                    toggleButton.style.marginLeft = '35%';
-                    toggleButton.style.top = '0';
-                    toggleButton.style.cursor = 'pointer';
-                    partyElement.appendChild(toggleButton);
-
-                    // Add event listener for toggling the chat visibility
-                    toggleButton.addEventListener('click', toggleChatVisibility);
-
-                    // Add member info
-                    members.forEach(memberId => {
-                        const memberInfo = document.createElement('div');
-                        memberInfo.id = `member-${memberId}`;
-                        memberInfo.style.marginTop = '5px';
-                        memberInfo.innerText = `➤ ${formatPlayerId(memberId)}`;
-                        partyElement.appendChild(memberInfo);
-                    });
-
-                    // Pass the updated members to the physics engine
-                    if (physics) {
-                        // Update non-collidable pairs only if there are remaining members
-                        if (members.length > 1) {
-                            physics.updateNonCollidablePlayers(members);
-                        } else {
-                            physics.nonCollidablePlayers.clear(); // Clear all non-collidable pairs if the party is disbanded
-                        }
-                    } else {
-                        console.error('Physics engine is not defined.');
-                    }  
-                }
-
                 // const initiatePartyCall = () => {
                 //     if (this.isPartyLeader && this.ws && this.ws.readyState === WebSocket.OPEN) {
                 //         this.ws.send(JSON.stringify({
@@ -1413,24 +1893,13 @@ export default class
                 //         }));
                 //     }
                 // };                
-
-                // Function to send a message to party members
-                const sendPartyMessage = (text) => {
-                    if (text && this.ws && this.ws.readyState === WebSocket.OPEN && this.inParty) {
-                    ws.send(JSON.stringify({
-                        type: 'partyMessage',
-                        senderId: this.playerId,
-                        text: text
-                    }));
-                    }
-                };
             
                 // Event listener for sending a message
                 document.getElementById('send-message-button').addEventListener('click', () => {
                     const messageInput = document.getElementById('party-message-input');
                     const messageText = messageInput.value;
                     if (messageText) {
-                    sendPartyMessage(messageText);
+                    this.sendPartyMessage(messageText);
                     messageInput.value = ''; // Clear the input after sending
                     }
                 });
@@ -1441,166 +1910,6 @@ export default class
                 //         : `${formatPlayerId(senderId)} declined the party call.`;
                 //     displayPartyMessage(senderId, message, false);
                 // };
-                
-            
-                // Function to display a party message in the chat UI
-                const displayPartyMessage = (senderId, text, isOwnMessage) => {
-                    const chatBox = document.getElementById('party-chat-box');
-                    const chatContainer = document.getElementById('party-chat-container');
-
-                    // Check if the chat is hidden and show the notification badge
-                    if (chatContainer.style.display !== 'block') {
-                        showNotificationBadge();  // Trigger notification if chat is hidden
-                    }
-
-                    // Create a container for the message
-                    const messageElement = document.createElement('div');
-                    messageElement.classList.add('chat-message');
-
-                    // Apply the appropriate class for sent/received messages
-                    if (isOwnMessage) {
-                        messageElement.classList.add('my-message');  // Apply style for own message
-                    } else {
-                        messageElement.classList.add('other-message');  // Apply style for received message
-                    }
-
-                    // Format the senderId and create a sender element
-                    const senderElement = document.createElement('span');
-                    senderElement.classList.add('sender-id');
-                    senderElement.innerText = `${formatPlayerId(senderId)}: `;
-
-                    // Create a text element for the message text
-                    const textElement = document.createElement('span');
-                    textElement.classList.add('message-text');
-                    textElement.innerText = text;
-
-                    // Create a timestamp element
-                    const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                    const timeElement = document.createElement('span');
-                    timeElement.classList.add('message-timestamp');
-                    timeElement.innerText = ` ${timestamp}`;
-                    timeElement.style.marginLeft = '8px';
-                    timeElement.style.color = '#888';
-                    timeElement.style.fontSize = '8px';
-
-                    // Append sender, text, and timestamp to the message element
-                    messageElement.appendChild(senderElement);
-                    messageElement.appendChild(textElement);
-                    messageElement.appendChild(timeElement);
-
-                    // Append the message element to the chat box
-                    chatBox.appendChild(messageElement);
-                    chatBox.scrollTop = chatBox.scrollHeight;  // Auto-scroll to the latest message
-                };
-
-                // Function to format playerId
-                function formatPlayerId(playerId) {
-                    const firstPart = playerId.substring(0, 4);
-                    const lastPart = playerId.substring(playerId.length - 4);
-                    return `${firstPart}...${lastPart}`;
-                }
-
-                // Function to clear the chat container
-                const clearChatContainer = () => {
-                    const chatBox = document.getElementById('party-chat-box');
-                    chatBox.innerHTML = ''; // Clear the chat messages
-                };
-
-                // Function to show the chat container
-                const showChatContainer = () => {
-                    const chatContainer = document.getElementById('party-chat-container');
-                    if (chatContainer) {
-                    chatContainer.style.display = 'block'; // Show the chat container
-                    }
-                };
-
-                // Function to hide the chat container
-                const hideChatContainer = () => {
-                    const chatContainer = document.getElementById('party-chat-container');
-                    if (chatContainer) {
-                    chatContainer.style.display = 'none'; // Hide the chat container
-                    }
-                };
-
-                // Function to show the toggle button
-                const showToggleButton = () => {
-                    const toggleButton = document.getElementById('toggle-chat-button');
-                    if (toggleButton) {
-                        toggleButton.style.display = 'block';
-                    }
-                };
-
-                // Function to hide the toggle button
-                const hideToggleButton = () => {
-                    const toggleButton = document.getElementById('toggle-chat-button');
-                    if (toggleButton) {
-                        toggleButton.style.display = 'none';
-                    }
-                };
-
-                // Function to check if the player is in a party and update the toggle button visibility
-                const updateToggleButtonVisibility = (inParty) => {
-                    if (inParty) {
-                        console.log('Player is in a party. Showing toggle button.');
-                        showToggleButton();  // Show the button if the player is in a party
-                    } else {
-                        console.log('Player is not in a party. Hiding toggle button.');
-                        hideToggleButton();  // Hide the button if the player is not in a party
-                    }
-                };
-
-                // Function to show a notification badge on the toggle button
-                const showNotificationBadge = () => {
-                    const toggleButton = document.getElementById('toggle-chat-button');
-                    let notificationBadge = document.getElementById('chat-notification-badge');
-
-                    if (toggleButton && !notificationBadge) {
-                        // Create a new notification badge if it doesn't exist
-                        notificationBadge = document.createElement('div');
-                        notificationBadge.id = 'chat-notification-badge';
-                        notificationBadge.style.position = 'absolute';
-                        notificationBadge.style.top = '-15px';
-                        notificationBadge.innerHTML = `${feather.icons['mouse-pointer'].toSvg({ width: 15, height: 15 })}`;
-                        notificationBadge.style.right = '2px';
-                        notificationBadge.style.rotate = '270deg';
-                        notificationBadge.style.backgroundColor = 'transparent';
-                        notificationBadge.style.borderRadius = '50%';
-                        notificationBadge.style.zIndex = '1000';
-                        notificationBadge.style.fontSize = '30px';
-                        notificationBadge.style.color = '#18FF00';
-                        // toggleButton.style.position = 'relative'; // Ensure relative positioning
-                        toggleButton.appendChild(notificationBadge);
-                    }
-
-                    // Ensure the badge is visible
-                    if (notificationBadge) {
-                        notificationBadge.style.display = 'block';
-                    }
-                };
-            
-                // Toggle chat visibility on button click
-                const toggleChatVisibility = () => {
-                    const chatContainer = document.getElementById('party-chat-container');
-                    const notificationBadge = document.getElementById('chat-notification-badge'); // Badge element
-
-                    if (!chatContainer) {
-                        console.error('Chat container not found!');
-                        return;
-                    }
-
-                    console.log('Chat container found. Toggling visibility.');
-
-                    // Toggle chat visibility
-                    if (chatContainer.style.display === 'block') {
-                        chatContainer.style.display = 'none';
-                    } else {
-                        chatContainer.style.display = 'block';
-                        // Hide the notification badge when the chat is opened
-                        if (notificationBadge) {
-                            notificationBadge.style.display = 'none';
-                        }
-                    }
-                };
 
                 // Add event listener to existing button (no need to create it dynamically)
                 // document.getElementById('toggle-chat-button').addEventListener('click', toggleChatVisibility);
@@ -1645,7 +1954,7 @@ export default class
                 // Append the button to the chat container
                 document.getElementById('party-chat-container').appendChild(toggleChatButton);
 
-                toggleChatButton.addEventListener('click', toggleChatVisibility);
+                toggleChatButton.addEventListener('click', this.toggleChatVisibility);
 
                 const messageInput = document.createElement('input');
                 messageInput.id = 'party-message-input';
@@ -1657,30 +1966,6 @@ export default class
                 sendButton.innerHTML = `${feather.icons['send'].toSvg({ width: 15, height: 15 })}`;
                 sendButton.style.width = '20%';
                 chatContainer.appendChild(sendButton);
-
-                // Update battery status in the UI
-                function updateBatteryStatus(playerId, battery) {
-                    const memberInfo = document.getElementById(`member-${playerId}`);
-                    if (memberInfo) {
-                        memberInfo.innerText += `, HP: ${battery}%`;
-                    }
-                }
-
-                // Leave party function
-                function leaveParty() {
-                    const playerId = playerCar.playerId;
-                    ws.send(JSON.stringify({ type: 'leaveParty', playerId }));
-
-                    const partyElement = document.getElementById('party-info');
-                    if (partyElement) {
-                        partyElement.style.display = 'none';
-                    }
-
-                    // Clear the non-collidable players set to ensure all players can collide again
-                    if (this.physics) {
-                        this.physics.nonCollidablePlayers.clear();
-                    }
-                }
         
                 this.time.on('tick', () => {
                     
@@ -1746,11 +2031,6 @@ export default class
                         },
                         battery: playerCar.battery,
                         score: playerCar.score,
-                        // coinPosition: coinPosition ? {
-                        //     x: coinPosition.x,
-                        //     y: coinPosition.y,
-                        //     z: coinPosition.z
-                        // } : null // Add coin position if it exists
                     };
 
                     // Handle collision check if a coin is active
@@ -1776,7 +2056,7 @@ export default class
                     if (ws.readyState === WebSocket.OPEN) {
                         ws.send(JSON.stringify(updateData));
                     } else if (ws.readyState === WebSocket.CONNECTING) {
-                        messageQueue.push(updateData);
+                        this.messageQueue.push(updateData);
                     }
         
                     this.updateMiniMap(
@@ -1784,7 +2064,6 @@ export default class
                         updateData.position.x,
                         updateData.position.y,
                         updateData.rotation,
-                        // updateData.wheels[0].rotation,
                         false
                     );
                 });
@@ -1801,276 +2080,1564 @@ export default class
                     });
                 }
         
-                const createOtherPlayerCar = (playerId, data) => {
-
-                    // if (this.otherPlayers[playerId]) {
-                    //     removePlayerCar(playerId);
-                    // }
-
-                    const carClasses = [
-                        Car1, 
-                        Car2, 
-                        Car3, 
-                        Car4, 
-                        Car5, 
-                        Car6, 
-                        Car7, 
-                        Car8, 
-                        Car9, 
-                        Car10, 
-                        Car11, 
-                        Car12, 
-                        Car13, 
-                        Car14, 
-                        Car15,
-                        Car16,
-                        Car17,
-                        Car18,
-                        Car19
-                    ];
-                    const carClassIndex = Object.keys(this.otherPlayers).length % carClasses.length;
-                    const CarClass = carClasses[carClassIndex];
-        
-                    this.physics.updateCarClass(CarClass);
-        
-                    const otherPlayerCar = new CarClass({
-                        time: this.time,
-                        resources: this.resources,
-                        objects: this.objects,
-                        physics: this.physics,
-                        shadows: this.shadows,
-                        materials: this.materials,
-                        renderer: this.renderer,
-                        camera: this.camera,
-                        controls: this.controls,
-                        playerId: playerId,
-                        bullets: this.bullets,
-                        battery: this.battery,
-                        worldId: this.worldId,
-                        score: this.score,
-                        ws: this.ws
-                    });
-        
-                    this.otherPlayers[playerId] = otherPlayerCar;
-
-                    this.container.add(otherPlayerCar.container);
-                    
-                    console.log("Other player car container", otherPlayerCar)
-                    this.physics.cars[playerId] = otherPlayerCar;
-                    updateCarState(otherPlayerCar, data);
-                };
-        
-                const updateCarState = (car, data) => {
-                    if (!car || !data) return;
-        
-                    let carKey;
-                    if (car instanceof Car1) carKey = 'car1';
-                    else if (car instanceof Car2) carKey = 'car2';
-                    else if (car instanceof Car3) carKey = 'car3';
-                    else if (car instanceof Car4) carKey = 'car4';
-                    else if (car instanceof Car5) carKey = 'car5';
-                    else if (car instanceof Car6) carKey = 'car6';
-                    else if (car instanceof Car7) carKey = 'car7';
-                    else if (car instanceof Car8) carKey = 'car8';
-                    else if (car instanceof Car9) carKey = 'car9';
-                    else if (car instanceof Car10) carKey = 'car10';
-                    else if (car instanceof Car11) carKey = 'car11';
-                    else if (car instanceof Car12) carKey = 'car12';
-                    else if (car instanceof Car13) carKey = 'car13';
-                    else if (car instanceof Car14) carKey = 'car14';
-                    else if (car instanceof Car15) carKey = 'car15';
-                    else if (car instanceof Car16) carKey = 'car16';
-                    else if (car instanceof Car17) carKey = 'car17';
-                    else if (car instanceof Car18) carKey = 'car18';
-                    else if (car instanceof Car19) carKey = 'car19';
-        
-                    if (data.position) car.physics[carKey].chassis.body.position.set(data.position.x, data.position.y, data.position.z);
-                    if (data.rotation) car.physics[carKey].chassis.body.quaternion.set(data.rotation.x, data.rotation.y, data.rotation.z, data.rotation.w);
-                    if (data.battery !== undefined) car.battery = data.battery;
-                    if (data.score !== undefined) car.score = data.score;
-
-                    if (data.battery) {
-                        car.battery = data.battery;
-                        const batteryLevelWidth = data.battery / 100;
-                    
-                        if (!car.chassis.object.children.includes(car.backLightsBattery.object)) {
-                            car.chassis.object.add(car.backLightsBattery.object);
-                            car.chassis.object.add(car.objects.getConvertedMesh(car.models.chassis.scene.children));
-                        }
-                    
-                        if (car.backLightsBattery) {
-                            // Add the battery visual representation
-                            if (car.backLightsBattery.object.children.length === 0) {
-                                const defaultChild = new THREE.Mesh(new THREE.BoxGeometry(0.055, 2.32, 0.18), car.backLightsBattery.materialRed);
-                                car.backLightsBattery.object.add(defaultChild);
-                                car.backLightsBattery.object.position.set(-0.22, 0, 1.1);
-                                car.backLightsBattery.object.rotation.set(0, 1, 0);
-                            }
-                    
-                            // Update the battery color and scale based on battery level
-                            car.backLightsBattery.object.children.forEach(child => {
-                                const greenColor = data.battery / 100;
-                                const redValue = 1 - greenColor;
-                                child.material.color.setRGB(redValue, greenColor, 0.5);
-                                child.scale.set(batteryLevelWidth, 4, 3);
-                                child.material.opacity = 1;
-                            });
-                    
-                            // Format playerId for display
-                            const formatPlayerId = (playerId) => {
-                                const firstPart = playerId.substring(0, 4);
-                                const lastPart = playerId.substring(playerId.length - 4);
-                                return `${firstPart}...${lastPart}`;
-                            };
-                    
-                            // Create or update playerId text separately, positioned above the battery
-                            let playerIdText = car.playerIdText; // Use car.playerIdText for storing the text mesh
-                            const font = this.resources.items.orbitronFont; // Ensure the font is correctly loaded
-                            
-                            if (!playerIdText && font) {
-                                // Only create new text if it doesn't exist and the font is loaded
-                                const playerIdMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
-                                const playerIdGeometry = new THREE.TextGeometry(formatPlayerId(data.playerId), {
-                                    font: font, 
-                                    size: 0.1, // Adjust size as needed
-                                    height: 0.02, // Adjust depth of the text
-                                    curveSegments: 12,
-                                    bevelEnabled: false
-                                });
-                    
-                                playerIdText = new THREE.Mesh(playerIdGeometry, playerIdMaterial);
-                                car.playerIdText = playerIdText; // Store reference to update later
-                    
-                                // Add playerIdText separately, not as a child of the battery
-                                car.chassis.object.add(playerIdText); 
-                            }
-                    
-                            if (playerIdText) {
-                                // Update the position of the playerId text to be just above the battery
-                                const batteryPosition = car.backLightsBattery.object.position; // Get the battery's position
-                                playerIdText.position.set(batteryPosition.x, batteryPosition.y - 0.45, batteryPosition.z + 0.3); // Offset on z-axis above the battery
-                                playerIdText.rotation.set(1.56, 1.56, 0); // Rotate to horizontal display
-                            }
-                    
-                        } else {
-                            console.error("We cannot find the battery object");
-                        }
-                    }                                                  
-
-                    if (data.wheels) {
-                        data.wheels.forEach((wheelData, index) => {
-                            const wheelBody = car.physics[carKey].wheels.bodies[index];
-                            wheelBody.position.set(wheelData.position.x, wheelData.position.y, wheelData.position.z);
-                            wheelBody.quaternion.set(wheelData.rotation.x, wheelData.rotation.y, wheelData.rotation.z, wheelData.rotation.w);
-                            car.physics[carKey].vehicle.wheelInfos[index].rotation = wheelData.rotationAngle;
-                            car.physics[carKey].vehicle.wheelInfos[index].brake = wheelData.brake
-                        })
-                    }
-        
-                    if (data.controls) {
-                        car.controls.actions.left = data.controls.left;
-                        car.controls.actions.right = data.controls.right;
-                        car.controls.actions.up = data.controls.up;
-                        car.controls.actions.down = data.controls.down;
-                        car.controls.actions.boost = data.controls.boost;
-                        car.controls.actions.brake = data.controls.brake;
-                        car.controls.actions.shoot = data.controls.shoot;
-                        car.controls.actions.siren = data.controls.siren;
-        
-                        const carSteeringValue = data.controls.steering;
-                        car.physics[carKey].vehicle.setSteeringValue(-carSteeringValue, 0);
-                        car.physics[carKey].vehicle.setSteeringValue(-carSteeringValue, 1);
-
-                        if (data.controls.boost) {
-                            car.createNitroEffect(car.physics[carKey].chassis.body.position, car.physics[carKey].chassis.body.quaternion, car.chassis.object)
-                        }
-
-                        if (data.controls.siren) {
-                            car.createSirenEffect()
-                        } else {
-                            console.log("There is no siren effect function")
-                        }
-        
-                        if (data.controls.up) {
-                            car.physics[carKey].vehicle.applyEngineForce(car.physics[carKey].options.controlsAcceleratingSpeed, 2);
-                            car.physics[carKey].vehicle.applyEngineForce(car.physics[carKey].options.controlsAcceleratingSpeed, 3);
-                        } else if (data.controls.down) {
-                            car.physics[carKey].vehicle.applyEngineForce(-car.physics[carKey].options.controlsAcceleratingSpeed, 2);
-                            car.physics[carKey].vehicle.applyEngineForce(-car.physics[carKey].options.controlsAcceleratingSpeed, 3);
-                            car.backLightsReverse.material.opacity = data.controls.down ? 1 : 0.5;
-                        } else {
-                            car.physics[carKey].vehicle.applyEngineForce(0, 2);
-                            car.physics[carKey].vehicle.applyEngineForce(0, 3);
-                        }
-        
-                        if (data.controls.brake) {
-                            car.physics[carKey].vehicle.setBrake(car.physics[carKey].options.controlsBrakeStrength, 0);
-                            car.physics[carKey].vehicle.setBrake(car.physics[carKey].options.controlsBrakeStrength, 1);
-                            car.physics[carKey].vehicle.setBrake(car.physics[carKey].options.controlsBrakeStrength, 2);
-                            car.physics[carKey].vehicle.setBrake(car.physics[carKey].options.controlsBrakeStrength, 3);
-
-                            car.backLightsBrake.material.opacity = data.controls.brake ? 1 : 0.5;
-
-                        } else {
-                            car.physics[carKey].vehicle.setBrake(0, 0);
-                            car.physics[carKey].vehicle.setBrake(0, 1);
-                            car.physics[carKey].vehicle.setBrake(0, 2);
-                            car.physics[carKey].vehicle.setBrake(0, 3);
-                        }
-                    }
-                    
-                    if (car.backLightsBattery) {
-                        const batteryLevelWidth = car.battery / 100;
-                        car.backLightsBattery.object.children.forEach(child => {
-                            child.material = car.battery === 100 ? car.backLightsBattery.materialWhite : car.backLightsBattery.materialRed;
-                            child.scale.set(batteryLevelWidth, 0.41, 0.41);
-                            child.material.opacity = 1;
-                        });
-                    } else {
-                        console.error("Cannot find the battery object");
-                    }
-                };
-        
-                const removePlayerCar = (playerId) => {
-                    const removedPlayerCar = this.otherPlayers[playerId];
-        
-                    if (removedPlayerCar) {
-                        const carKey = removedPlayerCar instanceof Car ? 'car' :
-                                       removedPlayerCar instanceof Car1 ? 'car1' :
-                                       removedPlayerCar instanceof Car2 ? 'car2' :
-                                       removedPlayerCar instanceof Car3 ? 'car3' :
-                                       removedPlayerCar instanceof Car4 ? 'car4' :
-                                       removedPlayerCar instanceof Car5 ? 'car5' :
-                                       removedPlayerCar instanceof Car6 ? 'car6' :
-                                       removedPlayerCar instanceof Car7 ? 'car7' :
-                                       removedPlayerCar instanceof Car8 ? 'car8' :
-                                       removedPlayerCar instanceof Car9 ? 'car9' :
-                                       removedPlayerCar instanceof Car10 ? 'car10' :
-                                       removedPlayerCar instanceof Car11 ? 'car11' :
-                                       removedPlayerCar instanceof Car12 ? 'car12' :
-                                       removedPlayerCar instanceof Car13 ? 'car13' :
-                                       removedPlayerCar instanceof Car14 ? 'car14' :
-                                       removedPlayerCar instanceof Car15 ? 'car15' :
-                                       removedPlayerCar instanceof Car16 ? 'car16' :
-                                       removedPlayerCar instanceof Car17 ? 'car17' :
-                                       removedPlayerCar instanceof Car18 ? 'car18' :
-                                       removedPlayerCar instanceof Car19 ? 'car19' : 'car20';
-
-                        this.physics.world.removeBody(removedPlayerCar.physics[carKey].chassis.body);
-                        // this.container.remove(removedPlayerCar.container)
-                        // removedPlayerCar.physics[carKey].destroy();
-                    }
-        
-                    delete this.physics.cars[playerId];
-                    delete this.otherPlayers[playerId];
-                    this.removeFromMiniMap(playerId);
-                    console.log(`Player ${playerId} removed`);
-                };
-        
             } catch (error) {
                 console.error('Error in setupMultiplayer:', error);
             }
         };
+
+        // setupMultiplayer = async (playerId, token, carName, matcaps) => {
+        //     try {
+        //         // Retrieve the token from localStorage
+        //         // token = localStorage.getItem('token');
+
+        //         // Check if the token is provided
+        //         if (!token) {
+        //             console.error('JWT token is required for authentication');
+        //             return;
+        //         }
+
+        //         // Add the token to the WebSocket URL query parameter
+        //         const serverAddress = `wss://krashbox.glitch.me?token=${token}`;
+        //         const ws = new WebSocket(serverAddress)
+        //         this.ws = ws;  // Store the WebSocket connection
+
+        //         // this.worldId = "world-1"
+
+        //         this.playerId = playerId;
+        //         // this.carName = carName;
+        //         // console.log("Setup multiplayer car name", this.carName);
+        //         this.otherPlayers = {};
+        //         this.cars = {};
+        //         this.inParty = false;
+        //         this.partyMembers = [];
+        //         this.isPartyLeader = false;
+
+        //         const messageQueue = [];
+        
+        //         ws.onopen = () => {
+
+        //             // Clear old party state in case the player was previously in a party
+        //             this.inParty = false;
+        //             this.partyMembers = [];
+
+        //             ws.send(JSON.stringify({ type: 'join', playerId: this.playerId, worldId: this.worldId }));
+        //             console.log('Connected to WebSocket server with worldId', this.worldId);
+
+        //             // Request the player's score from the server
+        //             this.requestPlayerScore(this.playerId);
+
+        //             while (messageQueue.length > 0) {
+        //                 ws.send(JSON.stringify(messageQueue.shift()));
+        //             }
+        //         };
+        
+        //         ws.onmessage = (event) => {
+        //             const message = JSON.parse(event.data);
+
+        //             if (message.type === 'playerCount') {
+        //                 // Safely access the element and update its text content
+        //                 const playerCountElement = document.getElementById('playerCountDisplay');
+        //                 if (playerCountElement) {
+        //                     playerCountElement.innerText = `${message.count}`;
+        //                 } else {
+        //                     console.warn('playerCountDisplay element not found');
+        //                 }
+        //             }
+        
+        //             switch (message.type) {
+        //                 case 'stateUpdate':
+        //                     // Initialize all existing players' cars
+        //                     message.state.forEach(playerState => {
+        //                         if (playerState.playerId !== this.playerId) {
+        //                             createOtherPlayerCar(playerState.playerId, playerState);
+        //                         }
+        //                     });
+        //                     break;
+
+        //                 case 'playerScore':
+        //                     // Update the player's score upon retrieval from the server
+        //                     if (message.playerId === this.playerId) {
+        //                         if (!this.cars[message.playerId]) {
+        //                             this.cars[message.playerId] = {}; // Initialize if not present
+        //                         }
+        //                         this.cars[message.playerId].score = message.score;
+        //                         this.updateScoreStatus(this.cars[message.playerId].score); // Display updated score
+        //                         if(this.cars[message.playerId.score] !== 0) {
+        //                             // dropAirdrop(this.cars[message.playerId]);
+        //                         } else {
+        //                             console.log("Player score is 0")
+        //                         }
+        //                     }
+        //                     break;
+        
+        //                 case 'playerJoined':
+        //                     if (message.playerId !== this.playerId) {
+        //                         createOtherPlayerCar(message.playerId, message.state);
+        //                     }
+        //                     break;
+
+        //                 case 'worldFull':
+        //                         console.error(`The world ${message.worldId} is full. Please try joining another world.`);
+        //                         // Handle world full situation (e.g., prompt the user to join another world or retry)
+        //                         // For example, you might want to retry joining with a different worldId or notify the user
+        //                         break;
+        
+        //                 case 'update':
+        //                     if (message.playerId !== this.playerId) {
+        //                         const car = this.otherPlayers[message.playerId];
+        //                         if (car) {
+        //                             updateCarState(car, message);
+        //                             this.updateMiniMap(
+        //                                 message.playerId,
+        //                                 message.position.x,
+        //                                 message.position.y,
+        //                                 message.rotation,
+        //                                 true
+        //                             );
+        //                         }
+        //                     }
+        //                     break;
+
+        //                 case 'coinUpdate':
+        //                         const { position: coinPosition } = message;
+        //                         if (this.currentCoin) {
+        //                             this.currentCoin.position.set(coinPosition.x, coinPosition.y, coinPosition.z);
+        //                         } else {
+        //                             console.log('Coin is not defined')
+        //                         }
+        //                         break;
+
+        //                 case 'bulletFired':
+        //                         if (message.shooterId !== this.playerId) {
+        //                             const shooterCar = this.otherPlayers[message.shooterId];
+        //                             if (shooterCar) {
+        //                                 shooterCar.createAndShootBullet({
+        //                                     shooterId: message.shooterId,
+        //                                     bulletData: {
+        //                                         position: message.position,
+        //                                         rotation: message.rotation,
+        //                                         velocity: message.velocity
+        //                                     }
+        //                                 });
+        //                             } else {
+        //                                 console.error(`Shooter's car not found for playerId: ${message.shooterId}`);
+        //                             }
+        //                         }
+        //                         break;
+
+        //                 // Client-side bulletCollision handling in setupMultiplayer
+        //                 case 'bulletCollision':
+        //                     console.log("Bullet collision detected:", message);
+                            
+        //                     if (message.carId !== this.playerId) { // Ensure we update the correct car
+        //                         const car = this.otherPlayers[message.carId];
+        //                         if (car) {
+        //                             car.battery = message.battery;
+        //                             car.createSparkEffect();
+        //                             this.updateScoreStatus(message.score);
+        //                             console.log("Updating bullet collision score info", message.score)
+
+                                
+        //                             if (message.battery <= 0) {
+        //                                 // Trigger the crash effect before putting the car to sleep
+        //                                 // car.createCrashEffect(car.chassis.object.position, car.chassis.object.quaternion);
+                                    
+        //                                 // Put the car to sleep
+        //                                 // car.physics.car.sleep();
+                                    
+        //                                 // Set a timeout to recreate the car after 5 seconds
+        //                                 // setTimeout(() => {
+        //                                 //     // Recreate the car
+        //                                 //     car.physics.car.recreate();
+                                    
+        //                                 //     // Reset the battery to 100
+        //                                 //     car.battery = 100;
+        //                                 // }, 5000); // 5 seconds delay
+        //                             }                                
+                                
+        //                             const twitchForce = new CANNON.Vec3(Math.random() * 10 - 5, Math.random() * 10 - 5, Math.random() * 10 - 5);
+        //                             car.physics.car.chassis.body.applyImpulse(twitchForce, car.physics.car.chassis.body.position);
+        //                         }
+        //                     }
+        //                     break;
+
+        //                 case 'invite':
+        //                     console.log(`Received invite from ${message.inviterId}`);
+        //                     showInvitePrompt(message.inviterId, message.targetPlayerId);
+        //                     break;
+
+        //                 case 'inviteResponse':
+        //                         if (message.response === 'yes') {
+        //                             addPlayerToParty(message.inviterId, message.playerId);
+        //                         }
+        //                     break;
+
+        //                 case 'partyUpdate':
+        //                     this.inParty = true;
+        //                     this.isPartyLeader = message.party.leader === this.playerId;  // Check if current player is the leader
+        //                     updateToggleButtonVisibility(this.inParty);
+
+        //                     const partyInfo = document.getElementById('party-info');
+        //                     if (partyInfo) {
+        //                         partyInfo.style.opacity = 1;
+        //                     }
+                            
+        //                     // Ensure no duplicate players are added
+        //                     const uniqueMembers = new Set([...this.partyMembers, ...message.party.members]);
+        //                     this.partyMembers = Array.from(uniqueMembers); // Deduplicate members
+                            
+        //                     updatePartyUI(message.party.leader, this.partyMembers, this.physics);
+                            
+        //                     break;                            
+
+        //                 case 'partyMessage':  // New case for party messages
+        //                     if (this.inParty) {
+        //                         displayPartyMessage(message.senderId, message.text, message.senderId === this.playerId); // Display the incoming message in chat
+        //                         // handleNewMessage(message);
+        //                     }
+        //                     break;
+
+        //                 // case 'partyCall':
+        //                 //     if (this.inParty && message.senderId === message.party.leader) {
+        //                 //         promptPartyCallParticipation(message.senderId);  // Prompt other party members to join the call
+        //                 //     }
+        //                 //     break;
+
+        //                 // case 'partyCallResponse':
+        //                 //     handlePartyCallResponse(message.senderId, message.response);
+        //                 //     break;
+
+        //                 // case 'batteryStatus':
+        //                 //     updateBatteryStatus(message.playerId, message.battery);
+        //                 //     break;
+                        
+        //                 // case 'partyDisbanded':
+        //                 //     this.inParty = false;
+        //                 //     this.partyMembers = [];
+        //                 //     clearChatContainer();
+        //                 //     hideChatContainer();
+        //                 //     updateToggleButtonVisibility(this.inParty);
+        //                 //     document.getElementById('party-info').style.display = 'none';
+        //                 //     if (this.physics) {
+        //                 //         this.physics.nonCollidablePlayers.clear(); // Clear all non-collidable pairs
+        //                 //         console.log("Party disbanded")
+        //                 //     }
+        //                 //     break;
+
+        //                 case 'partyDisbanded':
+        //                     this.inParty = false;
+        //                     this.partyMembers = [];
+        //                     clearChatContainer();
+        //                     hideChatContainer();
+        //                     updateToggleButtonVisibility(this.inParty);
+
+        //                     document.getElementById('party-info').style.display = 'none';
+
+        //                     // Additional clear logic
+        //                     if (this.otherPlayers) {
+        //                         Object.keys(this.otherPlayers).forEach(playerId => {
+        //                             if (this.partyMembers.includes(playerId)) {
+        //                                 delete this.otherPlayers[playerId];
+        //                             }
+        //                         });
+        //                     }
+
+        //                     if (this.physics) {
+        //                         this.physics.nonCollidablePlayers.clear(); // Clear all non-collidable pairs
+        //                         console.log("Party disbanded")
+        //                     }
+        //                 break;
+
+        //                 case 'partyTwoLeft':
+        //                     alert("Only two players are left in the party.");
+        //                     break;
+
+        //                 case 'playerRemoved':
+        //                     removePlayerCar(message.playerId);
+        //                     this.inParty = false;
+        //                     this.partyMembers = [];
+        //                     clearChatContainer();
+        //                     hideChatContainer();
+        //                     updateToggleButtonVisibility(this.inParty);
+
+        //                     const partyInfoElement = document.getElementById('party-info');
+        //                         if (partyInfoElement) {
+        //                             partyInfoElement.style.display = 'none';
+        //                         }
+        //                         if (this.physics) {
+        //                         this.physics.nonCollidablePlayers.clear(); // Clear all non-collidable pairs
+        //                         console.log("Party disbanded")
+        //                     }
+        //                     break;
+
+        //                 case 'dropKrashcoin':
+
+        //                         // Check if a coin is already active
+        //                         if (this.coinActive) {
+        //                             console.log("Coin is already active, skipping drop.");
+        //                             return; // Exit the function to prevent multiple coins
+        //                         }
+
+        //                         const { position } = message;
+        //                         console.log("Client side position", position)
+                            
+        //                         this.dropCoinAtPosition(position); // Use the server-sent position
+        //                         this.coinActive = true;
+                            
+        //                         break;  
+                                
+        //                     case 'hideCoin':
+        //                         if (this.coinActive) {
+        //                                 this.hideCoin();
+        //                                 this.coinActive = false;
+        //                             }
+        //                         break;
+
+        //                     case 'updateNonCollidablePairs':
+        //                         // Update the local non-collidable pairs list on the client side
+        //                         const newNonCollidablePairs = new Set(message.nonCollidablePairs);
+
+        //                         // Update the physics or collision detection logic with the new non-collidable pairs
+        //                         this.physics.nonCollidableCars = newNonCollidablePairs;
+        //                         break;
+
+        //                     case 'checkBattery':
+        //                         // const car = this.otherPlayers[message.carId];
+        //                         const car = playerCar
+                        
+        //                         if (car && message.battery <= 0) {
+        //                             // Update non-collidable cars since battery is zero
+        //                             this.physics.updateNonCollidableCars(car, Object.values(this.otherPlayers));
+        //                             console.log("Non collidable cars", this.physics.nonCollidableCars)
+                        
+        //                             // Trigger crash effect and put the car to sleep (optional, based on desired behavior)
+        //                             if (typeof car.createCrashEffect === 'function') {
+        //                                 car.createCrashEffect(car.chassis.object.position, car.chassis.object.quaternion);
+        //                             }
+        //                             // Set a timeout to recreate the car after 5 seconds
+        //                             setTimeout(() => {
+        //                                 car.recreate(); // Recreate the car
+        //                                 car.battery = 100; // Reset battery after recreation
+        //                             }, 15000); // 5 seconds delay
+        //                         }
+        //                         break;
+        
+        //                 default:
+        //                     // console.error('Unknown message type:', message.type);
+        //             }
+        //         };
+        
+        //         ws.onclose = () => {
+        //             console.log('Disconnected from WebSocket server');
+                    
+        //                 // Clear party state on disconnect
+        //                 this.inParty = false;
+        //                 this.partyMembers = [];
+        //                 clearChatContainer();
+        //                 hideChatContainer();
+        //                 updateToggleButtonVisibility(this.inParty);
+
+        //                 const partyInfoElement = document.getElementById('party-info');
+        //                 if (partyInfoElement) {
+        //                     partyInfoElement.style.display = 'none';
+        //                 }
+                    
+        //                 // Clear physics non-collidable pairs if necessary
+        //                 if (this.physics) {
+        //                     this.physics.nonCollidablePlayers.clear();
+        //                 }         
+                        
+        //                 // Redirect to the home or wallet connection page
+        //                 if (typeof window !== 'undefined') {
+        //                     // window.location.href = 'https://krashbox.world';
+        //                     window.location.href = 'localhost:3000';
+        //                 }
+        //         };
+
+        //         this.setCar(this.playerId, this.carName, this.matcaps);
+        //         const playerCar = this.car;
+
+        //         this.initializeTargetDetection();
+
+        //         // Update the Areas instance with the correct car after initialization
+        //         if (this.areas) {
+        //             this.areas.updateCar(this.car);
+        //         }
+
+        //         this.physics.cars[playerId] = playerCar;
+        //         this.cars[playerId] = playerCar;
+
+        //         // Airdrop
+        //         const airdropObj = this.resources.items.airdropBase.scene;
+                
+        //         // Set color to orange
+        //         airdropObj.traverse((child) => {
+        //             if (child.isMesh) {
+        //                 child.material = this.materials.shades.items.blueGlass;
+        //             }
+        //         });
+                
+        //         // Airdrop
+        //         const airdropObj1 = this.resources.items.airdropBase.scene;
+                
+        //         // Set color to orange
+        //         airdropObj1.traverse((child) => {
+        //             if (child.isMesh) {
+        //                 child.material = this.materials.shades.items.greenBulb;
+        //             }
+        //         });
+
+        //         const airdropObjects = [
+        //             { object: airdropObj, chance: 0.49 },
+        //             { object: airdropObj1, chance: 0.51 }
+        //         ];
+                
+        //         const getRandomAirdrop = () => {
+        //             const rand = Math.random();
+        //             let cumulativeChance = 0;
+        //             for (const airdrop of airdropObjects) {
+        //                 cumulativeChance += airdrop.chance;
+        //                 if (rand < cumulativeChance) {
+        //                     return airdrop.object;
+        //                 }
+        //             }
+        //             return airdropObjects[airdropObjects.length - 1].object; // Default to the last object in case of rounding errors
+        //         };
+        
+        //         const dropAirdrop = (playerCar) => {
+        //             // Randomly select an airdrop object
+        //             const airdropObject = getRandomAirdrop();
+
+        //             if (!airdropObject) {
+        //                 console.error('Selected airdrop object is not defined.');
+        //                 return;
+        //             }
+        
+        //             // Create a clone of the airdrop object to add to the scene
+        //             const airdropClone = airdropObject.clone();
+        //             this.container.add(airdropClone);
+        
+        //             // Set the initial position of the airdrop (above the car)
+        //             airdropClone.position.set(playerCar.physics.car.chassis.body.position.x * Math.random() * Math.PI * 2, playerCar.physics.car.chassis.body.position.y * Math.random() * Math.PI * 2, playerCar.physics.car.chassis.body.position.z * Math.random() * Math.PI * 2);
+        
+        //             // Animate the airdrop to move to the car's position
+        //             const targetPosition = {
+        //                 x: playerCar.physics.car.chassis.body.position.x,
+        //                 y: playerCar.physics.car.chassis.body.position.y,
+        //                 z: playerCar.physics.car.chassis.body.position.z
+        //             };
+
+        //             // Add random spin animation
+        //             gsap.to(airdropClone.rotation, 2, {
+        //                 x: Math.random() * Math.PI * 2,
+        //                 y: Math.random() * Math.PI * 2,
+        //                 z: Math.random() * Math.PI * 2,
+        //             });
+        
+        //             gsap.to(airdropClone.position, 2, {
+        //                 x: targetPosition.x,
+        //                 y: targetPosition.y,
+        //                 z: targetPosition.z,
+        //                 onComplete: () => {
+        //                     // Remove the airdrop from the scene after reaching the target
+        //                     this.container.remove(airdropClone);
+        //                 }
+        //             });
+        //         }
+
+        //         let lastAirdropScore = playerCar.score;
+
+        //         const checkForAirdrop = () => {
+        //             if (playerCar.score >= lastAirdropScore + 5) {
+        //                 lastAirdropScore += 5;
+        //                 this.dropAirdrop(playerCar);
+        //             }
+        //         };
+
+        //         // Add the invite button event listener
+        //         document.getElementById('invite-button').addEventListener('click', () => {
+        //             const targetPlayerId = this.detectNearestTarget();
+                    
+        //             if (targetPlayerId) {
+        //                 const playerId = this.car.playerId;
+
+        //                 // Check if the targetPlayerId is already in a party
+        //                 if (this.partyMembers && this.partyMembers.includes(targetPlayerId)) {
+        //                     alert(`Target player ${targetPlayerId} is already in party.`);
+        //                 } else {
+        //                     console.log(`Sending invite from ${playerId} to ${targetPlayerId}`);
+        //                     sendInvite(targetPlayerId, playerId);
+        //                 }
+        //             } else {
+        //                 console.error('No target player found for invite.');
+        //             }
+        //         });
+
+        //         // Add party call button functionality
+        //         // if (this.isPartyLeader) {
+        //         //     document.getElementById('party-call-button').addEventListener('click', () => {
+        //         //         initiatePartyCall();  // Party leader initiates the call
+        //         //     });
+        //         // }
+
+        //         // Invite target player
+        //         function sendInvite(targetPlayerId, playerId) {
+        //             if (typeof window !== 'undefined') {
+
+        //                 if (window.pendingInvite) return;
+                        
+        //                 window.pendingInvite = true;
+        //             }
+                
+        //             // Check if the WebSocket is open before sending the invite
+        //             if (ws.readyState === WebSocket.OPEN) {
+        //                 ws.send(JSON.stringify({
+        //                     type: 'invite',
+        //                     inviterId: playerId,
+        //                     targetPlayerId: targetPlayerId
+        //                 }));
+                
+        //                 console.log(`Invite sent from ${playerId} to ${targetPlayerId}`);
+        //             } else {
+        //                 console.error('WebSocket connection is not open. Invite not sent.');
+        //             }
+                
+        //             if (typeof window !== 'undefined') {
+        //                 // Timeout after 20 seconds if no response
+        //                 setTimeout(() => {
+        //                     window.pendingInvite = false;
+        //                 }, 20000);
+        //             }
+        //         }
+
+        //         // Show invite prompt
+        //         function showInvitePrompt(inviterId, playerId) {
+        //             let inviteElement = document.getElementById('invite-prompt');
+        //             if (!inviteElement) {
+        //                 inviteElement = document.createElement('div');
+        //                 inviteElement.id = 'invite-prompt';
+        //                 inviteElement.style.position = 'absolute';
+        //                 inviteElement.style.top = '50%';
+        //                 inviteElement.style.left = '50%';
+        //                 inviteElement.style.transform = 'translate(-50%, -50%)';
+        //                 inviteElement.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+        //                 inviteElement.style.color = 'white';
+        //                 inviteElement.style.padding = '10px';
+        //                 inviteElement.style.borderRadius = '10px';
+        //                 inviteElement.style.zIndex = '1000';
+        //                 inviteElement.style.backdropFilter = 'blur(5px)';
+        //                 inviteElement.style.display = 'flex';
+        //                 inviteElement.style.alignItems = 'center';
+        //                 inviteElement.style.flexDirection = 'column';
+        //                 inviteElement.style.width = '250px';
+
+        //                 // Progress bar container
+        //                 const progressBarContainer = document.createElement('div');
+        //                 progressBarContainer.style.width = '100%';
+        //                 progressBarContainer.style.height = '10px';
+        //                 progressBarContainer.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
+        //                 progressBarContainer.style.borderRadius = '5px';
+        //                 progressBarContainer.style.overflow = 'hidden';
+        //                 progressBarContainer.style.marginBottom = '10px';
+
+        //                 // Progress bar
+        //                 const progressBar = document.createElement('div');
+        //                 progressBar.style.width = '100%';
+        //                 progressBar.style.height = '100%';
+        //                 progressBar.style.backgroundColor = '#8CFF80';
+        //                 progressBarContainer.appendChild(progressBar);
+
+        //                 inviteElement.appendChild(progressBarContainer);
+
+        //                 const messageElement = document.createElement('div');
+        //                 messageElement.id = 'invite-message';
+        //                 messageElement.style.fontFamily = 'Orbitron, sans-serif';
+        //                 inviteElement.appendChild(messageElement);
+
+        //                 const buttonContainer = document.createElement('div');
+        //                 buttonContainer.style.display = 'flex';
+        //                 buttonContainer.style.justifyContent = 'space-between';
+        //                 buttonContainer.style.width = '100%';
+
+        //                 const yesButton = document.createElement('button');
+        //                 yesButton.id = 'ordinaryButton';
+        //                 yesButton.innerHTML = `${feather.icons['check-square'].toSvg({ width: 15, height: 15 })} CONFIRM`;
+        //                 yesButton.style.marginRight = '10px';
+        //                 yesButton.style.whiteSpace = 'pre';
+        //                 yesButton.style.display = 'flex';
+        //                 yesButton.style.justifyContent = 'center';
+        //                 yesButton.style.backgroundColor = '#8CFF80';
+        //                 yesButton.style.color = '#000';
+        //                 yesButton.style.flex = '1';
+        //                 yesButton.style.fontFamily = 'Orbitron, sans-serif';
+        //                 yesButton.onclick = () => respondToInvite('yes', inviterId, playerId);
+        //                 buttonContainer.appendChild(yesButton);
+        //                 feather.replace();
+
+        //                 const noButton = document.createElement('button');
+        //                 noButton.id = 'ordinaryButton';
+        //                 noButton.innerHTML = `${feather.icons['x-square'].toSvg({ width: 15, height: 15 })} DENY`;
+        //                 noButton.style.whiteSpace = 'pre';
+        //                 noButton.style.backgroundColor = '#FF5733';
+        //                 noButton.style.display = 'flex';
+        //                 noButton.style.fontFamily = 'Orbitron, sans-serif';
+        //                 noButton.style.justifyContent = 'center';
+        //                 noButton.style.flex = '1';
+        //                 noButton.onclick = () => respondToInvite( 'DENY', inviterId, playerId);
+        //                 buttonContainer.appendChild(noButton);
+
+        //                 inviteElement.appendChild(buttonContainer);
+        //                 document.body.appendChild(inviteElement);
+
+        //                 // Start the progress bar animation (decrease width over 20 seconds)
+        //                 setTimeout(() => {
+        //                     progressBar.style.transition = 'width 20s linear';  // Smooth transition for 20 seconds
+        //                     progressBar.style.width = '0%';  // Decrease the width to 0%
+        //                 }, 100);  // Small delay to trigger the transition
+
+        //                 // Auto-remove after 20 seconds
+        //                 let timeLeft = 20;
+        //                 const countdownInterval = setInterval(() => {
+        //                     timeLeft -= 1;
+        //                     if (timeLeft <= 0) {
+        //                         clearInterval(countdownInterval);
+        //                         hideInvitePrompt(inviteElement); // Automatically hide the invite prompt after timeout
+        //                     }
+        //                 }, 1000);
+        //             }
+
+        //             const messageElement = document.getElementById('invite-message');
+        //             messageElement.innerText = `${inviterId.slice(0, 6)} invited you to a party. Accept?`;
+        //             messageElement.style.textAlign = 'left';
+        //             messageElement.style.marginLeft = '10px';
+        //             inviteElement.style.display = 'flex';
+        //             inviteElement.style.opacity = '1';
+        //             inviteElement.style.fontSize = '12px';
+        //         }
+
+        //         // Hide invite prompt
+        //         function hideInvitePrompt(inviteElement) {
+        //             inviteElement.style.opacity = '0';
+        //             setTimeout(() => {
+        //                 if (inviteElement && inviteElement.parentNode) {
+        //                     inviteElement.parentNode.removeChild(inviteElement);
+        //                 }
+        //             }, 500); // Smooth fade out
+        //         }
+
+        //         // Respond to invite
+        //         function respondToInvite(response, inviterId, playerId) {
+        //             ws.send(JSON.stringify({
+        //                 type: 'inviteResponse',
+        //                 response: response,
+        //                 inviterId: inviterId,
+        //                 playerId: playerId
+        //             }));
+
+        //             const inviteElement = document.getElementById('invite-prompt');
+        //             if (inviteElement) {
+        //                 inviteElement.style.display = 'none';
+        //             }
+        //         }
+
+        //         // Add player to party
+        //         function addPlayerToParty(inviterId, playerId) {
+        //             ws.send(JSON.stringify({
+        //                 type: 'addToParty',
+        //                 inviterId: inviterId,
+        //                 playerId: playerId
+        //             }));
+        //             // updatePartyUI(inviterId, playerId);
+        //         }
+                
+        //         // Update party UI
+        //         function updatePartyUI(inviterId, members, physics) {
+        //             let partyElement = document.getElementById('party-info');              
+
+        //             if (!partyElement) {
+        //                 partyElement = document.createElement('div');
+        //                 partyElement.id = 'party-info';
+                        
+        //                 const updateStylesForOrientation = (orientation) => {
+        //                     if (orientation === 'portrait') {
+        //                         partyElement.style.top = '180px';
+        //                         partyElement.style.left = '235px';
+        //                         partyElement.style.width = '35%';
+        //                         partyElement.style.fontSize = '13px';
+        //                         partyElement.style.textAlign = 'left';
+        //                         partyElement.style.borderRadius = '5px';
+        //                         partyElement.style.display = 'block';
+        //                         partyElement.style.fontFamily = 'Orbitron, sans-serif';
+        //                         partyElement.style.backgroundColor = 'rgba(0, 0, 0, 0.2)';
+        //                     } else if (orientation === 'landscape') {
+        //                         partyElement.style.display = 'none';
+        //                         partyElement.style.top = '15px';
+        //                         partyElement.style.left = '345px';
+        //                         partyElement.style.width = '15%';
+        //                     }
+        //                 };
+                    
+        //                 // Check initial orientation
+        //                 let portrait = window.matchMedia("(orientation: portrait)");
+        //                 updateStylesForOrientation(portrait.matches ? 'portrait' : 'landscape');
+                    
+        //                 // Listen for orientation changes
+        //                 portrait.addEventListener("change", (e) => {
+        //                     if (e.matches) {
+        //                         updateStylesForOrientation('portrait');
+        //                     } else {
+        //                         updateStylesForOrientation('landscape');
+        //                     }
+        //                 });
+                    
+        //                 // Alternatively, using screen.orientation (if supported)
+        //                 if (screen.orientation) {
+        //                     screen.orientation.addEventListener("change", (e) => {
+        //                         updateStylesForOrientation(screen.orientation.type.includes('portrait') ? 'portrait' : 'landscape');
+        //                     });
+        //                 }
+                    
+        //                 // Set the common styles for the partyElement
+        //                 partyElement.style.position = 'absolute';
+        //                 partyElement.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+        //                 partyElement.style.color = 'white';
+        //                 partyElement.style.padding = '10px';
+        //                 partyElement.style.zIndex = '1000';
+        //                 partyElement.style.backdropFilter = 'blur(10px)';
+        //                 partyElement.style.fontFamily = 'Orbitron, sans-serif';
+        //                 partyElement.style.borderRadius = '5px';
+                    
+        //                 const leaveButton = document.createElement('button');
+        //                 leaveButton.id = 'ordinaryButton';
+        //                 leaveButton.onclick = leaveParty;
+        //                 partyElement.appendChild(leaveButton);
+                    
+        //                 document.body.appendChild(partyElement);
+        //             }
+                    
+        //             // Ensure the party UI is visible
+        //             partyElement.style.display = 'block';
+
+        //             // Clear previous content except for the leave button
+        //             partyElement.innerHTML = '';
+
+        //             // Create the leave button
+        //             const leaveButton = document.createElement('button');
+        //             leaveButton.innerHTML = `${feather.icons['log-out'].toSvg({ width: 15, height: 15 })}`;
+        //             leaveButton.style.display = 'flex';
+        //             leaveButton.style.rotate = '180deg';
+        //             leaveButton.style.marginBottom = '5px';
+        //             leaveButton.style.paddingLeft = '5px';
+        //             leaveButton.style.color = 'rgb(255, 87, 51)';
+        //             leaveButton.style.background = 'unset';
+        //             leaveButton.style.border = 'none';
+        //             leaveButton.style.fontSize = '10px';
+        //             leaveButton.style.fontWeight = 'bold';
+        //             leaveButton.style.fontFamily = 'Orbitron, sans-serif';
+        //             leaveButton.onclick = leaveParty;
+        //             partyElement.appendChild(leaveButton);
+
+        //             // Conditionally attach it to the switch button
+        //             // const switchContainer = document.getElementById('switch-container');
+        //             // if (switchContainer) {
+        //             //     switchContainer.appendChild(partyElement);  // Append to the switch-container
+        //             // }
+
+        //             function formatPlayerId(id) {
+        //                 const firstPart = id.substring(0, 4);
+        //                 const lastPart = id.substring(id.length - 4);
+        //                 return `${firstPart}...${lastPart}`;
+        //             }
+
+        //             // Create time display element
+        //             const timeElement = document.createElement('div');
+        //             timeElement.id = 'party-time-display';
+        //             timeElement.style.position = 'absolute';
+        //             timeElement.style.top = '8px';
+        //             timeElement.style.left = '50%';
+        //             timeElement.style.transform = 'translateX(-50%)';
+        //             timeElement.style.fontSize = '14px';
+        //             timeElement.style.padding = '3px';
+        //             timeElement.style.fontWeight = 'bold';
+        //             timeElement.style.marginLeft = '3px';
+        //             timeElement.style.fontSize = '10px';
+        //             partyElement.appendChild(timeElement);
+
+        //             // Update time every second
+        //             setInterval(() => {
+        //                 const currentTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        //                 timeElement.innerText = currentTime;
+        //             }, 1000);
+
+        //             // Add inviter info
+        //             // const inviterInfo = document.createElement('div');
+        //             // inviterInfo.innerText = `♔ ${formatPlayerId(inviterId)}`;
+        //             // partyElement.appendChild(inviterInfo);
+
+        //             // Add the toggle chat button if it doesn't already exist
+        //             const toggleButton = document.createElement('button');
+        //             toggleButton.id = 'toggle-chat-button';
+        //             toggleButton.innerHTML = `${feather.icons['mail'].toSvg({ width: 15, height: 15 })}`;  // Chat icon
+        //             toggleButton.style.color = '#FF5733';
+        //             toggleButton.style.background = 'unset';
+        //             toggleButton.style.border = 'none';
+        //             toggleButton.style.marginLeft = '35%';
+        //             toggleButton.style.top = '0';
+        //             toggleButton.style.cursor = 'pointer';
+        //             partyElement.appendChild(toggleButton);
+
+        //             // Add event listener for toggling the chat visibility
+        //             toggleButton.addEventListener('click', toggleChatVisibility);
+
+        //             // Add member info
+        //             members.forEach(memberId => {
+        //                 const memberInfo = document.createElement('div');
+        //                 memberInfo.id = `member-${memberId}`;
+        //                 memberInfo.style.marginTop = '5px';
+        //                 memberInfo.innerText = `➤ ${formatPlayerId(memberId)}`;
+        //                 partyElement.appendChild(memberInfo);
+        //             });
+
+        //             // Pass the updated members to the physics engine
+        //             if (physics) {
+        //                 // Update non-collidable pairs only if there are remaining members
+        //                 if (members.length > 1) {
+        //                     physics.updateNonCollidablePlayers(members);
+        //                 } else {
+        //                     physics.nonCollidablePlayers.clear(); // Clear all non-collidable pairs if the party is disbanded
+        //                 }
+        //             } else {
+        //                 console.error('Physics engine is not defined.');
+        //             }  
+        //         }
+
+        //         // const initiatePartyCall = () => {
+        //         //     if (this.isPartyLeader && this.ws && this.ws.readyState === WebSocket.OPEN) {
+        //         //         this.ws.send(JSON.stringify({
+        //         //             type: 'partyCall',
+        //         //             senderId: this.playerId,
+        //         //             party: {
+        //         //                 leader: this.playerId,
+        //         //                 members: this.partyMembers
+        //         //             }
+        //         //         }));
+        //         //         displayPartyMessage(this.playerId, "You initiated a party call.", true);  // Notify in the chat
+        //         //     } else {
+        //         //         console.error("Only the party leader can initiate a party call.");
+        //         //     }
+        //         // };
+
+        //         // const promptPartyCallParticipation = (senderId) => {
+        //         //     const callPromptElement = document.createElement('div');
+        //         //     callPromptElement.id = 'party-call-prompt';
+        //         //     callPromptElement.style.position = 'absolute';
+        //         //     callPromptElement.style.top = '50%';
+        //         //     callPromptElement.style.left = '50%';
+        //         //     callPromptElement.style.transform = 'translate(-50%, -50%)';
+        //         //     callPromptElement.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+        //         //     callPromptElement.style.color = 'white';
+        //         //     callPromptElement.style.padding = '20px';
+        //         //     callPromptElement.style.borderRadius = '10px';
+        //         //     callPromptElement.style.zIndex = '1000';
+        //         //     callPromptElement.innerText = `${formatPlayerId(senderId)} is initiating a party call. Do you want to join?`;
+                
+        //         //     const buttonContainer = document.createElement('div');
+        //         //     buttonContainer.style.display = 'flex';
+        //         //     buttonContainer.style.justifyContent = 'space-between';
+        //         //     buttonContainer.style.marginTop = '10px';
+                
+        //         //     const acceptButton = document.createElement('button');
+        //         //     acceptButton.innerText = 'Join Call';
+        //         //     acceptButton.style.flex = '1';
+        //         //     acceptButton.style.marginRight = '10px';
+        //         //     acceptButton.onclick = () => {
+        //         //         respondToPartyCall('yes', senderId);
+        //         //         document.body.removeChild(callPromptElement);  // Remove the prompt
+        //         //     };
+                
+        //         //     const declineButton = document.createElement('button');
+        //         //     declineButton.innerText = 'Decline';
+        //         //     declineButton.style.flex = '1';
+        //         //     declineButton.onclick = () => {
+        //         //         respondToPartyCall('no', senderId);
+        //         //         document.body.removeChild(callPromptElement);  // Remove the prompt
+        //         //     };
+                
+        //         //     buttonContainer.appendChild(acceptButton);
+        //         //     buttonContainer.appendChild(declineButton);
+        //         //     callPromptElement.appendChild(buttonContainer);
+                
+        //         //     document.body.appendChild(callPromptElement);
+        //         // };        
+                
+        //         // const respondToPartyCall = (response, leaderId) => {
+        //         //     if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+        //         //         this.ws.send(JSON.stringify({
+        //         //             type: 'partyCallResponse',
+        //         //             senderId: this.playerId,
+        //         //             leaderId: leaderId,
+        //         //             response: response
+        //         //         }));
+        //         //     }
+        //         // };                
+
+        //         // Function to send a message to party members
+        //         const sendPartyMessage = (text) => {
+        //             if (text && this.ws && this.ws.readyState === WebSocket.OPEN && this.inParty) {
+        //             ws.send(JSON.stringify({
+        //                 type: 'partyMessage',
+        //                 senderId: this.playerId,
+        //                 text: text
+        //             }));
+        //             }
+        //         };
+            
+        //         // Event listener for sending a message
+        //         document.getElementById('send-message-button').addEventListener('click', () => {
+        //             const messageInput = document.getElementById('party-message-input');
+        //             const messageText = messageInput.value;
+        //             if (messageText) {
+        //             sendPartyMessage(messageText);
+        //             messageInput.value = ''; // Clear the input after sending
+        //             }
+        //         });
+
+        //         // const handlePartyCallResponse = (senderId, response) => {
+        //         //     const message = response === 'yes'
+        //         //         ? `${formatPlayerId(senderId)} joined the party call.`
+        //         //         : `${formatPlayerId(senderId)} declined the party call.`;
+        //         //     displayPartyMessage(senderId, message, false);
+        //         // };
+                
+            
+        //         // Function to display a party message in the chat UI
+        //         const displayPartyMessage = (senderId, text, isOwnMessage) => {
+        //             const chatBox = document.getElementById('party-chat-box');
+        //             const chatContainer = document.getElementById('party-chat-container');
+
+        //             // Check if the chat is hidden and show the notification badge
+        //             if (chatContainer.style.display !== 'block') {
+        //                 showNotificationBadge();  // Trigger notification if chat is hidden
+        //             }
+
+        //             // Create a container for the message
+        //             const messageElement = document.createElement('div');
+        //             messageElement.classList.add('chat-message');
+
+        //             // Apply the appropriate class for sent/received messages
+        //             if (isOwnMessage) {
+        //                 messageElement.classList.add('my-message');  // Apply style for own message
+        //             } else {
+        //                 messageElement.classList.add('other-message');  // Apply style for received message
+        //             }
+
+        //             // Format the senderId and create a sender element
+        //             const senderElement = document.createElement('span');
+        //             senderElement.classList.add('sender-id');
+        //             senderElement.innerText = `${formatPlayerId(senderId)}: `;
+
+        //             // Create a text element for the message text
+        //             const textElement = document.createElement('span');
+        //             textElement.classList.add('message-text');
+        //             textElement.innerText = text;
+
+        //             // Create a timestamp element
+        //             const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        //             const timeElement = document.createElement('span');
+        //             timeElement.classList.add('message-timestamp');
+        //             timeElement.innerText = ` ${timestamp}`;
+        //             timeElement.style.marginLeft = '8px';
+        //             timeElement.style.color = '#888';
+        //             timeElement.style.fontSize = '8px';
+
+        //             // Append sender, text, and timestamp to the message element
+        //             messageElement.appendChild(senderElement);
+        //             messageElement.appendChild(textElement);
+        //             messageElement.appendChild(timeElement);
+
+        //             // Append the message element to the chat box
+        //             chatBox.appendChild(messageElement);
+        //             chatBox.scrollTop = chatBox.scrollHeight;  // Auto-scroll to the latest message
+        //         };
+
+        //         // Function to format playerId
+        //         function formatPlayerId(playerId) {
+        //             const firstPart = playerId.substring(0, 4);
+        //             const lastPart = playerId.substring(playerId.length - 4);
+        //             return `${firstPart}...${lastPart}`;
+        //         }
+
+        //         // Function to clear the chat container
+        //         const clearChatContainer = () => {
+        //             const chatBox = document.getElementById('party-chat-box');
+        //             chatBox.innerHTML = ''; // Clear the chat messages
+        //         };
+
+        //         // Function to show the chat container
+        //         const showChatContainer = () => {
+        //             const chatContainer = document.getElementById('party-chat-container');
+        //             if (chatContainer) {
+        //             chatContainer.style.display = 'block'; // Show the chat container
+        //             }
+        //         };
+
+        //         // Function to hide the chat container
+        //         const hideChatContainer = () => {
+        //             const chatContainer = document.getElementById('party-chat-container');
+        //             if (chatContainer) {
+        //             chatContainer.style.display = 'none'; // Hide the chat container
+        //             }
+        //         };
+
+        //         // Function to show the toggle button
+        //         const showToggleButton = () => {
+        //             const toggleButton = document.getElementById('toggle-chat-button');
+        //             if (toggleButton) {
+        //                 toggleButton.style.display = 'block';
+        //             }
+        //         };
+
+        //         // Function to hide the toggle button
+        //         const hideToggleButton = () => {
+        //             const toggleButton = document.getElementById('toggle-chat-button');
+        //             if (toggleButton) {
+        //                 toggleButton.style.display = 'none';
+        //             }
+        //         };
+
+        //         // Function to check if the player is in a party and update the toggle button visibility
+        //         const updateToggleButtonVisibility = (inParty) => {
+        //             if (inParty) {
+        //                 console.log('Player is in a party. Showing toggle button.');
+        //                 showToggleButton();  // Show the button if the player is in a party
+        //             } else {
+        //                 console.log('Player is not in a party. Hiding toggle button.');
+        //                 hideToggleButton();  // Hide the button if the player is not in a party
+        //             }
+        //         };
+
+        //         // Function to show a notification badge on the toggle button
+        //         const showNotificationBadge = () => {
+        //             const toggleButton = document.getElementById('toggle-chat-button');
+        //             let notificationBadge = document.getElementById('chat-notification-badge');
+
+        //             if (toggleButton && !notificationBadge) {
+        //                 // Create a new notification badge if it doesn't exist
+        //                 notificationBadge = document.createElement('div');
+        //                 notificationBadge.id = 'chat-notification-badge';
+        //                 notificationBadge.style.position = 'absolute';
+        //                 notificationBadge.style.top = '-15px';
+        //                 notificationBadge.innerHTML = `${feather.icons['mouse-pointer'].toSvg({ width: 15, height: 15 })}`;
+        //                 notificationBadge.style.right = '2px';
+        //                 notificationBadge.style.rotate = '270deg';
+        //                 notificationBadge.style.backgroundColor = 'transparent';
+        //                 notificationBadge.style.borderRadius = '50%';
+        //                 notificationBadge.style.zIndex = '1000';
+        //                 notificationBadge.style.fontSize = '30px';
+        //                 notificationBadge.style.color = '#18FF00';
+        //                 // toggleButton.style.position = 'relative'; // Ensure relative positioning
+        //                 toggleButton.appendChild(notificationBadge);
+        //             }
+
+        //             // Ensure the badge is visible
+        //             if (notificationBadge) {
+        //                 notificationBadge.style.display = 'block';
+        //             }
+        //         };
+            
+        //         // Toggle chat visibility on button click
+        //         const toggleChatVisibility = () => {
+        //             const chatContainer = document.getElementById('party-chat-container');
+        //             const notificationBadge = document.getElementById('chat-notification-badge'); // Badge element
+
+        //             if (!chatContainer) {
+        //                 console.error('Chat container not found!');
+        //                 return;
+        //             }
+
+        //             console.log('Chat container found. Toggling visibility.');
+
+        //             // Toggle chat visibility
+        //             if (chatContainer.style.display === 'block') {
+        //                 chatContainer.style.display = 'none';
+        //             } else {
+        //                 chatContainer.style.display = 'block';
+        //                 // Hide the notification badge when the chat is opened
+        //                 if (notificationBadge) {
+        //                     notificationBadge.style.display = 'none';
+        //                 }
+        //             }
+        //         };
+
+        //         // Add event listener to existing button (no need to create it dynamically)
+        //         // document.getElementById('toggle-chat-button').addEventListener('click', toggleChatVisibility);
+
+        //         // Create chat UI but hide it initially
+        //         const chatContainer = document.createElement('div');
+        //         chatContainer.id = 'party-chat-container';
+        //         chatContainer.style.position = 'absolute';
+        //         chatContainer.style.bottom = '0';
+        //         chatContainer.style.right = '0';
+        //         chatContainer.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+        //         chatContainer.style.width = '300px';
+        //         chatContainer.style.height = '200px';
+        //         chatContainer.style.overflowY = 'auto';
+        //         chatContainer.style.display = 'none';
+        //         chatContainer.style.transform = 'translateY(100%)';
+        //         chatContainer.style.transition = 'transform 0.4s ease, opacity 0.4s ease';
+
+        //         document.body.appendChild(chatContainer);
+
+        //         const chatBox = document.createElement('div');
+        //         chatBox.id = 'party-chat-box';
+        //         chatBox.style.height = '80%';
+        //         chatBox.style.overflowY = 'auto';
+        //         chatContainer.appendChild(chatBox);
+
+        //         // Create the toggle chat visibility button inside the chat box
+        //         const toggleChatButton = document.createElement('button')
+        //         toggleChatButton.id = 'toggle-chat-visibility-button';
+        //         toggleChatButton.innerHTML = `${feather.icons['minimize'].toSvg({ width: 15, height: 15 })}`;
+        //         toggleChatButton.style.position = 'absolute';
+        //         toggleChatButton.style.top = '10px';
+        //         toggleChatButton.style.right = '10px';
+        //         toggleChatButton.style.backgroundColor = 'transparent';
+        //         toggleChatButton.style.color = 'rgb(255, 87, 51)';
+        //         toggleChatButton.style.border = 'none';
+        //         toggleChatButton.style.padding = '10px 5px';
+        //         toggleChatButton.style.cursor = 'pointer';
+        //         toggleChatButton.style.borderRadius = '5px';
+        //         // toggleChatButton.onclick = toggleChatVisibility; // Call the toggle function
+
+        //         // Append the button to the chat container
+        //         document.getElementById('party-chat-container').appendChild(toggleChatButton);
+
+        //         toggleChatButton.addEventListener('click', toggleChatVisibility);
+
+        //         const messageInput = document.createElement('input');
+        //         messageInput.id = 'party-message-input';
+        //         messageInput.style.width = '80%';
+        //         chatContainer.appendChild(messageInput);
+
+        //         const sendButton = document.createElement('button');
+        //         sendButton.id = 'send-message-button';
+        //         sendButton.innerHTML = `${feather.icons['send'].toSvg({ width: 15, height: 15 })}`;
+        //         sendButton.style.width = '20%';
+        //         chatContainer.appendChild(sendButton);
+
+        //         // Update battery status in the UI
+        //         function updateBatteryStatus(playerId, battery) {
+        //             const memberInfo = document.getElementById(`member-${playerId}`);
+        //             if (memberInfo) {
+        //                 memberInfo.innerText += `, HP: ${battery}%`;
+        //             }
+        //         }
+
+        //         // Leave party function
+        //         function leaveParty() {
+        //             const playerId = playerCar.playerId;
+        //             ws.send(JSON.stringify({ type: 'leaveParty', playerId }));
+
+        //             const partyElement = document.getElementById('party-info');
+        //             if (partyElement) {
+        //                 partyElement.style.display = 'none';
+        //             }
+
+        //             // Clear the non-collidable players set to ensure all players can collide again
+        //             if (this.physics) {
+        //                 this.physics.nonCollidablePlayers.clear();
+        //             }
+        //         }
+        
+        //         this.time.on('tick', () => {
+                    
+        //             // Check if score has reached the next multiple of 500
+        //             // if (playerCar.score >= lastAirdropScore + 5) {
+        //             //     lastAirdropScore += 5;
+        //             //     dropAirdrop(playerCar);
+        //             // }
+                    
+        //             // const coinPosition = this.currentCoin ? this.currentCoin.position : null; // Default values
+
+        //             const playerPosition = {
+        //                 x: playerCar.physics.car.chassis.body.position.x,
+        //                 y: playerCar.physics.car.chassis.body.position.y,
+        //                 z: playerCar.physics.car.chassis.body.position.z
+        //             };
+
+        //             const playerRotation = {
+        //                 x: playerCar.physics.car.chassis.body.quaternion.x,
+        //                 y: playerCar.physics.car.chassis.body.quaternion.y,
+        //                 z: playerCar.physics.car.chassis.body.quaternion.z,
+        //                 w: playerCar.physics.car.chassis.body.quaternion.w
+        //             }
+
+        //             const playerVelocity = {
+        //                 x: playerCar.physics.car.chassis.body.velocity.x,
+        //                 y: playerCar.physics.car.chassis.body.velocity.y,
+        //                 z: playerCar.physics.car.chassis.body.velocity.z
+        //             }
+                    
+        //             const updateData = {
+        //                 type: 'update',
+        //                 playerId: this.playerId,
+        //                 worldId: this.worldId,
+        //                 position: playerPosition,
+        //                 rotation: playerRotation,
+        //                 velocity: playerVelocity,
+        //                 wheels: playerCar.physics.car.vehicle.wheelInfos.map(wheelInfo => ({
+        //                     position: {
+        //                         x: wheelInfo.worldTransform.position.x,
+        //                         y: wheelInfo.worldTransform.position.y,
+        //                         z: wheelInfo.worldTransform.position.z
+        //                     },
+        //                     rotation: {
+        //                         x: wheelInfo.worldTransform.quaternion.x,
+        //                         y: wheelInfo.worldTransform.quaternion.y,
+        //                         z: wheelInfo.worldTransform.quaternion.z,
+        //                         w: wheelInfo.worldTransform.quaternion.w,
+        //                     },
+        //                     rotationAngle: wheelInfo.rotation,
+        //                     brake: wheelInfo.brake
+        //                 })),
+        //                 controls: {
+        //                     boost: playerCar.controls.actions.boost,
+        //                     brake: playerCar.controls.actions.brake,
+        //                     down: playerCar.controls.actions.down,
+        //                     left: playerCar.controls.actions.left,
+        //                     right: playerCar.controls.actions.right,
+        //                     up: playerCar.controls.actions.up,
+        //                     shoot: playerCar.controls.actions.shoot,
+        //                     steering: playerCar.physics.car.steering,
+        //                     siren: playerCar.controls.actions.siren
+        //                 },
+        //                 battery: playerCar.battery,
+        //                 score: playerCar.score,
+        //                 // coinPosition: coinPosition ? {
+        //                 //     x: coinPosition.x,
+        //                 //     y: coinPosition.y,
+        //                 //     z: coinPosition.z
+        //                 // } : null // Add coin position if it exists
+        //             };
+
+        //             // Handle collision check if a coin is active
+        //             if (this.currentCoin) {
+        //                 const coinPosition = this.currentCoin.position;
+        //                 this.checkCoinCollision(playerCar, coinPosition, () => {
+        //                     // Collision logic, e.g., increase score or collect the coin
+        //                     playerCar.score += 10; // Example action for collision
+        //                     this.updateScoreStatus(playerCar.score);
+        //                     // Reset coin visibility or position after pickup
+        //                     this.currentCoin = null; // Remove the coin locally
+        //                     this.coinActive = false;
+        //                     // Notify server to hide the coin for other players
+        //                     this.ws.send(JSON.stringify({ type: 'coinPickedUp', worldId: this.worldId }));
+        //                 });
+        //             } else {
+        //                 // console.log("No coin to check for collision.");
+        //             }
+
+        //             this.updateBatteryStatus(playerCar.battery);
+        //             this.updateScoreStatus(playerCar.score);
+        
+        //             if (ws.readyState === WebSocket.OPEN) {
+        //                 ws.send(JSON.stringify(updateData));
+        //             } else if (ws.readyState === WebSocket.CONNECTING) {
+        //                 messageQueue.push(updateData);
+        //             }
+        
+        //             this.updateMiniMap(
+        //                 this.playerId,
+        //                 updateData.position.x,
+        //                 updateData.position.y,
+        //                 updateData.rotation,
+        //                 // updateData.wheels[0].rotation,
+        //                 false
+        //             );
+        //         });
+
+        //         if (typeof window !== 'undefined') {
+        
+        //             window.addEventListener("beforeunload", () => {
+        //                 if (ws.readyState === WebSocket.OPEN) {
+        //                     ws.send(JSON.stringify({
+        //                         type: 'remove',
+        //                         playerId: this.playerId,
+        //                     }));
+        //                 }
+        //             });
+        //         }
+        
+        //         const createOtherPlayerCar = (playerId, data) => {
+
+        //             // if (this.otherPlayers[playerId]) {
+        //             //     removePlayerCar(playerId);
+        //             // }
+
+        //             const carClasses = [
+        //                 Car1, 
+        //                 Car2, 
+        //                 Car3, 
+        //                 Car4, 
+        //                 Car5, 
+        //                 Car6, 
+        //                 Car7, 
+        //                 Car8, 
+        //                 Car9, 
+        //                 Car10, 
+        //                 Car11, 
+        //                 Car12, 
+        //                 Car13, 
+        //                 Car14, 
+        //                 Car15,
+        //                 Car16,
+        //                 Car17,
+        //                 Car18,
+        //                 Car19
+        //             ];
+        //             const carClassIndex = Object.keys(this.otherPlayers).length % carClasses.length;
+        //             const CarClass = carClasses[carClassIndex];
+        
+        //             this.physics.updateCarClass(CarClass);
+        
+        //             const otherPlayerCar = new CarClass({
+        //                 time: this.time,
+        //                 resources: this.resources,
+        //                 objects: this.objects,
+        //                 physics: this.physics,
+        //                 shadows: this.shadows,
+        //                 materials: this.materials,
+        //                 renderer: this.renderer,
+        //                 camera: this.camera,
+        //                 controls: this.controls,
+        //                 playerId: playerId,
+        //                 bullets: this.bullets,
+        //                 battery: this.battery,
+        //                 worldId: this.worldId,
+        //                 score: this.score,
+        //                 ws: this.ws
+        //             });
+        
+        //             this.otherPlayers[playerId] = otherPlayerCar;
+
+        //             this.container.add(otherPlayerCar.container);
+                    
+        //             console.log("Other player car container", otherPlayerCar)
+        //             this.physics.cars[playerId] = otherPlayerCar;
+        //             updateCarState(otherPlayerCar, data);
+        //         };
+        
+        //         const updateCarState = (car, data) => {
+        //             if (!car || !data) return;
+        
+        //             let carKey;
+        //             if (car instanceof Car1) carKey = 'car1';
+        //             else if (car instanceof Car2) carKey = 'car2';
+        //             else if (car instanceof Car3) carKey = 'car3';
+        //             else if (car instanceof Car4) carKey = 'car4';
+        //             else if (car instanceof Car5) carKey = 'car5';
+        //             else if (car instanceof Car6) carKey = 'car6';
+        //             else if (car instanceof Car7) carKey = 'car7';
+        //             else if (car instanceof Car8) carKey = 'car8';
+        //             else if (car instanceof Car9) carKey = 'car9';
+        //             else if (car instanceof Car10) carKey = 'car10';
+        //             else if (car instanceof Car11) carKey = 'car11';
+        //             else if (car instanceof Car12) carKey = 'car12';
+        //             else if (car instanceof Car13) carKey = 'car13';
+        //             else if (car instanceof Car14) carKey = 'car14';
+        //             else if (car instanceof Car15) carKey = 'car15';
+        //             else if (car instanceof Car16) carKey = 'car16';
+        //             else if (car instanceof Car17) carKey = 'car17';
+        //             else if (car instanceof Car18) carKey = 'car18';
+        //             else if (car instanceof Car19) carKey = 'car19';
+        
+        //             if (data.position) car.physics[carKey].chassis.body.position.set(data.position.x, data.position.y, data.position.z);
+        //             if (data.rotation) car.physics[carKey].chassis.body.quaternion.set(data.rotation.x, data.rotation.y, data.rotation.z, data.rotation.w);
+        //             if (data.battery !== undefined) car.battery = data.battery;
+        //             if (data.score !== undefined) car.score = data.score;
+
+        //             if (data.battery) {
+        //                 car.battery = data.battery;
+        //                 const batteryLevelWidth = data.battery / 100;
+                    
+        //                 if (!car.chassis.object.children.includes(car.backLightsBattery.object)) {
+        //                     car.chassis.object.add(car.backLightsBattery.object);
+        //                     car.chassis.object.add(car.objects.getConvertedMesh(car.models.chassis.scene.children));
+        //                 }
+                    
+        //                 if (car.backLightsBattery) {
+        //                     // Add the battery visual representation
+        //                     if (car.backLightsBattery.object.children.length === 0) {
+        //                         const defaultChild = new THREE.Mesh(new THREE.BoxGeometry(0.055, 2.32, 0.18), car.backLightsBattery.materialRed);
+        //                         car.backLightsBattery.object.add(defaultChild);
+        //                         car.backLightsBattery.object.position.set(-0.22, 0, 1.1);
+        //                         car.backLightsBattery.object.rotation.set(0, 1, 0);
+        //                     }
+                    
+        //                     // Update the battery color and scale based on battery level
+        //                     car.backLightsBattery.object.children.forEach(child => {
+        //                         const greenColor = data.battery / 100;
+        //                         const redValue = 1 - greenColor;
+        //                         child.material.color.setRGB(redValue, greenColor, 0.5);
+        //                         child.scale.set(batteryLevelWidth, 4, 3);
+        //                         child.material.opacity = 1;
+        //                     });
+                    
+        //                     // Format playerId for display
+        //                     const formatPlayerId = (playerId) => {
+        //                         const firstPart = playerId.substring(0, 4);
+        //                         const lastPart = playerId.substring(playerId.length - 4);
+        //                         return `${firstPart}...${lastPart}`;
+        //                     };
+                    
+        //                     // Create or update playerId text separately, positioned above the battery
+        //                     let playerIdText = car.playerIdText; // Use car.playerIdText for storing the text mesh
+        //                     const font = this.resources.items.orbitronFont; // Ensure the font is correctly loaded
+                            
+        //                     if (!playerIdText && font) {
+        //                         // Only create new text if it doesn't exist and the font is loaded
+        //                         const playerIdMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+        //                         const playerIdGeometry = new THREE.TextGeometry(formatPlayerId(data.playerId), {
+        //                             font: font, 
+        //                             size: 0.1, // Adjust size as needed
+        //                             height: 0.02, // Adjust depth of the text
+        //                             curveSegments: 12,
+        //                             bevelEnabled: false
+        //                         });
+                    
+        //                         playerIdText = new THREE.Mesh(playerIdGeometry, playerIdMaterial);
+        //                         car.playerIdText = playerIdText; // Store reference to update later
+                    
+        //                         // Add playerIdText separately, not as a child of the battery
+        //                         car.chassis.object.add(playerIdText); 
+        //                     }
+                    
+        //                     if (playerIdText) {
+        //                         // Update the position of the playerId text to be just above the battery
+        //                         const batteryPosition = car.backLightsBattery.object.position; // Get the battery's position
+        //                         playerIdText.position.set(batteryPosition.x, batteryPosition.y - 0.45, batteryPosition.z + 0.3); // Offset on z-axis above the battery
+        //                         playerIdText.rotation.set(1.56, 1.56, 0); // Rotate to horizontal display
+        //                     }
+                    
+        //                 } else {
+        //                     console.error("We cannot find the battery object");
+        //                 }
+        //             }                                                  
+
+        //             if (data.wheels) {
+        //                 data.wheels.forEach((wheelData, index) => {
+        //                     const wheelBody = car.physics[carKey].wheels.bodies[index];
+        //                     wheelBody.position.set(wheelData.position.x, wheelData.position.y, wheelData.position.z);
+        //                     wheelBody.quaternion.set(wheelData.rotation.x, wheelData.rotation.y, wheelData.rotation.z, wheelData.rotation.w);
+        //                     car.physics[carKey].vehicle.wheelInfos[index].rotation = wheelData.rotationAngle;
+        //                     car.physics[carKey].vehicle.wheelInfos[index].brake = wheelData.brake
+        //                 })
+        //             }
+        
+        //             if (data.controls) {
+        //                 car.controls.actions.left = data.controls.left;
+        //                 car.controls.actions.right = data.controls.right;
+        //                 car.controls.actions.up = data.controls.up;
+        //                 car.controls.actions.down = data.controls.down;
+        //                 car.controls.actions.boost = data.controls.boost;
+        //                 car.controls.actions.brake = data.controls.brake;
+        //                 car.controls.actions.shoot = data.controls.shoot;
+        //                 car.controls.actions.siren = data.controls.siren;
+        
+        //                 const carSteeringValue = data.controls.steering;
+        //                 car.physics[carKey].vehicle.setSteeringValue(-carSteeringValue, 0);
+        //                 car.physics[carKey].vehicle.setSteeringValue(-carSteeringValue, 1);
+
+        //                 if (data.controls.boost) {
+        //                     car.createNitroEffect(car.physics[carKey].chassis.body.position, car.physics[carKey].chassis.body.quaternion, car.chassis.object)
+        //                 }
+
+        //                 if (data.controls.siren) {
+        //                     car.createSirenEffect()
+        //                 } else {
+        //                     console.log("There is no siren effect function")
+        //                 }
+        
+        //                 if (data.controls.up) {
+        //                     car.physics[carKey].vehicle.applyEngineForce(car.physics[carKey].options.controlsAcceleratingSpeed, 2);
+        //                     car.physics[carKey].vehicle.applyEngineForce(car.physics[carKey].options.controlsAcceleratingSpeed, 3);
+        //                 } else if (data.controls.down) {
+        //                     car.physics[carKey].vehicle.applyEngineForce(-car.physics[carKey].options.controlsAcceleratingSpeed, 2);
+        //                     car.physics[carKey].vehicle.applyEngineForce(-car.physics[carKey].options.controlsAcceleratingSpeed, 3);
+        //                     car.backLightsReverse.material.opacity = data.controls.down ? 1 : 0.5;
+        //                 } else {
+        //                     car.physics[carKey].vehicle.applyEngineForce(0, 2);
+        //                     car.physics[carKey].vehicle.applyEngineForce(0, 3);
+        //                 }
+        
+        //                 if (data.controls.brake) {
+        //                     car.physics[carKey].vehicle.setBrake(car.physics[carKey].options.controlsBrakeStrength, 0);
+        //                     car.physics[carKey].vehicle.setBrake(car.physics[carKey].options.controlsBrakeStrength, 1);
+        //                     car.physics[carKey].vehicle.setBrake(car.physics[carKey].options.controlsBrakeStrength, 2);
+        //                     car.physics[carKey].vehicle.setBrake(car.physics[carKey].options.controlsBrakeStrength, 3);
+
+        //                     car.backLightsBrake.material.opacity = data.controls.brake ? 1 : 0.5;
+
+        //                 } else {
+        //                     car.physics[carKey].vehicle.setBrake(0, 0);
+        //                     car.physics[carKey].vehicle.setBrake(0, 1);
+        //                     car.physics[carKey].vehicle.setBrake(0, 2);
+        //                     car.physics[carKey].vehicle.setBrake(0, 3);
+        //                 }
+        //             }
+                    
+        //             if (car.backLightsBattery) {
+        //                 const batteryLevelWidth = car.battery / 100;
+        //                 car.backLightsBattery.object.children.forEach(child => {
+        //                     child.material = car.battery === 100 ? car.backLightsBattery.materialWhite : car.backLightsBattery.materialRed;
+        //                     child.scale.set(batteryLevelWidth, 0.41, 0.41);
+        //                     child.material.opacity = 1;
+        //                 });
+        //             } else {
+        //                 console.error("Cannot find the battery object");
+        //             }
+        //         };
+        
+        //         const removePlayerCar = (playerId) => {
+        //             const removedPlayerCar = this.otherPlayers[playerId];
+        
+        //             if (removedPlayerCar) {
+        //                 const carKey = removedPlayerCar instanceof Car ? 'car' :
+        //                                removedPlayerCar instanceof Car1 ? 'car1' :
+        //                                removedPlayerCar instanceof Car2 ? 'car2' :
+        //                                removedPlayerCar instanceof Car3 ? 'car3' :
+        //                                removedPlayerCar instanceof Car4 ? 'car4' :
+        //                                removedPlayerCar instanceof Car5 ? 'car5' :
+        //                                removedPlayerCar instanceof Car6 ? 'car6' :
+        //                                removedPlayerCar instanceof Car7 ? 'car7' :
+        //                                removedPlayerCar instanceof Car8 ? 'car8' :
+        //                                removedPlayerCar instanceof Car9 ? 'car9' :
+        //                                removedPlayerCar instanceof Car10 ? 'car10' :
+        //                                removedPlayerCar instanceof Car11 ? 'car11' :
+        //                                removedPlayerCar instanceof Car12 ? 'car12' :
+        //                                removedPlayerCar instanceof Car13 ? 'car13' :
+        //                                removedPlayerCar instanceof Car14 ? 'car14' :
+        //                                removedPlayerCar instanceof Car15 ? 'car15' :
+        //                                removedPlayerCar instanceof Car16 ? 'car16' :
+        //                                removedPlayerCar instanceof Car17 ? 'car17' :
+        //                                removedPlayerCar instanceof Car18 ? 'car18' :
+        //                                removedPlayerCar instanceof Car19 ? 'car19' : 'car20';
+
+        //                 this.physics.world.removeBody(removedPlayerCar.physics[carKey].chassis.body);
+        //                 // this.container.remove(removedPlayerCar.container)
+        //                 // removedPlayerCar.physics[carKey].destroy();
+        //             }
+        
+        //             delete this.physics.cars[playerId];
+        //             delete this.otherPlayers[playerId];
+        //             this.removeFromMiniMap(playerId);
+        //             console.log(`Player ${playerId} removed`);
+        //         };
+        
+        //     } catch (error) {
+        //         console.error('Error in setupMultiplayer:', error);
+        //     }
+        // };
 
     // Create the mini-map
     createMiniMap() {
