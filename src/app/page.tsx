@@ -33,11 +33,12 @@ export default function Home() {
   const [carName, setCarName] = useState<string | null>(null);
   // const [popupGarage, setPopupGarage] = useState(false);
   const [playerCount, setPlayerCount] = useState(0);
+
+  // Websocket
   const [ws, setWs] = useState<WebSocket | null>(null);
   const [isWebSocketReady, setIsWebSocketReady] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
   const [playerAccount, setPlayerAccount] = useState(0);
-  // const [matcaps, setMatcaps] = useState<{ [key: string]: { matcap: string } }>({});
   const [matcaps, setMatcaps] = useState({});
 
   const router = useRouter();
@@ -265,6 +266,8 @@ export default function Home() {
     const serverAddress = `wss://krashbox.glitch.me?token=${token}`;
     wsRef.current = new WebSocket(serverAddress);
 
+    setWs(wsRef.current); 
+
     wsRef.current.onopen = () => {
       console.log('WebSocket connected');
       setIsWebSocketReady(true);
@@ -301,11 +304,11 @@ export default function Home() {
         console.log("Received message:", message);
     
         // Check if the 'counts' property exists
-        // if (!message.hasOwnProperty('counts')) {
-        //     console.log("No 'counts' property found in message.");
-        // } else {
-        //     console.log("Counts found:", message.counts);
-        // }
+        if (!message.hasOwnProperty('counts')) {
+            console.log("No 'counts' property found in message.");
+        } else {
+            console.log("Counts found:", message.counts);
+        }
 
         // Handle `selectedCar` message
         if (message.type === 'selectedCar') {
@@ -337,10 +340,10 @@ export default function Home() {
       // Handle the 'worldCounts' type message
       if (message.type === 'worldCounts') {
           // Validate counts property
-          // if (!message.hasOwnProperty('counts') || typeof message.counts !== 'object' || message.counts === null) {
-          //     console.log("Invalid counts in worldCounts message:", message.counts);
-          //     return;
-          // }
+          if (!message.hasOwnProperty('counts') || typeof message.counts !== 'object' || message.counts === null) {
+              console.log("Invalid counts in worldCounts message:", message.counts);
+              return;
+          }
   
           // Only update the world list if no world has been selected
           if (!selectedWorldId) {
@@ -388,9 +391,15 @@ export default function Home() {
       console.error('WebSocket error:', error);
     };
 
-     wsRef.current.onclose = () => {
-      console.log('WebSocket closed');
-      // setIsWebSocketReady(false);
+     wsRef.current.onclose = (event) => {
+      console.log('WebSocket closed', event);
+
+      if (event.code !== 1000) {
+        console.error('WebSocket closed unexpectedly with code:', event.code);
+        console.error('Reason:', event.reason);
+      }
+
+      setIsWebSocketReady(false);
     };
     // localStorage.removeItem('token');
   }, []);
@@ -562,7 +571,7 @@ const handleWorldSelection = (worldId: string, listItem: HTMLLIElement, worldLis
       }
       
     }, [isConnected, address, hasAppInitialized]);
-
+    
     // Flag to check WS connection
     if (!showLoadingLayer) {
       return (
@@ -641,17 +650,21 @@ const handleWorldSelection = (worldId: string, listItem: HTMLLIElement, worldLis
       {/* Show the loading layer if the wallet is connected but the canvas isn't initialized */}
       {isConnected && !isCanvasInitialized && (
         <div id="loading-container">
-          
+
+          {/* <div className="signal-container">
+            <div id="signalBars" className="signal-bars">
+                <div className="bar bar-1"></div>
+                <div className="bar bar-2"></div>
+                <div className="bar bar-3"></div>
+                <div className="bar bar-4"></div>
+              </div>
+            </div> */}
+
           <div id="loading-layer" className="loading-layer overflow-hidden">
           </div>
-
+          
           <div id="w3m-layer" className='w3m-layer flex-container'>
-          {/* <div id="signalBars" className="signal-bars">
-              <div className="bar bar-1"></div>
-              <div className="bar bar-2"></div>
-              <div className="bar bar-3"></div>
-              <div className="bar bar-4"></div>
-            </div> */}
+          
             <button className='my-wallet'> <w3m-button /> </button>
             <div className="user-count-wrapper">
                 {/* <span id="streamLabel" className="stream-label">STREAM</span> */}

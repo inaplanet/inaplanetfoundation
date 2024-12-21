@@ -2174,6 +2174,16 @@ opacity: 0;
   font-weight: bold;
 }
 
+.signal-container {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: first baseline;
+  position: fixed;
+  left: 30%;
+}
+
 .signal-bars {
   display: flex;
   align-items: flex-end;
@@ -2354,7 +2364,7 @@ opacity: 0;
   transform: translate(-50%, -50%);
   width: 40px;
   height: 40px;
-  border-radius: 50%;
+  border-radius: 80%;
   background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(10px);
   animation: animate 2s infinite linear;
