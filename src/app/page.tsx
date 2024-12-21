@@ -263,6 +263,11 @@ export default function Home() {
     }
 
     const token = localStorage.getItem('token');
+    if (!token) {
+      console.error('No token found in localStorage');
+      return;
+    }
+    
     const serverAddress = `wss://krashbox.glitch.me?token=${token}`;
     wsRef.current = new WebSocket(serverAddress);
 
@@ -536,11 +541,6 @@ const handleWorldSelection = (worldId: string, listItem: HTMLLIElement, worldLis
       if (isConnected && address && !hasAppInitialized) {
         setPlayerId(address);
 
-        // Initialize WebSocket after setting the playerId
-        setTimeout(() => {
-          initializeWebSocket(address);
-        }, 1000);
-
         // localStorage.setItem('playerId', address);
         console.log('Wallet connected:', address);
         localStorage.removeItem('playerId');
@@ -548,32 +548,39 @@ const handleWorldSelection = (worldId: string, listItem: HTMLLIElement, worldLis
 
         setHasAppInitialized(true);
   
-        // Fetch the token after WebSocket initialization
-        setTimeout(() => {
-          getToken(address);
-        }, 1000);
+        // Step 1: Fetch the token first
+        getToken(address)
+        .then(() => {
+          // Step 2: Initialize WebSocket after token is fetched
+          initializeWebSocket(address);
 
-        // Initialize Globe with Retry Logic
-        let retryCount = 0;
-        const interval = setInterval(() => {
-          const container = document.getElementById('loading-layer');
-          if (container) {
-            console.log('Initializing Globe...');
-            initGlobe('loading-layer');
-            clearInterval(interval); // Stop retrying
-          } else if (retryCount >= 5) {
-            console.warn('Failed to find #loading-layer after 5 retries.');
-            clearInterval(interval); // Stop retrying
-          }
-          retryCount++;
-        }, 500);
+          // Initialize Globe with Retry Logic
+          let retryCount = 0;
+          const interval = setInterval(() => {
+            const container = document.getElementById('loading-layer');
+            if (container) {
+              console.log('Initializing Globe...');
+              initGlobe('loading-layer');
+              clearInterval(interval); // Stop retrying
+            } else if (retryCount >= 5) {
+              console.warn('Failed to find #loading-layer after 5 retries.');
+              clearInterval(interval); // Stop retrying
+            }
+            retryCount++;
+          }, 500);
+        })
+        .catch((error) => {
+          console.error('Error fetching token:', error);
+        });
+
+        setShowLoadingLayer(false);
 
       }
       
     }, [isConnected, address, hasAppInitialized]);
     
     // Flag to check WS connection
-    if (!showLoadingLayer) {
+    if (!showLoadingLayer && !isWebSocketReady) {
       return (
         <div className="pulse">
       </div>
@@ -604,84 +611,266 @@ const handleWorldSelection = (worldId: string, listItem: HTMLLIElement, worldLis
     }
   };
 
-  return (
-    //<main className="min-h-screen px-8 py-0 pb-12 flex-1 flex flex-col items-center" style={{ backgroundColor: '#fff', fontFamily: "'Orbitron', sans-serif" }}>
-    <main className="overflow-hidden flex flex-col items-center" style={{ backgroundColor: '#000', fontFamily: "'Orbitron', sans-serif" }}>
+//   return (
+//     //<main className="min-h-screen px-8 py-0 pb-12 flex-1 flex flex-col items-center" style={{ backgroundColor: '#fff', fontFamily: "'Orbitron', sans-serif" }}>
+//     <main className="overflow-hidden flex flex-col items-center" style={{ backgroundColor: '#000', fontFamily: "'Orbitron', sans-serif" }}>
+//     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+
+//       {/* Show the connectWalletDiv initially */}
+//       {!isConnected && (
+//                 // <div className="connectWalletDiv flex flex-col justify-between items-center h-screen p-4">
+
+//         <div className="connectWalletDiv flex flex-col justify-between items-center h-screen p-4">
+//           {/* Centered Connect Wallet Button */}
+//           <div className="flex-grow flex justify-center items-center">
+//           {/* <div className=""> */}
+          
+//             <button className="connectWalletButton flex flex-col justify-center items-center">
+//               <span></span>
+//               <span></span>
+//               <span></span>
+//               <span></span>
+//               {/* Web3Modal button */}
+//               <w3m-button />
+//             </button>
+//           </div>
+
+//           {/* Bottom-centered h2 */}
+//           <div className="w-full flex justify-center pb-10">
+//             <h2 style={{
+//               width: '480px',
+//               textAlign: 'center',
+//               color: '#F2F0EF',
+//               fontSize: '10px',
+//               padding: '10px',
+//               textShadow: '2px 2px 4px rgba(0, 0, 0, 0.9)',
+//               // backdropFilter: 'blur(10px)',
+//               borderRadius: '10px'
+//             }}>
+//               Powered by Nossumus Foundation. Krashbox is a real-time on-chain playground. ©2024
+//             </h2>
+//           </div>
+//         </div>
+//       )}
+      
+      
+//       {/* Show the loading layer if the wallet is connected but the canvas isn't initialized */}
+//       {isConnected && !isCanvasInitialized && (
+//         <div id="loading-container">
+
+//           {/* <div className="signal-container">
+//             <div id="signalBars" className="signal-bars">
+//                 <div className="bar bar-1"></div>
+//                 <div className="bar bar-2"></div>
+//                 <div className="bar bar-3"></div>
+//                 <div className="bar bar-4"></div>
+//               </div>
+//             </div> */}
+
+//           <div id="loading-layer" className="loading-layer overflow-hidden">
+//           </div>
+
+//           <div id="w3m-layer" className='w3m-layer flex-container'>
+          
+//             <button className='my-wallet'> <w3m-button /> </button>
+//             <div className="user-count-wrapper">
+//                 {/* <span id="streamLabel" className="stream-label">STREAM</span> */}
+//                 <span id="userCountDisplay" className="user-count-display">0</span>
+//             </div>
+            
+//             </div>
+//             {/* Show pulsing message while setting up WebSocket */}
+//             {isWebSocketReady && (
+//             <>
+//             {/* <div id='worldclock'>
+//               <h1 style={{ paddingTop: '10px', fontSize: '15px', fontWeight: '500', fontFamily: 'Orbitron, sans-serif', color: '#fff', textAlign: 'center'}}>
+//                 {new Date().toLocaleString()}
+//                 </h1>
+//             </div> */}
+//             <div id="world-layer">
+//                <div style={{ display: 'flex', alignItems: 'center', position: 'relative' }}>
+//                 <input
+//                   type="text"
+//                   id="search-bar"
+//                   placeholder="Search destination..."
+//                   onInput={(event) => filterWorlds(event)}
+//                 />
+//                 <button
+//                   onClick={() => window.location.reload()} // Reload the page
+//                   style={{
+//                     display: 'flex',
+//                     justifyContent: 'center',
+//                     alignItems: 'center',
+//                     width: '40px',
+//                     height: '40px',
+//                     background: 'none',
+//                     cursor: 'pointer',
+//                     paddingRight: '10px'
+//                   }}
+//                 >
+//                   {/* Use the FaRedo icon from react-icons */}
+//                   <FaRedo size={15} style={{ color: '#fff' }} />
+//                 </button>
+//               </div>
+            
+//                     {/* <h2>Select a World</h2> */}
+//                     <div className="scroll-container">
+//                       <ul id="world-list"></ul>
+//                     </div>
+//                     </div>
+//                       <div id='garage' className='garage'>
+//                         <button id='garage-button' onClick={handleGarageButtonClick}>SHOWROOM</button>
+//                         <button id='chatbox-button'>MESSENGER</button>
+//                       </div>
+//                     </>
+//                         )}
+//         </div>
+//       )}
+
+//       {/* <header className="w-full py-4 flex justify-between items-center">
+//       </header> */}
+
+//       {/* Wallet connection button (Web3Modal) */}
+//       <div className="max-w-4xl">
+//       {/* <div> */}
+
+
+//         <br />
+
+//       {/* Pulsing "Select World" message */}
+//       {isConnected && !selectedWorldId && (
+//               <div className="pulsing-message">
+//                 <h2 style={{textShadow: '2px 2px 4px rgba(0, 0, 0, 0.9)'}}>Select Server</h2>
+//               </div>
+//             )}
+
+//         {/* Conditionally render the Application only once */}
+//         {isConnected && playerId && selectedWorldId && token && application && (
+//           <Application playerId={playerId} selectedWorldId={selectedWorldId} token={token} carName={carName} matcaps={matcaps}/>
+//         )}
+
+//         {/* Once connected, display the game UI */}
+//         {isConnected && (
+//           <div className="grid bg-transparent overflow-hidden shadow-sm">
+//             <div className="flex justify-center items-center p-4">
+
+//               {/* Game Canvas */}
+//               {/* <canvas className="canvas js-canvas"></canvas> */}
+
+//               {/* Player Info, Speedometer, Score Display, etc. */}
+//               <div id="userDisplay" onClick={handleUserDisplayClick} className="cursor-pointer z-50">
+//               </div>
+//               <div id="playerCountDisplay"></div>
+
+//               {/* Battery Status */}
+//               <div id="battery-status" className="battery-container">
+//                 <div id="battery-percentage" className="battery-percentage"></div>
+//                 <div className="battery-bar"></div>
+//               </div>
+
+//               {/* Party Status */}
+//               {/* <div id="party-info" className="party-info" style={{opacity: 0}}>
+//               </div> */}
+
+//               {/* Speedometer */}
+//               <div id="speedometer">
+//                 <div id="needle"></div>
+//                 <div id="speed-value"></div>
+//               </div>
+
+//               {/* Score Display */}
+//               <div id="score-status" className="player-score"></div>
+
+//               {/* Party Chat */}
+//               <div id="party-chat-container" className="chat-box" style={{ display: 'none' }}>
+//                 <div id="party-chat-box" className="chat-box-body"></div>
+//                 <div className="chat-box-footer">
+//                   <input id="party-message-input" type="text" placeholder="Type a message..." className="chat-input" />
+//                   <button id="send-message-button" className="send-button">
+//                     <i data-feather="send"></i>
+//                   </button>
+//                 </div>
+//               </div>
+//             </div>
+//           </div>
+//         )}
+//       </div>
+
+//       {/* Other Hidden UI Elements */}
+//       <div id="coin-market"></div>
+//       <div id="target-player-id"></div>
+//       <button id="invite-button" style={{ opacity: 0 }}></button>
+//       <button id="trade-button" style={{ opacity: 0 }}></button>
+//       <div id="touch-radio" style={{ opacity: 0 }}></div>
+//       <div id="touch-previous" style={{ opacity: 0 }}></div>
+//       <div id="touch-next" style={{ opacity: 0 }}></div>
+//       <div id="touch-mute" style={{ opacity: 0 }}></div>
+//       <input
+//         id="touch-slider"
+//         type="range"
+//         className="opacity-0"  // Adjust the opacity as needed
+//         min="0"
+//         max="1"
+//         step="0.01"
+//       />
+//       <div id="score-animation-container"></div>
+//       {/* <div id="loadingLayer" className="loading-layer"></div> */}
+
+//       {/* Switch Container */}
+//       <div id="switch-container">
+//         <div id="switch">
+//           <div id="switch-toggle"></div>
+//         </div>
+//       </div>
+//         {/* Conditionally render the w3m-button at the top-left corner */}
+//           {showWalletButton && (
+//             <div className="fixed inset-0 z-50000 flex items-center justify-center">
+//             <w3m-button />
+//           </div>
+//           )}
+//     </main>
+//   );
+// }
+
+return (
+  <main className="overflow-hidden flex flex-col items-center" style={{ backgroundColor: '#000', fontFamily: "'Orbitron', sans-serif" }}>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
 
-      {/* Show the connectWalletDiv initially */}
-      {!isConnected && (
-                // <div className="connectWalletDiv flex flex-col justify-between items-center h-screen p-4">
+    {/* Show the connectWalletDiv initially if wallet is not connected */}
+    {!isConnected && (
+      <div className="connectWalletDiv flex flex-col justify-between items-center h-screen p-4">
+        <div className="flex-grow flex justify-center items-center">
+          <button className="connectWalletButton flex flex-col justify-center items-center">
+            <span></span><span></span><span></span><span></span>
+            <w3m-button />
+          </button>
+        </div>
+        <div className="w-full flex justify-center pb-10">
+          <h2 style={{
+            width: '480px', textAlign: 'center', color: '#F2F0EF', fontSize: '10px', padding: '10px',
+            textShadow: '2px 2px 4px rgba(0, 0, 0, 0.9)', borderRadius: '10px'
+          }}>
+            Powered by Nossumus Foundation. Krashbox is a real-time on-chain playground. ©2024
+          </h2>
+        </div>
+      </div>
+    )}
 
-        <div className="connectWalletDiv flex flex-col justify-between items-center h-screen p-4">
-          {/* Centered Connect Wallet Button */}
-          <div className="flex-grow flex justify-center items-center">
-          {/* <div className=""> */}
-          
-            <button className="connectWalletButton flex flex-col justify-center items-center">
-              <span></span>
-              <span></span>
-              <span></span>
-              <span></span>
-              {/* Web3Modal button */}
-              <w3m-button />
-            </button>
-          </div>
-
-          {/* Bottom-centered h2 */}
-          <div className="w-full flex justify-center pb-10">
-            <h2 style={{
-              width: '480px',
-              textAlign: 'center',
-              color: '#F2F0EF',
-              fontSize: '10px',
-              padding: '10px',
-              textShadow: '2px 2px 4px rgba(0, 0, 0, 0.9)',
-              // backdropFilter: 'blur(10px)',
-              borderRadius: '10px'
-            }}>
-              Powered by Nossumus Foundation. Krashbox is a real-time on-chain playground. ©2024
-            </h2>
+    {/* Show the loading layer if wallet is connected but the canvas isn't initialized */}
+    {isConnected && !isCanvasInitialized && (
+      <div id="loading-container">
+        <div id="loading-layer" className="loading-layer overflow-hidden"></div>
+        <div id="w3m-layer" className='w3m-layer flex-container'>
+          <button className='my-wallet'> <w3m-button /> </button>
+          <div className="user-count-wrapper">
+            <span id="userCountDisplay" className="user-count-display">0</span>
           </div>
         </div>
-      )}
-      
-      
-      {/* Show the loading layer if the wallet is connected but the canvas isn't initialized */}
-      {isConnected && !isCanvasInitialized && (
-        <div id="loading-container">
-
-          {/* <div className="signal-container">
-            <div id="signalBars" className="signal-bars">
-                <div className="bar bar-1"></div>
-                <div className="bar bar-2"></div>
-                <div className="bar bar-3"></div>
-                <div className="bar bar-4"></div>
-              </div>
-            </div> */}
-
-          <div id="loading-layer" className="loading-layer overflow-hidden">
-          </div>
-
-          <div id="w3m-layer" className='w3m-layer flex-container'>
-          
-            <button className='my-wallet'> <w3m-button /> </button>
-            <div className="user-count-wrapper">
-                {/* <span id="streamLabel" className="stream-label">STREAM</span> */}
-                <span id="userCountDisplay" className="user-count-display">0</span>
-            </div>
-            
-            </div>
-            {/* Show pulsing message while setting up WebSocket */}
-            {isWebSocketReady && (
-            <>
-            {/* <div id='worldclock'>
-              <h1 style={{ paddingTop: '10px', fontSize: '15px', fontWeight: '500', fontFamily: 'Orbitron, sans-serif', color: '#fff', textAlign: 'center'}}>
-                {new Date().toLocaleString()}
-                </h1>
-            </div> */}
+        {/* Show pulsing message while setting up WebSocket */}
+        {isWebSocketReady && (
+          <>
             <div id="world-layer">
-               <div style={{ display: 'flex', alignItems: 'center', position: 'relative' }}>
+              <div style={{ display: 'flex', alignItems: 'center', position: 'relative' }}>
                 <input
                   type="text"
                   id="search-bar"
@@ -701,126 +890,96 @@ const handleWorldSelection = (worldId: string, listItem: HTMLLIElement, worldLis
                     paddingRight: '10px'
                   }}
                 >
-                  {/* Use the FaRedo icon from react-icons */}
                   <FaRedo size={15} style={{ color: '#fff' }} />
                 </button>
               </div>
-            
-                    {/* <h2>Select a World</h2> */}
-                    <div className="scroll-container">
-                      <ul id="world-list"></ul>
-                    </div>
-                    </div>
-                      <div id='garage' className='garage'>
-                        <button id='garage-button' onClick={handleGarageButtonClick}>SHOWROOM</button>
-                        <button id='chatbox-button'>MESSENGER</button>
-                      </div>
-                    </>
-                        )}
-        </div>
-      )}
 
-      {/* <header className="w-full py-4 flex justify-between items-center">
-      </header> */}
-
-      {/* Wallet connection button (Web3Modal) */}
-      <div className="max-w-4xl">
-      {/* <div> */}
-
-
-        <br />
-
-      {/* Pulsing "Select World" message */}
-      {isConnected && !selectedWorldId && (
-              <div className="pulsing-message">
-                <h2 style={{textShadow: '2px 2px 4px rgba(0, 0, 0, 0.9)'}}>Select Server</h2>
-              </div>
-            )}
-
-        {/* Conditionally render the Application only once */}
-        {isConnected && playerId && selectedWorldId && token && application && (
-          <Application playerId={playerId} selectedWorldId={selectedWorldId} token={token} carName={carName} matcaps={matcaps}/>
-        )}
-
-        {/* Once connected, display the game UI */}
-        {isConnected && (
-          <div className="grid bg-transparent overflow-hidden shadow-sm">
-            <div className="flex justify-center items-center p-4">
-
-              {/* Game Canvas */}
-              {/* <canvas className="canvas js-canvas"></canvas> */}
-
-              {/* Player Info, Speedometer, Score Display, etc. */}
-              <div id="userDisplay" onClick={handleUserDisplayClick} className="cursor-pointer z-50">
-              </div>
-              <div id="playerCountDisplay"></div>
-
-              {/* Battery Status */}
-              <div id="battery-status" className="battery-container">
-                <div id="battery-percentage" className="battery-percentage"></div>
-                <div className="battery-bar"></div>
-              </div>
-
-              {/* Party Status */}
-              {/* <div id="party-info" className="party-info" style={{opacity: 0}}>
-              </div> */}
-
-              {/* Speedometer */}
-              <div id="speedometer">
-                <div id="needle"></div>
-                <div id="speed-value"></div>
-              </div>
-
-              {/* Score Display */}
-              <div id="score-status" className="player-score"></div>
-
-              {/* Party Chat */}
-              <div id="party-chat-container" className="chat-box" style={{ display: 'none' }}>
-                <div id="party-chat-box" className="chat-box-body"></div>
-                <div className="chat-box-footer">
-                  <input id="party-message-input" type="text" placeholder="Type a message..." className="chat-input" />
-                  <button id="send-message-button" className="send-button">
-                    <i data-feather="send"></i>
-                  </button>
-                </div>
+              <div className="scroll-container">
+                <ul id="world-list"></ul>
               </div>
             </div>
-          </div>
+            <div id='garage' className='garage'>
+              <button id='garage-button' onClick={handleGarageButtonClick}>SHOWROOM</button>
+              <button id='chatbox-button'>MESSENGER</button>
+            </div>
+          </>
         )}
       </div>
+    )}
 
-      {/* Other Hidden UI Elements */}
-      <div id="coin-market"></div>
-      <div id="target-player-id"></div>
-      <button id="invite-button" style={{ opacity: 0 }}></button>
-      <button id="trade-button" style={{ opacity: 0 }}></button>
-      <div id="touch-radio" style={{ opacity: 0 }}></div>
-      <div id="touch-previous" style={{ opacity: 0 }}></div>
-      <div id="touch-next" style={{ opacity: 0 }}></div>
-      <div id="touch-mute" style={{ opacity: 0 }}></div>
-      <input
-        id="touch-slider"
-        type="range"
-        className="opacity-0"  // Adjust the opacity as needed
-        min="0"
-        max="1"
-        step="0.01"
-      />
-      <div id="score-animation-container"></div>
-      {/* <div id="loadingLayer" className="loading-layer"></div> */}
+    {/* Conditionally render the Application once the wallet is connected, playerId and world selected */}
+    {isConnected && playerId && selectedWorldId && token && application && (
+      <Application playerId={playerId} selectedWorldId={selectedWorldId} token={token} carName={carName} matcaps={matcaps} />
+    )}
 
-      {/* Switch Container */}
-      <div id="switch-container">
-        <div id="switch">
-          <div id="switch-toggle"></div>
+    {/* Once connected, display the game UI */}
+    {isConnected && (
+      <div className="grid bg-transparent overflow-hidden shadow-sm">
+        <div className="flex justify-center items-center p-4">
+          <div id="userDisplay" onClick={handleUserDisplayClick} className="cursor-pointer z-50"></div>
+          <div id="playerCountDisplay"></div>
+
+          {/* Battery Status */}
+          <div id="battery-status" className="battery-container">
+            <div id="battery-percentage" className="battery-percentage"></div>
+            <div className="battery-bar"></div>
+          </div>
+
+          {/* Speedometer */}
+          <div id="speedometer">
+            <div id="needle"></div>
+            <div id="speed-value"></div>
+          </div>
+
+          {/* Score Display */}
+          <div id="score-status" className="player-score"></div>
+
+          {/* Party Chat */}
+          <div id="party-chat-container" className="chat-box" style={{ display: 'none' }}>
+            <div id="party-chat-box" className="chat-box-body"></div>
+            <div className="chat-box-footer">
+              <input id="party-message-input" type="text" placeholder="Type a message..." className="chat-input" />
+              <button id="send-message-button" className="send-button">
+                <i data-feather="send"></i>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
-        {/* Conditionally render the w3m-button at the top-left corner */}
-          {showWalletButton && (
-            <div className="fixed inset-0 z-50000 flex items-center justify-center">
-            <w3m-button />
-          </div>
-          )}
-    </main>
-  );
-}
+    )}
+
+    {/* Other Hidden UI Elements */}
+    <div id="coin-market"></div>
+    <div id="target-player-id"></div>
+    <button id="invite-button" style={{ opacity: 0 }}></button>
+    <button id="trade-button" style={{ opacity: 0 }}></button>
+    <div id="touch-radio" style={{ opacity: 0 }}></div>
+    <div id="touch-previous" style={{ opacity: 0 }}></div>
+    <div id="touch-next" style={{ opacity: 0 }}></div>
+    <div id="touch-mute" style={{ opacity: 0 }}></div>
+    <input
+      id="touch-slider"
+      type="range"
+      className="opacity-0"
+      min="0"
+      max="1"
+      step="0.01"
+    />
+    <div id="score-animation-container"></div>
+
+    {/* Switch Container */}
+    <div id="switch-container">
+      <div id="switch">
+        <div id="switch-toggle"></div>
+      </div>
+    </div>
+
+    {/* Conditionally render the w3m-button at the top-left corner */}
+    {showWalletButton && (
+      <div className="fixed inset-0 z-50000 flex items-center justify-center">
+        <w3m-button />
+      </div>
+    )}
+  </main>
+);
+};

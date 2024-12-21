@@ -17,7 +17,7 @@ if(!projectId) {
 const metadata = {
     name: 'Krashbox',
     description: 'Crash, collect and cash-out',
-    url: 'https://krashbox.xyz',
+    url: 'https://krashbox.world',
     icons: ['https://nossumus.com/public/images/krashbox32x32.png']
 }
 
@@ -36,7 +36,6 @@ const modal = createAppKit({
     themeVariables: {
         '--w3m-font-family': 'Orbitron, sans-serif',
         '--w3m-accent': '00FF000',
-        // '--w3m-color-mix': '00FF000',
         '--w3m-border-radius-master': '10px'
     }
 })
