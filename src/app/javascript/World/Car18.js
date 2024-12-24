@@ -53,69 +53,546 @@ export default class Car18
         this.setTransformControls()
     }
 
-    // Define a method to create spark effects
-    createSparkEffect(position) {
-        
-        const particleCount = 50;
-        const geometry = new THREE.BufferGeometry();
-        const vertices = [];
-        const colors = [];
-        const sizes = [];
-        
-        for (let i = 0; i < particleCount; i++) {
-            vertices.push(
-                (Math.random() - 0.5) * 2, // x
-                (Math.random() - 0.5) * 2, // y
-                (Math.random() - 0.5) * 2  // z
-            );
-            
-            colors.push(
-                Math.random(), // Red
-                Math.random(), // Green
-                Math.random()  // Blue
-            );
-            
-            sizes.push(Math.random() * 0.02 + 0.01); // Random size between 0.1 and 0.3
-        }
-        
-        geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
-        geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-        geometry.setAttribute('size', new THREE.Float32BufferAttribute(sizes, 1));
+    createSparkEffect() {
+        const sparkTexture = '/images/texture/spark.png';
     
-        const material = new THREE.PointsMaterial({
-            size: 0.5, // Base size
-            vertexColors: true,
-            sizeAttenuation: true, // Size diminishes with distance
-            opacity: 1,
-            transparent: true
-        });
+        const img = new Image();
+        img.src = sparkTexture;
+        img.crossOrigin = "anonymous"; // Handle CORS
     
-        const particles = new THREE.Points(geometry, material);
-        particles.position.copy(this.physics.car.chassis.body.position);
+        img.onload = () => {
+            const texture = new THREE.Texture(img);
+            texture.needsUpdate = true;
     
-        // Add particles to the scene
-        this.container.add(particles);
+            const particleCount = 50;
+            const geometry = new THREE.BufferGeometry();
+            const vertices = [];
+            const colors = [];
+            const sizes = [];
     
-        // Animate particles
-        const duration = 500; // Duration in milliseconds
-        const startTime = performance.now();
+            for (let i = 0; i < particleCount; i++) {
+                vertices.push(
+                    (Math.random() - 0.5) * 2, // x
+                    (Math.random() - 0.5) * 2, // y
+                    (Math.random() - 0.5) * 2  // z
+                );
     
-        const animateParticles = () => {
-            const elapsedTime = performance.now() - startTime;
-            if (elapsedTime < duration) {
-                particles.rotation.y += 0.02; // Rotate particles for effect
-                particles.scale.set(1, 1, 1).multiplyScalar(1 - (elapsedTime / duration)); // Scale down over time
-                particles.material.opacity = 1 - (elapsedTime / duration); // Fade out over time
+                colors.push(
+                    Math.random(), // Red
+                    Math.random(), // Green
+                    Math.random()  // Blue
+                );
     
-                requestAnimationFrame(animateParticles);
-            } else {
-                this.container.remove(particles);
-                particles.geometry.dispose();
-                particles.material.dispose();
+                sizes.push(Math.random() * 0.02 + 0.01); // Random size between 0.1 and 0.3
             }
+    
+            geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+            geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+            geometry.setAttribute('size', new THREE.Float32BufferAttribute(sizes, 1));
+    
+            const material = new THREE.PointsMaterial({
+                size: 1.5, // Base size
+                map: texture, // Apply spark texture
+                vertexColors: true,
+                sizeAttenuation: true, // Size diminishes with distance
+                opacity: 1,
+                transparent: true,
+                blending: THREE.AdditiveBlending, // Glowing effect for sparks
+                depthWrite: false // Prevent depth issues
+            });
+    
+            const particles = new THREE.Points(geometry, material);
+            particles.position.copy(this.physics.car.chassis.body.position);
+    
+            // Add particles to the scene
+            this.container.add(particles);
+    
+            // Animate particles
+            const duration = 500; // Duration in milliseconds
+            const startTime = performance.now();
+    
+            const animateParticles = () => {
+                const elapsedTime = performance.now() - startTime;
+                if (elapsedTime < duration) {
+                    particles.rotation.y += 0.02; // Rotate particles for effect
+                    particles.scale.set(1, 1, 1).multiplyScalar(1 - (elapsedTime / duration)); // Scale down over time
+                    particles.material.opacity = 1 - (elapsedTime / duration); // Fade out over time
+    
+                    requestAnimationFrame(animateParticles);
+                } else {
+                    // Remove particles when animation ends
+                    this.container.remove(particles);
+                    particles.geometry.dispose();
+                    particles.material.dispose();
+                }
+            };
+    
+            animateParticles();
         };
     
-        animateParticles();
+        // Handle texture loading errors
+        img.onerror = (error) => {
+            console.error('Failed to load base64 texture:', error);
+        };
+    }
+
+    createCrashEffect(position, quaternion, chassis) {
+        const crashTexture = '/images/texture/crash.png';
+    
+        const img = new Image();
+        img.src = crashTexture;
+        img.crossOrigin = "anonymous"; // Handle CORS
+
+        img.onload = () => {
+            const texture = new THREE.Texture(img);
+            texture.needsUpdate = true;
+
+            const material = new THREE.PointsMaterial({
+                size: 15.0, // Adjust size for visibility
+                vertexColors: true,
+                sizeAttenuation: true,
+                transparent: true,
+                opacity: 0.9,
+                map: texture,
+                blending: THREE.AdditiveBlending, // Glowing effect
+                depthWrite: false, // Prevent depth issues
+            });
+
+            const particleCount = 3; // 3 particles for a boiling effect
+            const geometry = new THREE.BufferGeometry();
+            const vertices = [];
+            const colors = [];
+
+            // Initialize particles (close together)
+            for (let i = 0; i < particleCount; i++) {
+                vertices.push(0, 0, 0); // Start from the same position
+                colors.push(1.0, 1.0, 1.0); // Yellow color for the particles
+            }
+
+            geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+            geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+
+            const particles = new THREE.Points(geometry, material);
+            chassis.add(particles); // Add particles to the chassis
+
+            const duration = 5000; // Effect duration (in milliseconds)
+            const startTime = performance.now();
+
+            const animateParticles = () => {
+                const elapsedTime = performance.now() - startTime;
+                const positions = geometry.attributes.position.array;
+
+                // Boiling effect: particles will move up and down chaotically
+                for (let i = 0; i < particleCount; i++) {
+                    const progress = elapsedTime / duration;
+
+                    // Smaller chaotic movement for particles (movement relative to chassis)
+                    const xOffset = Math.sin(elapsedTime * 0.1 + i) * 0.5; // Horizontal random movement
+                    const yOffset = Math.sin(elapsedTime * 0.2 + i) * 1.0; // Vertical oscillation
+                    const zOffset = Math.cos(elapsedTime * 0.1 + i) * 0.5; // Depth movement
+
+                    // Apply chaotic movement to positions (relative to chassis)
+                    positions[i * 3] = xOffset;
+                    positions[i * 3 + 1] = yOffset;
+                    positions[i * 3 + 2] = zOffset;
+                }
+
+                geometry.attributes.position.needsUpdate = true; // Reflect position updates
+
+                if (elapsedTime < duration) {
+                    requestAnimationFrame(animateParticles); // Continue animation
+                } else {
+                    // Cleanup after the effect completes
+                    chassis.remove(particles);
+                    particles.geometry.dispose();
+                    particles.material.dispose();
+                }
+            };
+
+            // Attach particles to the chassis using its position and quaternion
+            particles.position.set(0, 0, 0.5); // Set the particles to chassis's position
+            particles.quaternion.copy(chassis.quaternion); // Attach to chassis rotation
+            particles.rotation.setFromQuaternion(chassis.quaternion); // Apply chassis quaternion for rotation
+
+            animateParticles(); // Start the animation
+        };
+
+        img.onerror = (error) => {
+            console.error('Failed to load base64 image:', error);
+        };
+    }
+
+    createFireEffect(position, quaternion) {
+        const fireTexture = '/images/texture/fire.png';
+    
+        const img = new Image();
+        img.src = fireTexture;
+        img.crossOrigin = "anonymous"; // Handle CORS
+
+        img.onload = () => {
+            const texture = new THREE.Texture(img);
+            texture.needsUpdate = true;
+
+            const material = new THREE.PointsMaterial({
+                size: 2.5, // Adjust size for visibility
+                map: texture,
+                vertexColors: true,
+                sizeAttenuation: true, // Size decreases with distance
+                transparent: true,
+                opacity: 1,
+                blending: THREE.AdditiveBlending, // Glowing effect
+                depthWrite: false, // Prevent depth issues
+            });
+
+            const particleCount = 100;
+            const geometry = new THREE.BufferGeometry();
+            const vertices = [];
+            const colors = [];
+            const sizes = [];
+
+            // Initialize particle vertices, colors, and sizes
+            for (let i = 0; i < particleCount; i++) {
+                vertices.push(0, 0, 0); // Start particles at origin
+
+                // Randomly pick brighter hues to simulate real fire exhaust
+                const randomColor = Math.random();
+                if (randomColor < 0.2) {
+                    colors.push(1, 0.2 + Math.random() * 0.3, 0); // Bright red
+                } else if (randomColor < 0.4) {
+                    colors.push(1, 0.5 + Math.random() * 0.5, 0); // Orange
+                } else if (randomColor < 0.6) {
+                    colors.push(1, 1, 0.2 + Math.random() * 0.3); // Yellowish hues
+                } else if (randomColor < 0.8) {
+                    const grayShade = 0.6 + Math.random() * 0.4;
+                    colors.push(grayShade, grayShade, grayShade); // Gray smoke
+                } else {
+                    colors.push(0.2, 0.5 + Math.random() * 0.5, 1); // Bluish hues
+                }
+
+                sizes.push(Math.random() * 0.1 + 0.05); // Size between 0.05 and 0.15
+            }
+
+            geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+            geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+            geometry.setAttribute('size', new THREE.Float32BufferAttribute(sizes, 1));
+
+            const particles = new THREE.Points(geometry, material);
+
+            // Rotate the particle system to align with rocket exhaust direction
+            particles.rotation.x = Math.PI / 2; // Rotate around X-axis for correct alignment
+
+            this.container.add(particles); // Add particles to the scene
+
+            // Calculate the exhaust offset
+            const exhaustOffset = new THREE.Vector3(-1.75, 0, 0);
+            exhaustOffset.applyQuaternion(quaternion);
+
+            // Set the initial position of the particles
+            particles.position.copy(position).add(exhaustOffset);
+            particles.quaternion.copy(quaternion); // Align with bullet’s orientation
+
+            let isBulletActive = true; // Track if bullet is active
+
+            const animateParticles = () => {
+                if (!isBulletActive) return; // Stop animation if bullet is removed
+
+                const positions = geometry.attributes.position.array;
+
+                // Update particle positions to move toward their initial position
+                for (let i = 0; i < particleCount; i++) {
+                    // Calculate the movement vector in local space
+                    const localMovement = new THREE.Vector3(
+                        -1 * (Math.random() - 0.5) * 0.1, // X-axis jitter
+                        -1 * (Math.random() - 0.5) * 0.1, // Y-axis jitter
+                        0 // Z-axis forward movement (toward initial position)
+                    );
+
+                    // Rotate the movement 90 degrees along the Y-axis
+                    const yRotation = new THREE.Quaternion();
+                    yRotation.setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI / 2); // 90 degrees along Y-axis
+
+                    localMovement.applyQuaternion(yRotation); // Apply the Y-axis rotation
+                    localMovement.applyQuaternion(quaternion); // Align with rocket’s orientation
+
+                    // Update the particle positions
+                    positions[i * 3 + 0] += localMovement.x * -2;
+                    positions[i * 3 + 1] += localMovement.y;
+                    positions[i * 3 + 2] += localMovement.z;
+                }
+
+                geometry.attributes.position.needsUpdate = true;
+
+                // Keep particles aligned with the bullet’s position and orientation
+                particles.position.copy(position).add(exhaustOffset);
+                particles.quaternion.copy(quaternion);
+
+                requestAnimationFrame(animateParticles); // Continue animation
+            };
+
+            animateParticles(); // Start animation
+
+            // Cleanup function to remove the fire effect when the bullet disappears
+            const cleanupFireEffect = () => {
+                isBulletActive = false; // Stop animation
+                this.container.remove(particles);
+                geometry.dispose();
+                material.dispose();
+            };
+
+            // Listen for bullet removal and trigger cleanup
+            const bulletCheckInterval = setInterval(() => {
+                const bulletExists = this.physics.bullets.some(
+                    (bullet) =>
+                        Math.abs(bullet.body.position.x - position.x) < 0.01 &&
+                        Math.abs(bullet.body.position.y - position.y) < 0.01 &&
+                        Math.abs(bullet.body.position.z - position.z) < 0.01
+                );
+
+                if (!bulletExists) {
+                    clearInterval(bulletCheckInterval); // Stop checking
+                    cleanupFireEffect(); // Cleanup fire effect
+                }
+            }, 1000); // Check every 100ms
+        };
+
+        // Handle texture loading errors
+        img.onerror = (error) => {
+            console.error('Failed to load base64 texture:', error);
+        };
+    }
+
+    createSirenEffect() {
+        const sirenTexture = '/images/texture/siren.png';
+    
+        const img = new Image();
+        img.src = sirenTexture;
+        img.crossOrigin = "anonymous";
+
+        img.onload = () => {
+            const texture = new THREE.Texture(img);
+            texture.needsUpdate = true;
+
+            const material = new THREE.PointsMaterial({
+                size: 0.5,  // Smaller size for a more concentrated effect
+                vertexColors: true,
+                sizeAttenuation: true,
+                transparent: true,
+                opacity: 0.5,
+                map: texture,
+                blending: THREE.AdditiveBlending,
+                depthWrite: false,
+            });
+
+            const particleCount = 20; // Fewer particles for a focused effect
+            const geometry = new THREE.BufferGeometry();
+            const vertices = [];
+            const colors = [];
+
+            // Alternating red and blue colors for the siren effect
+            const sirenColors = [
+                [1.0, 1.0, 1.0], // Red
+                [0.0, 1.0, 0.0], // Blue
+            ];
+
+            // Initialize particles with positions relative to the antenna
+            const initialOffset = new THREE.Vector3(0.5, 0.2, 0.5); // Offset from antenna position
+            for (let i = 0; i < particleCount; i++) {
+                vertices.push(initialOffset.x, initialOffset.y, initialOffset.z);
+                const [r, g, b] = sirenColors[i % 2];
+                colors.push(r, g, b);
+            }
+
+            geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+            geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+
+            const particles = new THREE.Points(geometry, material);
+            this.antena.object.add(particles); // Attach to the antenna object
+
+            const duration = 5000; // Effect duration
+            const startTime = performance.now();
+
+            const animateParticles = () => {
+                const elapsedTime = performance.now() - startTime;
+
+                if (elapsedTime < duration) {
+                    const positions = geometry.attributes.position.array;
+
+                    for (let i = 0; i < particleCount; i++) {
+                        const radius = 0.05; // Smaller radius for a compact effect
+                        const speed = 0.02;
+                        const angle = elapsedTime * speed + i * (Math.PI / particleCount);
+
+                        // Calculate new positions in a circular path around the antenna
+                        const x = Math.cos(angle) * radius;
+                        const y = Math.sin(angle) * radius; // Fixed height above the antenna
+                        const z = 0; // Positioned at the same level as the antenna
+
+                        const vector = new THREE.Vector3(x, y, z);
+                        vector.applyQuaternion(this.antena.object.quaternion); // Apply antenna rotation
+
+                        const antennaPosition = this.antena.object.position.clone(); // Clone to avoid mutating
+                        positions[i * 3] = antennaPosition.x + initialOffset.x + vector.x;
+                        positions[i * 3 + 1] = antennaPosition.y + initialOffset.y + vector.y;
+                        positions[i * 3 + 2] = antennaPosition.z + initialOffset.z + vector.z; // Update with antenna position
+                    }
+
+                    geometry.attributes.position.needsUpdate = true;
+
+                    // Alternate colors over time to simulate flashing red and blue lights
+                    const colorArray = geometry.attributes.color.array;
+                    const isRed = Math.floor(elapsedTime / 500) % 2 === 0;
+                    for (let i = 0; i < particleCount; i++) {
+                        const [r, g, b] = isRed ? sirenColors[0] : sirenColors[1];
+                        colorArray[i * 3] = r;
+                        colorArray[i * 3 + 1] = g;
+                        colorArray[i * 3 + 2] = b;
+                    }
+
+                    geometry.attributes.color.needsUpdate = true;
+
+                    requestAnimationFrame(animateParticles);
+                } else {
+                    // Cleanup after the effect completes
+                    this.antena.object.remove(particles); // Remove from antenna object
+                    particles.geometry.dispose();
+                    particles.material.dispose();
+                }
+            };
+
+            animateParticles(); // Start the animation
+        };
+
+        img.onerror = (error) => {
+            console.error('Failed to load base64 image:', error);
+        };
+    }
+
+    createNitroEffect(position, quaternion, carChassis) {
+        const nitroTexture = '/images/texture/nitro.png';
+    
+        const img = new Image();
+        img.src = nitroTexture;
+        img.crossOrigin = "anonymous"; // Handle CORS
+
+        img.onload = () => {
+            const texture = new THREE.Texture(img);
+            texture.needsUpdate = true;
+
+            const material = new THREE.PointsMaterial({
+                size: 1, // Adjust size for visibility
+                map: texture,
+                vertexColors: true,
+                sizeAttenuation: true, // Size decreases with distance
+                transparent: true,
+                opacity: 1,
+                blending: THREE.AdditiveBlending, // Glowing effect
+                depthWrite: false, // Prevent depth issues
+            });
+
+            const particleCount = 100;
+            const geometry = new THREE.BufferGeometry();
+            const vertices = [];
+            const colors = [];
+            const sizes = [];
+
+            // Initialize particle vertices, colors, and sizes
+            for (let i = 0; i < particleCount; i++) {
+                vertices.push(0, 0, 0); // Start particles at origin
+
+                // Randomly pick brighter hues to simulate real fire exhaust
+                const randomColor = Math.random();
+                if (randomColor < 0.33) {
+                    colors.push(0.0, 0.5 + Math.random() * 0.5, 1.0);  // Blue hues
+                } else if (randomColor < 0.66) {
+                    colors.push(1.0, 1.0 + Math.random() * 0.5, 0.0);  // Orange hues
+                } else {
+                    colors.push(0.0, 1.0, 0.5 + Math.random() * 0.5);  // Green hues
+                }
+
+                sizes.push(Math.random() * 0.1 + 0.05); // Size between 0.05 and 0.15
+            }
+
+            geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+            geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+            geometry.setAttribute('size', new THREE.Float32BufferAttribute(sizes, 1));
+
+            const particles = new THREE.Points(geometry, material);
+
+            // Attach particles to the car's chassis object
+            carChassis.add(particles);
+
+            // Rotate the particle system to align with rocket exhaust direction
+            particles.rotation.x = Math.PI / 2; // Rotate around X-axis for correct alignment
+
+            this.container.add(particles); // Add particles to the scene
+
+            // Calculate the exhaust offset
+            const exhaustOffset = new THREE.Vector3(-0.95, 0, 0.6);
+            exhaustOffset.applyQuaternion(quaternion);
+
+            // Set the initial position of the particles
+            particles.position.copy(position).add(exhaustOffset);
+            particles.quaternion.copy(quaternion); // Align with bullet’s orientation
+
+            let isBoostActive = true; // Track if bullet is active
+
+            const animateParticles = () => {
+                if (!isBoostActive) return; // Stop animation if bullet is removed
+
+                const positions = geometry.attributes.position.array;
+
+                // Update particle positions to move toward their initial position
+                for (let i = 0; i < particleCount; i++) {
+                    // Calculate the movement vector in local space
+                    const localMovement = new THREE.Vector3(
+                        -1 * (Math.random() - 0.5) * 0.1, // X-axis jitter
+                        -1 * (Math.random() - 0.5) * 0.1, // Y-axis jitter
+                        -1 * (Math.random() * 0.05) // Z-axis forward movement (toward initial position)
+                    );
+
+                    // Rotate the movement 90 degrees along the Y-axis
+                    const yRotation = new THREE.Quaternion();
+                    yRotation.setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI / 2); // 90 degrees along Y-axis
+
+                    localMovement.applyQuaternion(yRotation); // Apply the Y-axis rotation
+                    localMovement.applyQuaternion(quaternion); // Align with rocket’s orientation
+
+                    // Update the particle positions
+                    positions[i * 3 + 0] += localMovement.x  * 3;
+                    positions[i * 3 + 1] += localMovement.y;
+                    positions[i * 3 + 2] += localMovement.z;
+                }
+
+                geometry.attributes.position.needsUpdate = true;
+
+                // Keep particles aligned with the bullet’s position and orientation
+                particles.position.copy(carChassis.position).add(exhaustOffset);
+                particles.quaternion.copy(quaternion);
+
+                requestAnimationFrame(animateParticles); // Continue animation
+            };
+
+            animateParticles(); // Start animation
+
+            // Cleanup function to remove the fire effect when the bullet disappears
+            const cleanupNitroEffect  = () => {
+                isBoostActive = false; // Stop animation
+                this.container.remove(particles);
+                carChassis.remove(particles); // Remove particles from chassis
+                geometry.dispose();
+                material.dispose();
+            };
+
+            // Automatically clean up particles after the specified boost duration (Rocket League style burst)
+            setTimeout(() => {
+                cleanupNitroEffect();
+            }, 200); // Lasts for 200 milliseconds (adjust as needed)
+            };
+
+        // Handle texture loading errors
+        img.onerror = (error) => {
+            console.error('Failed to load base64 texture:', error);
+        };
     }
 
     setShootingMechanism() {
@@ -151,75 +628,6 @@ export default class Car18
                 batteryPercentageElement.textContent = `${battery}%`;
             }
         }
-    }
-
-    // Define a method to create nitro effects behind the car
-    createNitroEffect(position, quaternion) {
-        const particleCount = 100; // More particles for a more intense effect
-        const geometry = new THREE.BufferGeometry();
-        const vertices = [];
-        const colors = [];
-        const sizes = [];
-
-        for (let i = 0; i < particleCount; i++) {
-            vertices.push(
-                (Math.random() - 0.5) * 2, // x
-                (Math.random() - 0.5) * 2, // y
-                (Math.random() - 0.5) * 2  // z
-            );
-
-            colors.push(
-                0, // Red
-                0.5 + Math.random() * 0.5, // Green
-                1 // Blue, for a blueish nitro effect
-            );
-
-            sizes.push(Math.random() * 0.2 + 0.1); // Random size between 0.1 and 0.3
-        }
-
-        geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
-        geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-        geometry.setAttribute('size', new THREE.Float32BufferAttribute(sizes, 1));
-
-        const material = new THREE.PointsMaterial({
-            size: 0.1, // Larger base size for nitro effect
-            vertexColors: true,
-            sizeAttenuation: true, // Size diminishes with distance
-            opacity: 1,
-            transparent: true
-        });
-
-        const particles = new THREE.Points(geometry, material);
-        particles.position.copy(position);
-
-        // Adjust the nitro position to be behind the car
-        const nitroOffset = new THREE.Vector3(-2, 0, 0); // Slightly further back for nitro
-        nitroOffset.applyQuaternion(quaternion);
-        particles.position.add(nitroOffset);
-
-        // Add particles to the scene
-        this.container.add(particles);
-
-        // Animate particles
-        const duration = 700; // Duration in milliseconds
-        const startTime = performance.now();
-
-        const animateParticles = () => {
-            const elapsedTime = performance.now() - startTime;
-            if (elapsedTime < duration) {
-                particles.rotation.y += 0.02; // Rotate particles for effect
-                particles.scale.set(1, 1, 1).multiplyScalar(1 - (elapsedTime / duration)); // Scale down over time
-                particles.material.opacity = 1 - (elapsedTime / duration); // Fade out over time
-
-                requestAnimationFrame(animateParticles);
-            } else {
-                this.container.remove(particles);
-                particles.geometry.dispose();
-                particles.material.dispose();
-            }
-        };
-
-        animateParticles();
     }
 
     createAndShootBullet({ shooterId, bulletData = null }) {
@@ -297,75 +705,6 @@ export default class Car18
         });
 
         this.createFireEffect(bulletBall.position, bulletQuaternion);
-    } 
-
-     // Define a method to create fire effects behind the rocket
-     createFireEffect(position, quaternion) {
-        const particleCount = 100;
-        const geometry = new THREE.BufferGeometry();
-        const vertices = [];
-        const colors = [];
-        const sizes = [];
-
-        for (let i = 0; i < particleCount; i++) {
-            vertices.push(
-                (Math.random() - 0.5) * 2, // x
-                (Math.random() - 0.5) * 2, // y
-                (Math.random() - 0.5) * 2  // z
-            );
-
-            colors.push(
-                1, // Red
-                Math.random() * 0.5, // Green
-                0 // Blue
-            );
-
-            sizes.push(Math.random() * 0.1 + 0.05); // Random size between 0.05 and 0.15
-        }
-
-        geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
-        geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-        geometry.setAttribute('size', new THREE.Float32BufferAttribute(sizes, 1));
-
-        const material = new THREE.PointsMaterial({
-            size: 0.5, // Base size
-            vertexColors: true,
-            sizeAttenuation: true, // Size diminishes with distance
-            opacity: 1,
-            transparent: true
-        });
-
-        const particles = new THREE.Points(geometry, material);
-        particles.position.copy(position);
-
-        // Adjust the fire position to be behind the rocket
-        const fireOffset = new THREE.Vector3(-3, 0, 0);
-        fireOffset.applyQuaternion(quaternion);
-        particles.position.add(fireOffset);
-
-        // Add particles to the scene
-        this.container.add(particles);
-
-        // Animate particles
-        const duration = 500; // Duration in milliseconds
-        const startTime = performance.now();
-
-        const animateParticles = () => {
-            const elapsedTime = performance.now() - startTime;
-            if (elapsedTime < duration) {
-                particles.rotation.y += 0.02; // Rotate particles for effect
-                particles.scale.set(1, 1, 1).multiplyScalar(1 - (elapsedTime / duration)); // Scale down over time
-                particles.material.opacity = 1 - (elapsedTime / duration); // Fade out over time
-
-                requestAnimationFrame(animateParticles);
-            } else {
-                this.container.remove(particles);
-                particles.geometry.dispose();
-                particles.material.dispose();
-            }
-        };
-
-        animateParticles();
     }
 
     setModels()
@@ -670,8 +1009,8 @@ export default class Car18
                     const y = this.position.y + Math.sin(angle) * distance
                     const z = 2 + 2 * Math.random()
                     const bowlingBall = this.objects.add({
-                        base: this.resources.items.bowlingBallBase.scene,
-                        collision: this.resources.items.bowlingBallCollision.scene,
+                        base: this.resources.items.ballBase.scene,
+                        collision: this.resources.items.ballCollision.scene,
                         offset: new THREE.Vector3(x, y, z),
                         rotation: new THREE.Euler(Math.PI * 0.5, 0, 0),
                         duplicated: true,

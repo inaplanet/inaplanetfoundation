@@ -7515,7 +7515,7 @@ export default class Physics
         this.car1.options.chassisMass = 0
         this.car1.options.wheelFrontOffsetDepth = 0.635
         this.car1.options.wheelBackOffsetDepth = -0.475
-        this.car1.options.wheelOffsetWidth = 0.39
+        this.car1.options.wheelOffsetWidth = 0.50
         this.car1.options.wheelRadius = 0.25
         this.car1.options.wheelHeight = 0.24
         this.car1.options.wheelSuspensionStiffness = 50
@@ -8509,8 +8509,8 @@ export default class Physics
                 this.car.flightMode = false;
 
                 // Reset angular velocity to stop spinning or rotating in flight
-                this.car.chassis.body.angularVelocity.set(0, 0, 0);  // Stop rotation completely
-
+                this.car.chassis.body.angularVelocity.set(0, 0, this.car.chassis.body.angularVelocity.z);  // Stop rotation completely
+                console.log('Car physics chassis', this.car.chassis.body);
                 // Optionally, reset any angular damping or other flight-specific physics
                 this.car.chassis.body.angularDamping = 0.1;  // Adjust if necessary for normal driving
 
@@ -8528,13 +8528,55 @@ export default class Physics
                 // Set quaternion to identity (no rotation), ensuring the car is grounded and upright
                 const groundedQuaternion = new CANNON.Quaternion(this.car.chassis.body.quaternion.x, this.car.chassis.body.quaternion.y, this.car.chassis.body.quaternion.z, 1); // This quaternion represents no rotation (identity)
                 this.car.chassis.body.quaternion.copy(groundedQuaternion);  // Lock the car's orientation
-
-                // Apply small forces or torque if necessary to ensure stability (if required)
-                const correctionTorque = new CANNON.Vec3(0, 0, 0);  // No torque needed, just lock the body orientation
-                if (typeof this.car.chassis.body.applyTorque === 'function') {
-                    this.car.chassis.body.applyTorque(correctionTorque);  // This could still help if slight stabilization is needed
-                }
             }
+
+            // // Check if brake is pressed and car is in flight mode
+            // if (this.car.flightMode && this.controls.actions.brake) {
+            //     // Exit flight mode
+            //     this.car.flightMode = false;
+
+            //     // Reset angular velocity to stop spinning or rotating in flight
+            //     this.car.chassis.body.angularVelocity.set(0, 0, 0);  // Stop rotation completely
+
+            //     // Optionally, reset any angular damping or other flight-specific physics
+            //     this.car.chassis.body.angularDamping = 0.1;  // Adjust if necessary for normal driving
+
+            //     // Ensure the car's behavior returns to normal ground driving without altering the current position or orientation
+            //     for (const wheelIndex in this.car.wheels.bodies) {
+            //         const wheelBody = this.car.wheels.bodies[wheelIndex];
+            //         wheelBody.type = CANNON.Body.DYNAMIC;  // Make sure the wheels return to dynamic mode
+            //     }
+
+            //     // Apply slight downward force to ensure the car sticks to the ground after flight
+            //     const downwardForce = new CANNON.Vec3(0, 0, -10);  // Apply force in the negative Z axis to push the car downwards
+            //     this.car.chassis.body.applyForce(downwardForce, this.car.chassis.body.position);
+
+            //     // Preserve the car's world-facing direction before resetting quaternion
+            //     const localForward = new CANNON.Vec3(1, 0, 0); // Car's forward direction in its local space
+            //     const worldForward = new CANNON.Vec3();
+            //     this.car.chassis.body.vectorToWorldFrame(localForward, worldForward); // Get the world-facing direction
+
+            //     // Create an upright quaternion (rotation along the X axis)
+            //     const uprightQuaternion = new CANNON.Quaternion();
+            //     uprightQuaternion.setFromEuler(Math.PI / 2, 0, 0);  // Set the car to be upright
+
+            //     // Check if the car is upside down using the up vector (to determine if it's flipped)
+            //     const localUp = new CANNON.Vec3(0, 0, 1);
+            //     const worldUp = new CANNON.Vec3();
+            //     this.car.chassis.body.vectorToWorldFrame(localUp, worldUp);
+
+            //     // If the car is upside down, apply forces to stabilize it
+            //     if (worldUp.dot(localUp) < 0) {
+            //         // Apply force to flip the car back upright (push it in the positive Z direction)
+            //         const flipForce = new CANNON.Vec3(0, 0, 10);  // Adjust the force as necessary
+            //         this.car.chassis.body.applyForce(flipForce, this.car.chassis.body.position);
+            //     }
+
+            //     // Apply force to land on 4 wheels (adjust as necessary)
+            //     // You can apply small forces along the X and Y axes if the car isn't perfectly aligned
+            //     const stabilizationForce = new CANNON.Vec3(0, 0, 0);
+            //     this.car.chassis.body.applyForce(stabilizationForce, this.car.chassis.body.position);
+            // }
 
             // Handle flight mode with boost controls
             // if (this.car.flightMode && this.controls.actions.boost) {
@@ -8608,7 +8650,7 @@ export default class Physics
                 const thrustStrength = 500;
 
                 // Lift the car up along the Z-axis when boost is activated
-                this.car.chassis.body.position.z += 0.2;  // Adjust the value to control the rate of ascent
+                // this.car.chassis.body.position.z += 0.2;  // Adjust the value to control the rate of ascent
 
                 // if (this.controls.actions.up) {
                 //     this.car.chassis.body.angularVelocity.x += rotationSpeed;
@@ -8717,7 +8759,23 @@ export default class Physics
                     const otherCarBody = otherPlayerCar instanceof Car1 ? otherPlayerCar.physics.car1.chassis.body :
                                         otherPlayerCar instanceof Car2 ? otherPlayerCar.physics.car2.chassis.body :
                                         otherPlayerCar instanceof Car3 ? otherPlayerCar.physics.car3.chassis.body :
-                                        otherPlayerCar.physics.car4.chassis.body;
+                                        otherPlayerCar instanceof Car4 ? otherPlayerCar.physics.car4.chassis.body :
+                                        otherPlayerCar instanceof Car5 ? otherPlayerCar.physics.car5.chassis.body :
+                                        otherPlayerCar instanceof Car6 ? otherPlayerCar.physics.car6.chassis.body :
+                                        otherPlayerCar instanceof Car7 ? otherPlayerCar.physics.car7.chassis.body :
+                                        otherPlayerCar instanceof Car8 ? otherPlayerCar.physics.car8.chassis.body :
+                                        otherPlayerCar instanceof Car9 ? otherPlayerCar.physics.car9.chassis.body :
+                                        otherPlayerCar instanceof Car10 ? otherPlayerCar.physics.car10.chassis.body :
+                                        otherPlayerCar instanceof Car11 ? otherPlayerCar.physics.car11.chassis.body :
+                                        otherPlayerCar instanceof Car12 ? otherPlayerCar.physics.car12.chassis.body :
+                                        otherPlayerCar instanceof Car13 ? otherPlayerCar.physics.car13.chassis.body :
+                                        otherPlayerCar instanceof Car14 ? otherPlayerCar.physics.car14.chassis.body :
+                                        otherPlayerCar instanceof Car15 ? otherPlayerCar.physics.car15.chassis.body :
+                                        otherPlayerCar instanceof Car16 ? otherPlayerCar.physics.car16.chassis.body :
+                                        otherPlayerCar instanceof Car17 ? otherPlayerCar.physics.car17.chassis.body :
+                                        otherPlayerCar instanceof Car18 ? otherPlayerCar.physics.car18.chassis.body :
+                                        otherPlayerCar instanceof Car19 ? otherPlayerCar.physics.car19.chassis.body :
+                                        otherPlayerCar.physics.car20.chassis.body;
 
                     if (this.detectCollision(playerCarBody, otherCarBody)) {
                         this.handleCarCollision(playerCar, otherPlayerCar);
@@ -8855,7 +8913,23 @@ export default class Physics
         const otherCarBody = otherPlayerCar instanceof Car1 ? otherPlayerCar?.physics?.car1?.chassis?.body :
                              otherPlayerCar instanceof Car2 ? otherPlayerCar?.physics?.car2?.chassis?.body :
                              otherPlayerCar instanceof Car3 ? otherPlayerCar?.physics?.car3?.chassis?.body :
-                             otherPlayerCar?.physics?.car4?.chassis?.body;
+                             otherPlayerCar instanceof Car4 ? otherPlayerCar?.physics?.car4?.chassis?.body :
+                             otherPlayerCar instanceof Car5 ? otherPlayerCar?.physics?.car5?.chassis?.body :
+                             otherPlayerCar instanceof Car6 ? otherPlayerCar?.physics?.car6?.chassis?.body :
+                             otherPlayerCar instanceof Car7 ? otherPlayerCar?.physics?.car7?.chassis?.body :
+                             otherPlayerCar instanceof Car8 ? otherPlayerCar?.physics?.car8?.chassis?.body :
+                             otherPlayerCar instanceof Car9 ? otherPlayerCar?.physics?.car9.chassis?.body :
+                             otherPlayerCar instanceof Car10 ? otherPlayerCar?.physics?.car10?.chassis?.body :
+                             otherPlayerCar instanceof Car11 ? otherPlayerCar?.physics?.car11?.chassis?.body :
+                             otherPlayerCar instanceof Car12 ? otherPlayerCar?.physics?.car12?.chassis?.body :
+                             otherPlayerCar instanceof Car13 ? otherPlayerCar?.physics?.car13?.chassis?.body :
+                             otherPlayerCar instanceof Car14 ? otherPlayerCar?.physics?.car14?.chassis?.body :
+                             otherPlayerCar instanceof Car15 ? otherPlayerCar?.physics?.car15?.chassis?.body :
+                             otherPlayerCar instanceof Car16 ? otherPlayerCar?.physics?.car16?.chassis?.body :
+                             otherPlayerCar instanceof Car17 ? otherPlayerCar?.physics?.car17?.chassis?.body :
+                             otherPlayerCar instanceof Car18 ? otherPlayerCar?.physics?.car18?.chassis?.body :
+                             otherPlayerCar instanceof Car19 ? otherPlayerCar?.physics?.car19?.chassis?.body :
+                             otherPlayerCar?.physics?.car20?.chassis?.body;
     
         if (!playerCarBody || !otherCarBody) {
             console.error("One of the car bodies is not initialized:", { playerCarBody, otherCarBody });
@@ -8965,6 +9039,36 @@ export default class Physics
                 carKey = 'car3';
             } else if (otherPlayerCar instanceof Car4) {
                 carKey = 'car4';
+            } else if (otherPlayerCar instanceof Car5) {
+                carKey = 'car5';
+            } else if (otherPlayerCar instanceof Car6) {
+                carKey = 'car6';
+            } else if (otherPlayerCar instanceof Car7) {
+                carKey = 'car7';
+            } else if (otherPlayerCar instanceof Car8) {
+                carKey = 'car8';
+            } else if (otherPlayerCar instanceof Car9) {
+                carKey = 'car9';
+            } else if (otherPlayerCar instanceof Car10) {
+                carKey = 'car10';
+            } else if (otherPlayerCar instanceof Car11) {
+                carKey = 'car11';
+            } else if (otherPlayerCar instanceof Car12) {
+                carKey = 'car12';
+            } else if (otherPlayerCar instanceof Car13) {
+                carKey = 'car13';
+            } else if (otherPlayerCar instanceof Car14) {
+                carKey = 'car14';
+            } else if (otherPlayerCar instanceof Car15) {
+                carKey = 'car15';
+            } else if (otherPlayerCar instanceof Car16) {
+                carKey = 'car16';
+            } else if (otherPlayerCar instanceof Car17) {
+                carKey = 'car17';
+            } else if (otherPlayerCar instanceof Car18) {
+                carKey = 'car18';
+            } else if (otherPlayerCar instanceof Car19) {
+                carKey = 'car19';
             }
     
             this.destroyCar(otherPlayerCar, carKey);
@@ -9087,7 +9191,23 @@ export default class Physics
                 const otherCarBody = otherPlayerCar instanceof Car1 ? otherPlayerCar.physics.car1.chassis.body :
                                      otherPlayerCar instanceof Car2 ? otherPlayerCar.physics.car2.chassis.body :
                                      otherPlayerCar instanceof Car3 ? otherPlayerCar.physics.car3.chassis.body :
-                                     otherPlayerCar.physics.car4.chassis.body;
+                                     otherPlayerCar instanceof Car4 ? otherPlayerCar.physics.car4.chassis.body :
+                                     otherPlayerCar instanceof Car5 ? otherPlayerCar.physics.car5.chassis.body :
+                                     otherPlayerCar instanceof Car6 ? otherPlayerCar.physics.car6.chassis.body :
+                                     otherPlayerCar instanceof Car7 ? otherPlayerCar.physics.car7.chassis.body :
+                                     otherPlayerCar instanceof Car8 ? otherPlayerCar.physics.car8.chassis.body :
+                                     otherPlayerCar instanceof Car9 ? otherPlayerCar.physics.car9.chassis.body :
+                                     otherPlayerCar instanceof Car10 ? otherPlayerCar.physics.car10.chassis.body :
+                                     otherPlayerCar instanceof Car11 ? otherPlayerCar.physics.car11.chassis.body :
+                                     otherPlayerCar instanceof Car12 ? otherPlayerCar.physics.car12.chassis.body :
+                                     otherPlayerCar instanceof Car13 ? otherPlayerCar.physics.car13.chassis.body :
+                                     otherPlayerCar instanceof Car14 ? otherPlayerCar.physics.car14.chassis.body :
+                                     otherPlayerCar instanceof Car15 ? otherPlayerCar.physics.car15.chassis.body :
+                                     otherPlayerCar instanceof Car16 ? otherPlayerCar.physics.car16.chassis.body :
+                                     otherPlayerCar instanceof Car17 ? otherPlayerCar.physics.car17.chassis.body :
+                                     otherPlayerCar instanceof Car18 ? otherPlayerCar.physics.car18.chassis.body :
+                                     otherPlayerCar instanceof Car19 ? otherPlayerCar.physics.car19.chassis.body :
+                                     otherPlayerCar.physics.car20.chassis.body;
     
                 // if (this.detectCollision(playerCarBody, otherCarBody)) {
                 //     this.handleCarCollision(playerCar, otherPlayerCar);

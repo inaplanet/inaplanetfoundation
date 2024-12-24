@@ -192,8 +192,8 @@ export default class PlaygroundSection
         // })
 
         this.bowling.ball = this.objects.add({
-            base: this.resources.items.bowlingBallBase.scene,
-            collision: this.resources.items.bowlingBallCollision.scene,
+            base: this.resources.items.ballBase.scene,
+            collision: this.resources.items.ballCollision.scene,
             offset: new THREE.Vector3(this.bowling.x - 5, this.bowling.y, 0),
             rotation: new THREE.Euler(Math.PI * 0.5, 0, 0),
             duplicated: true,

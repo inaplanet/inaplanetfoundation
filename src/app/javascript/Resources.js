@@ -305,8 +305,8 @@ const brickBaseSource = '/models/brick/base.glb'
 const brickCollisionSource = '/models/brick/collision.glb'
 
 // Bowling ball
-const bowlingBallBaseSource = '/models/bowlingBall/base.glb'
-const bowlingBallCollisionSource = '/models/bowlingBall/collision.glb'
+const ballBaseSource = '/models/ball/base.glb'
+const ballCollisionSource = '/models/ball/collision.glb'
 
 // Rocket
 const rocketBaseSource = '/models/rocket/base.glb'
@@ -319,10 +319,6 @@ const airdropCollisionSource = '/models/airdrop/collision.glb'
 // Battery
 const batteryChargerBaseSource = '/models/rocket/base.glb'
 const batteryChargerCollisionSource = '/models/rocket/collision.glb'
-
-// Bowling pin
-const bowlingPinBaseSource = '/models/bowlingPin/base.glb'
-const bowlingPinCollisionSource = '/models/bowlingPin/collision.glb'
 
 // Area
 const areaKeyEnterSource = 'models/area/keyEnter.png'
@@ -664,8 +660,8 @@ export default class Resources extends EventEmitter
             { name: 'brickCollision', source: brickCollisionSource },
 
             // Bownling ball
-            { name: 'bowlingBallBase', source: bowlingBallBaseSource },
-            { name: 'bowlingBallCollision', source: bowlingBallCollisionSource },
+            { name: 'ballBase', source: ballBaseSource },
+            { name: 'ballCollision', source: ballCollisionSource },
 
             // Rocket ball
             { name: 'rocketBase', source: rocketBaseSource },
@@ -678,10 +674,6 @@ export default class Resources extends EventEmitter
              // Battery charger
              { name: 'batteryChargerBase', source: batteryChargerBaseSource },
              { name: 'batteryChargerBaseCollision', source: batteryChargerCollisionSource },
-
-            // Bownling ball
-            { name: 'bowlingPinBase', source: bowlingPinBaseSource },
-            { name: 'bowlingPinCollision', source: bowlingPinCollisionSource },
 
             // Areas
             { name: 'areaKeyEnter', source: areaKeyEnterSource, type: 'texture' },

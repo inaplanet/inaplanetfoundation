@@ -21,6 +21,7 @@ import gsap from 'gsap';
 export default function GaragePage() {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(true);
+    const [isClient, setIsClient] = useState(false);
     const [navigateToPage, setNavigateToPage] = useState<string | null>(null);
     const searchParams = useSearchParams();
     const playerId = searchParams.get('playerId');
@@ -890,6 +891,11 @@ export default function GaragePage() {
         };
 
     }, [currentCarIndex]);
+
+    useEffect(() => {
+        // Set the isClient flag to true when the component has mounted (client-side)
+        setIsClient(true);
+      }, []);
 
     const applyMatcap = (part: THREE.Object3D, matcapName: string) => {
         const texture = matcapTextures.current[matcapName]; // Retrieve the texture from matcapTextures

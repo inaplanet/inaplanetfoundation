@@ -434,7 +434,6 @@ const Application = ({ playerId, selectedWorldId, token, carName, matcaps }) => 
         this.scene.add(this.world.container)
         console.log("Game World:", this.world)
         console.log("Game World Texture panel:", this.world.matcaps)
-
     }
 
     /**
