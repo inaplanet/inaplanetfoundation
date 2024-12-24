@@ -416,9 +416,9 @@ export default class Physics
                 controlsSteeringMax: Math.PI * 0.17,
                 controlsSteeringQuad: false,
                 controlsAcceleratinMaxSpeed: 0.055 * 3 / 17,
-                controlsAcceleratinMaxSpeedBoost: 0.17 * 3 / 17,
+                controlsAcceleratinMaxSpeedBoost: 0.17 * 5 / 17,
                 controlsAcceleratingSpeed: 2 * 4 * 2,
-                controlsAcceleratingSpeedBoost: 7 * 4 * 2,
+                controlsAcceleratingSpeedBoost: 7 * 2 * 2,
                 controlsAcceleratingQuad: true,
                 controlsBrakeStrength: 0.45 * 9,
             },
@@ -8517,12 +8517,8 @@ export default class Physics
                 // Ensure the car's behavior returns to normal ground driving without altering the current position or orientation
                 for (const wheelIndex in this.car.wheels.bodies) {
                     const wheelBody = this.car.wheels.bodies[wheelIndex];
-                    wheelBody.type = CANNON.Body.DYNAMIC;  // Make sure the wheels return to dynamic mode
+                    wheelBody.type = CANNON.Body.KINEMATIC;  // Make sure the wheels return to dynamic mode
                 }
-
-                // Apply slight downward force to ensure the car sticks to the ground after flight
-                const downwardForce = new CANNON.Vec3(0, 0, 0);  // Adjust if necessary
-                this.car.chassis.body.applyForce(downwardForce, this.car.chassis.body.position);
 
                 // Lock the car’s orientation to prevent unwanted rotation (keep the car upright)
                 // Set quaternion to identity (no rotation), ensuring the car is grounded and upright

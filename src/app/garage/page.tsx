@@ -158,6 +158,7 @@ export default function GaragePage() {
                 headlights: '/models/mclaren/showroom/showroomheadlights.glb',
                 mirrors: '/models/mclaren/showroom/showroommirrors.glb',
                 wheels: '/models/mclaren/showroom/wheels.glb',
+                tire: '/models/mclaren/showroom/tires.glb',
                 antena: '/models/mclaren/showroom/showroomantena.glb',
             },
             attributes: {
@@ -255,7 +256,7 @@ export default function GaragePage() {
             price: 4800000,
             parts: {
                 chassisbottom: '/models/rctruck/showroom/chassisbottom.glb',
-                chassis: '/models/rctruck/showroom/chassis.glb',
+                chassis: '/models/rctruck/showroom/chassis1.glb',
                 window: '/models/rctruck/showroom/window.glb',
                 headlights: '/models/rctruck/showroom/headlights.glb',
                 backlights: '/models/rctruck/showroom/backlights.glb',
@@ -276,7 +277,7 @@ export default function GaragePage() {
             parts: {
                 backlights: '/models/pushpushpush/showroom/backlights.glb',
                 chassis: '/models/pushpushpush/showroom/chassis1.glb',
-                chassisbottom: '/models/pushpushpush/showroom/chassisbottom1.glb',
+                chassisbottom: '/models/pushpushpush/showroom/chassisbottom.glb',
                 headlights: '/models/pushpushpush/showroom/headlights.glb',
                 tire: '/models/pushpushpush/showroom/showroomtire.glb',
                 wheels: '/models/pushpushpush/showroom/showroomwheels.glb',
@@ -295,7 +296,7 @@ export default function GaragePage() {
             price: 7500000,
             parts: {
                 backlights: '/models/impactus/showroom/backlights.glb',
-                chassis: '/models/impactus/showroom/chassis1.glb',
+                chassis: '/models/impactus/showroom/chassis.glb',
                 brake: '/models/impactus/showroom/brake.glb',
                 headlights: '/models/impactus/showroom/headlights2.glb',
                 wheels: '/models/impactus/showroom/showroomwheel.glb',
@@ -336,7 +337,7 @@ export default function GaragePage() {
     ];
 
     const toggleView = (selectedView: 'menu' | 'car' | 'rocket' | 'showroom' | 'customize') => {
-        console.log('Toggling view to:', selectedView);
+        // console.log('Toggling view to:', selectedView);
     
         setView(selectedView); // Update the state
     
@@ -350,7 +351,7 @@ export default function GaragePage() {
             setView('menu');
         }
     
-        console.log('Rocket group visibility:', rocketGroupRef.current.children.map((c) => c.visible)); // Debug log
+        // console.log('Rocket group visibility:', rocketGroupRef.current.children.map((c) => c.visible)); // Debug log
     };
 
     const handleCarView = () => {
@@ -385,7 +386,7 @@ export default function GaragePage() {
         });
     
         rocketGroupRef.current.traverse((child) => {
-            console.log(`Setting rocket visibility to true for: ${child.name}`); // Debug log
+            // console.log(`Setting rocket visibility to true for: ${child.name}`); // Debug log
             if (child instanceof THREE.Object3D) {
                 child.visible = true; // Show the rocket
             }
@@ -401,7 +402,7 @@ export default function GaragePage() {
     };
 
     const handleShowroomView = () => {
-        console.log('Loading showroom cars...', showroomGroupRef.current);
+        // console.log('Loading showroom cars...', showroomGroupRef.current);
     
         setIsOrbitEnabled(true);
     
@@ -427,7 +428,7 @@ export default function GaragePage() {
         if (!showroomLoaded.current) {
             loadShowroomCar(cars).then(() => {
                 showroomLoaded.current = true; // Mark as loaded
-                console.log('Showroom cars loaded.');
+                // console.log('Showroom cars loaded.');
             });
         }
     
@@ -441,7 +442,7 @@ export default function GaragePage() {
             });
         }
     
-        console.log('Entering showroom view');
+        // console.log('Entering showroom view');
         setView('showroom');
     };    
 
@@ -672,7 +673,7 @@ export default function GaragePage() {
          })
          .catch(error => {
              if (error.name === 'AbortError') {
-             console.log('Video fetch aborted');
+            //  console.log('Video fetch aborted');
              } else {
              console.error('Error fetching video:', error);
              }
@@ -729,7 +730,7 @@ export default function GaragePage() {
         const loadBackground = async () => {
             const loader = new GLTFLoader();
             loader.load(
-                '/garage/background3.glb',
+                '/garage/background.glb',
                 (gltf) => {
                     const backgroundMesh = gltf.scene;
                     backgroundMesh.position.set(0, 0, 0);
@@ -758,7 +759,7 @@ export default function GaragePage() {
                                 child.material = new THREE.MeshMatcapMaterial({
                                     matcap: matcapTextures.current[rndMatcap],
                                 });
-                                console.log('Applied random matcap to chassis:', rndMatcap);
+                                // console.log('Applied random matcap to chassis:', rndMatcap);
                             }
 
                             if (child.name === 'shadeTransparent') {
@@ -766,12 +767,12 @@ export default function GaragePage() {
                                 child.material = new THREE.MeshMatcapMaterial({
                                     matcap: matcapTextures.current[rndMatcap],
                                 });
-                                console.log('Applied random matcap to chassis:', rndMatcap);
+                                // console.log('Applied random matcap to chassis:', rndMatcap);
                             }
                         }
                     });
                     backgroundScene.add(backgroundMesh);
-                    console.log('Background loaded successfully');
+                    // console.log('Background loaded successfully');
                 },
                 undefined,
                 (error) => {
@@ -872,7 +873,7 @@ export default function GaragePage() {
             if (intersects.length > 0) {
                 const clickedPoint = intersects[0].object;
                 const partName = clickedPoint.userData.partName; // Fetch part name from userData
-                console.log("Customization point clicked for:", partName); // Debugging log
+                // console.log("Customization point clicked for:", partName); // Debugging log
                 setSelectedPart(partName);
                 setShowMatcapMenu(true);
             }
@@ -904,7 +905,7 @@ export default function GaragePage() {
                 if (child instanceof THREE.Mesh) {
                     child.material = new THREE.MeshMatcapMaterial({ matcap: texture });
                     child.material.needsUpdate = true;
-                    console.log(`Matcap '${matcapName}' applied to '${child.name}'`);
+                    // console.log(`Matcap '${matcapName}' applied to '${child.name}'`);
                 }
             });
         } else {
@@ -914,7 +915,7 @@ export default function GaragePage() {
 
         const loadCar = async (index: number, matcaps: Record<string, string>) => {
 
-            console.log("LOAD CAR MATCAPS", matcaps)
+            // console.log("LOAD CAR MATCAPS", matcaps)
             setIsCarLoading(true); // Start loading animation
 
             // Update car attributes based on the index
@@ -944,7 +945,7 @@ export default function GaragePage() {
             }
 
             // Dynamically generate icon paths and set filteredPngIcons
-            const excludedParts = ['headlights', 'backlights', 'tire', 'antena'];
+            const excludedParts = ['headlights', 'backlights', 'tire', 'antena', 'foglights', 'rocket'];
             const filteredIcons = Object.keys(carParts)
                 .filter((partName) => !excludedParts.includes(partName)) // Exclude unwanted parts
                 .reduce((icons, partName) => {
@@ -990,7 +991,7 @@ export default function GaragePage() {
                                 if (child instanceof THREE.Mesh) {
                                     const matcapName = matcaps.chassis || 'black';
                                     applyMatcap(child, matcapName);
-                                    console.log(`Applied matcap '${matcapName}' to part: ${partName}`);
+                                    // console.log(`Applied matcap '${matcapName}' to part: ${partName}`);
                                 }
                             });
                         } else if (partName === 'spoiler') {
@@ -998,7 +999,7 @@ export default function GaragePage() {
                                 if (child instanceof THREE.Mesh) {
                                     const matcapName = matcaps.spoiler || 'black';
                                     applyMatcap(child, matcapName);
-                                    console.log(`Applied matcap '${matcapName}' to part: ${partName}`);
+                                    // console.log(`Applied matcap '${matcapName}' to part: ${partName}`);
                                 }
                             });
                         } else if (partName === 'window') {
@@ -1006,7 +1007,7 @@ export default function GaragePage() {
                                 if (child instanceof THREE.Mesh) {
                                     const matcapName = matcaps.window || 'black';
                                     applyMatcap(child, matcapName);
-                                    console.log(`Applied matcap '${matcapName}' to part: ${partName}`);
+                                    // console.log(`Applied matcap '${matcapName}' to part: ${partName}`);
                                 }
                             });
                         } else if (partName === 'chassisbottom') {
@@ -1014,7 +1015,7 @@ export default function GaragePage() {
                                 if (child instanceof THREE.Mesh) {
                                     const matcapName = matcaps.chassisbottom || 'black';
                                     applyMatcap(child, matcapName);
-                                    console.log(`Applied matcap '${matcapName}' to part: ${partName}`);
+                                    // console.log(`Applied matcap '${matcapName}' to part: ${partName}`);
                                 }
                             });
                         } else if (partName === 'wheels') {
@@ -1022,7 +1023,7 @@ export default function GaragePage() {
                                 if (child instanceof THREE.Mesh) {
                                     const matcapName = matcaps.wheels || 'black';
                                     applyMatcap(child, matcapName);
-                                    console.log(`Applied matcap '${matcapName}' to part: ${partName}`);
+                                    // console.log(`Applied matcap '${matcapName}' to part: ${partName}`);
                                 }
                             });
                         } else if (partName === 'tire') {
@@ -1030,7 +1031,7 @@ export default function GaragePage() {
                                 if (child instanceof THREE.Mesh) {
                                     const matcapName = 'black';
                                     applyMatcap(child, matcapName);
-                                    console.log(`Applied matcap '${matcapName}' to part: ${partName}`);
+                                    // console.log(`Applied matcap '${matcapName}' to part: ${partName}`);
                                 }
                             });
                         } else {
@@ -1347,7 +1348,7 @@ export default function GaragePage() {
             if (carGroup instanceof THREE.Object3D) {
                 if (carGroup.visible) {
                     // Animate the currently visible car out
-                    console.log(`Animating out car: ${carGroup.name}`);
+                    // console.log(`Animating out car: ${carGroup.name}`);
                     currentAnimatingCar = carGroup;
     
                     const startPosition = new THREE.Vector3(0, 0, 0); // Current position (center)
@@ -1375,7 +1376,7 @@ export default function GaragePage() {
                             requestAnimationFrame(animateOut);
                         } else {
                             carGroup.visible = false; // Hide after animation completes
-                            console.log(`Car ${carGroup.name} is now hidden.`);
+                            // console.log(`Car ${carGroup.name} is now hidden.`);
                         }
                     };
     
@@ -1384,7 +1385,7 @@ export default function GaragePage() {
     
                 if (carGroup.name === selectedCar.name) {
                     // Animate the selected car in with a delay
-                    console.log(`Animating in car: ${carGroup.name}`);
+                    // console.log(`Animating in car: ${carGroup.name}`);
                     const startPosition = new THREE.Vector3(5, 0, 0); // Start position (off-screen right)
                     const endPosition = new THREE.Vector3(0, 0, 0); // End position (center)
                     const startRotation = new THREE.Euler(
@@ -1410,7 +1411,7 @@ export default function GaragePage() {
                             if (progress < 1) {
                                 requestAnimationFrame(animate);
                             } else {
-                                console.log(`Animation complete for car: ${carGroup.name}`);
+                                // console.log(`Animation complete for car: ${carGroup.name}`);
                             }
                         };
     
@@ -1508,7 +1509,7 @@ export default function GaragePage() {
                     matcaps,
                 })
             );
-            console.log("Matcaps sent to server:", { playerId, carName, matcaps });
+            // console.log("Matcaps sent to server:", { playerId, carName, matcaps });
         } else {
             console.warn("Missing data to send to server:", { playerId, carName, matcaps });
         }
@@ -1581,7 +1582,7 @@ export default function GaragePage() {
             return;
         }
     
-        console.log("Applying texture to part:", selectedPart);
+        // console.log("Applying texture to part:", selectedPart);
     
         // Retrieve existing matcaps from localStorage or initialize a new object
         const savedMatcaps = JSON.parse(localStorage.getItem("matcaps") || "{}");
@@ -1591,7 +1592,7 @@ export default function GaragePage() {
             if (child instanceof THREE.Mesh && child.name === selectedPart) {
                 child.material = new THREE.MeshMatcapMaterial({ matcap: texture });
                 child.material.needsUpdate = true;
-                console.log(`Updated ${selectedPart} with ${matcapName} matcap`);
+                // console.log(`Updated ${selectedPart} with ${matcapName} matcap`);
             }
         });
     
@@ -1600,7 +1601,7 @@ export default function GaragePage() {
     
         // Save the updated matcaps to localStorage
         localStorage.setItem("matcaps", JSON.stringify(savedMatcaps));
-        console.log("Updated matcaps saved to localStorage:", savedMatcaps);
+        // console.log("Updated matcaps saved to localStorage:", savedMatcaps);
     
         setShowMatcapMenu(false); // Close the matcap selection menu
     };
@@ -1730,7 +1731,7 @@ export default function GaragePage() {
      // WebSocket initialization
      const initializeWebSocket = useCallback(() => {
         if (wsRef.current) {
-            console.log('WebSocket already initialized');
+            // console.log('WebSocket already initialized');
             return;
         }
 
@@ -1775,12 +1776,12 @@ export default function GaragePage() {
                 return;
             }
 
-            console.log('Received WebSocket message:', message);
+            // console.log('Received WebSocket message:', message);
 
             // Handle player score message
             if (message.type === 'playerScore') {
                 if (typeof message.score === 'number') {
-                    console.log(`Player score received: ${message.score}`);
+                    // console.log(`Player score received: ${message.score}`);
                     setPlayerAccount(message.score);
                     setLoadingAccount(false);
                 } else {
@@ -1803,7 +1804,7 @@ export default function GaragePage() {
 
                 // Save retrieved matcaps to localStorage
                 localStorage.setItem("matcaps", JSON.stringify(receivedMatcaps));
-                console.log("Retrieved and saved matcaps:", receivedMatcaps);
+                // console.log("Retrieved and saved matcaps:", receivedMatcaps);
 
                 const carIndex = cars.findIndex((car) => car.name === selectedCar);
                 setCurrentCarIndex(carIndex !== -1 ? carIndex : 0); // Default to the first car if not found

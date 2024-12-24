@@ -17,11 +17,11 @@ export default function RootLayout({
 }>) {
 
   // Check if we're in a server-side context before calling headers
-  let cookies: string | null = null;
-  if (typeof headers === 'function') {
-    const serverHeaders = headers();
-    cookies = serverHeaders?.get('cookie') || null;
-  }
+  // let cookies: string | null = null;
+  // if (typeof headers === 'function') {
+  //   const serverHeaders = headers();
+  //   cookies = serverHeaders?.get('cookie') || null;
+  // }
 
   return (
     <html lang="en">
@@ -32,7 +32,8 @@ export default function RootLayout({
     </head>
       <body>
         {/* Wrap everything in the ContextProvider and pass cookies */}
-        <ContextProvider cookies={cookies}>{children}</ContextProvider>
+        <ContextProvider>{children}</ContextProvider>
+        {/* <ContextProvider cookies={cookies}>{children}</ContextProvider> */}
       </body>
     </html>
   );
