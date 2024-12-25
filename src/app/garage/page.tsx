@@ -705,7 +705,7 @@ export default function GaragePage() {
         const videoPlaneGeometry = new THREE.PlaneGeometry(targetWidth, targetHeight);
         const videoPlane = new THREE.Mesh(videoPlaneGeometry, videoMaterial);
         // Positioning: Adjust based on the 1920x1080 reference
-        videoPlane.position.set(-171, -152, 0); // Offset values are also calculated relative to 1920x1080
+        videoPlane.position.set(-171, -152, -700); // Offset values are also calculated relative to 1920x1080
         backgroundScene.add(videoPlane);
 
         // const textureLoader = new THREE.TextureLoader();
