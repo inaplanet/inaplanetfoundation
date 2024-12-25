@@ -754,7 +754,7 @@ export default function GaragePage() {
                             });
 
                             // Example: Custom material logic for specific names
-                            if (child.name === 'logo') {
+                            if (child.name === 'logo' || child.name === 'logo1') {
                                 const rndMatcap = 'metal'
                                 child.material = new THREE.MeshMatcapMaterial({
                                     matcap: matcapTextures.current[rndMatcap],
