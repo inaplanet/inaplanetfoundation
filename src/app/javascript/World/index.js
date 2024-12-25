@@ -37,6 +37,7 @@ import Controls from './Controls.js'
 import Controls1 from './Controls1.js'
 import Sounds from './Sounds.js'
 const videoAdsSource = 'images/videos/video.mp4';
+const videoAdSource = 'images/videos/adv.mp4';
 import feather from 'feather-icons'
 import LazyLoad from 'react-lazy-load';
 
@@ -352,6 +353,7 @@ export default class
         }
 
         this.setAds();
+        this.addAdvertisementPlane();
         this.setMaterials();
         this.setShadows();
         this.setZones();
@@ -447,6 +449,134 @@ export default class
         });
     }  
 
+    // addAdvertisementPlane() {
+    //     // Create a video element
+    //     const video = document.createElement('video');
+    //     video.src = videoAdSource;
+    //     video.id = 'video-ad';
+    //     video.crossOrigin = 'anonymous';
+    //     video.playsInline = true;
+    //     video.autoplay = true;
+    //     video.muted = true;
+    //     video.loop = true;
+    //     video.style = 'display: none'; // Hide the video element itself
+    
+    //     // Append the video to the DOM
+    //     document.body.appendChild(video);
+
+    //     // Create a VideoTexture from the video element
+    //     const videoTexture = new THREE.VideoTexture(video);
+    //     videoTexture.minFilter = THREE.LinearFilter;
+    //     videoTexture.magFilter = THREE.LinearFilter;
+    //     videoTexture.format = THREE.RGBFormat;
+
+    //     // Calculate dimensions for the plane to cover the top side of the world
+    //     const planeWidth = 1200; // Distance from start to end on the x-axis
+    //     const planeHeight = 5; // Adjust this as per your preference
+
+    //     // Create the plane geometry
+    //     const planeGeometry = new THREE.PlaneGeometry(planeWidth, planeHeight);
+
+    //     // Create a material using the video texture
+    //     const planeMaterial = new THREE.MeshBasicMaterial({
+    //         map: videoTexture,
+    //         side: THREE.DoubleSide,
+    //         toneMapped: false,
+    //     });
+
+    //     // Create the plane mesh
+    //     const videoPlane = new THREE.Mesh(planeGeometry, planeMaterial);
+
+    //     // Position the plane (spanning the top side of the scene)
+    //     videoPlane.position.set(0, -595, 3); // Center of the specified range (adjust y-axis if needed)
+    //     videoPlane.rotation.x = -Math.PI / 2; // Rotate 90 degrees to face downward from the top
+
+    //     // Add the video plane to the Three.js scene
+    //     this.container.add(videoPlane);
+
+    //     // Ensure the video texture updates on each frame
+    //     this.time.on('tick', () => {
+    //         if (videoTexture && video.readyState >= video.HAVE_CURRENT_DATA) {
+    //             videoTexture.needsUpdate = true;
+    //         }
+    //     });
+    // }
+
+    addAdvertisementPlane() {
+        // Create a video element
+        const video = document.createElement('video');
+        video.src = videoAdSource; // Replace with your video source
+        video.id = 'video-ad';
+        video.crossOrigin = 'anonymous';
+        video.playsInline = true;
+        video.autoplay = true;
+        video.muted = true;
+        video.loop = true;
+        video.style = 'display: none'; // Hide the video element itself
+    
+        // Append the video to the DOM
+        document.body.appendChild(video);
+    
+        // Create a VideoTexture from the video element
+        const videoTexture = new THREE.VideoTexture(video);
+        videoTexture.minFilter = THREE.LinearFilter;
+        videoTexture.magFilter = THREE.LinearFilter;
+        videoTexture.format = THREE.RGBFormat;
+    
+        // Plane dimensions
+        const planeWidth = 1200; // Covers the world size
+        const planeHeight = 5;   // Adjust as needed
+    
+        // Create the plane geometry
+        const planeGeometry = new THREE.PlaneGeometry(planeWidth, planeHeight);
+    
+        // Create a material using the video texture
+        const planeMaterial = new THREE.MeshBasicMaterial({
+            map: videoTexture,
+            side: THREE.DoubleSide,
+            toneMapped: false,
+        });
+    
+        // Create and position the planes
+        const planes = [];
+    
+        // Bottom border
+        const bottomPlane = new THREE.Mesh(planeGeometry, planeMaterial);
+        bottomPlane.position.set(0, -595, 3); // Adjust to match the bottom border
+        bottomPlane.rotation.x = -Math.PI / 2;
+        planes.push(bottomPlane);
+    
+        // Top border
+        const topPlane = new THREE.Mesh(planeGeometry, planeMaterial);
+        topPlane.position.set(0, 595, 3); // Adjust to match the top border
+        topPlane.rotation.x = Math.PI / 2; // Rotate to face the correct direction
+        planes.push(topPlane);
+    
+        // Left border
+        const leftPlane = new THREE.Mesh(planeGeometry, planeMaterial);
+        leftPlane.geometry = new THREE.PlaneGeometry(planeHeight, planeWidth); // Adjust dimensions
+        leftPlane.rotation.y = Math.PI / 2; // Rotate to align with the left border
+        leftPlane.position.set(-595, 0, 3); // Adjust to match the left border
+        planes.push(leftPlane);
+    
+        // Right border
+        const rightPlane = new THREE.Mesh(planeGeometry, planeMaterial);
+        rightPlane.geometry = new THREE.PlaneGeometry(planeHeight, planeWidth); // Adjust dimensions
+        rightPlane.rotation.y = -Math.PI / 2; // Rotate to align with the right border
+        rightPlane.position.set(595, 0, 3); // Adjust to match the right border
+        planes.push(rightPlane);
+    
+        // Add planes to the scene
+        planes.forEach(plane => this.container.add(plane));
+    
+        // Ensure the video texture updates on each frame
+        this.time.on('tick', () => {
+            if (videoTexture && video.readyState >= video.HAVE_CURRENT_DATA) {
+                videoTexture.needsUpdate = true;
+            }
+        });
+    }    
+    
         requestPlayerScore(playerId) {
             if (this.ws && this.ws.readyState === WebSocket.OPEN) {
                 const getScoreMessage = {
