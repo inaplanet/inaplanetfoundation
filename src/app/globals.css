@@ -243,33 +243,11 @@ opacity: 0;
   }
 } */
 
-#trade-button {
-  position: absolute;
-  border: unset;
-  width: 72px;
-  height: 10px;
-  text-align: center;
-  font-family: 'Orbitron', sans-serif;
-  font-size: 8px;
-  top: 121px;
-  align-items: center;
-  justify-content: center;
-  display: flex;
-  left: 98px;
-  background: rgba(0, 0, 0, 0.5);
-  color: white;
-  padding: 10px 10px;
-  border-radius: 5px;
-  z-index: 10;
-  backdrop-filter: blur(10px);
-  opacity: 0;
+/* @media (max-width: 767px) {
+  #friend-invite-button {
+    display: none;
   }
-
-  @media (max-width: 767px) {
-    #trade-button {
-      display: none;
-    }
-  }
+} */
 
 #invite-button {
 position: absolute;
@@ -293,8 +271,52 @@ backdrop-filter: blur(10px);
 opacity: 0;
 }
 
+#friend-invite-button {
+  position: absolute;
+  border: unset;
+  width: 72px;
+  height: 10px;
+  text-align: center;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 8px;
+  top: 151px;
+  align-items: center;
+  justify-content: center;
+  display: flex;
+  left: 20px;
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  padding: 10px 10px;
+  border-radius: 5px;
+  z-index: 10;
+  backdrop-filter: blur(10px);
+  opacity: 0;
+  }
+
 @media (max-width: 767px) {
   #invite-button {
+    position: absolute;
+    border: unset;
+    width: 65px;
+    height: 10px;
+    text-align: center;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 8px;
+    top: 145px;
+    align-items: center;
+    justify-content: center;
+    display: flex;
+    left: 306px;
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    padding: 10px 10px;
+    border-radius: 5px;
+    z-index: 10;
+    backdrop-filter: blur(10px);
+    opacity: 0;
+    }
+
+  #friend-invite-button {
     position: absolute;
     border: unset;
     width: 65px;

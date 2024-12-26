@@ -612,6 +612,8 @@ export default class
                 // Clear old party state in case the player was previously in a party
                 this.inParty = false;
                 this.partyMembers = [];
+                this.inParty = false;
+                this.isPartyLeader = false;
 
                 ws.send(JSON.stringify({ type: 'join', playerId: this.playerId, worldId: this.worldId }));
                 console.log('Connected to WebSocket server with worldId', this.worldId);
@@ -677,7 +679,22 @@ export default class
                             // Handle world full situation (e.g., prompt the user to join another world or retry)
                             // For example, you might want to retry joining with a different worldId or notify the user
                             break;
-    
+
+                    case 'inviteFriendship':
+                            console.log(`Received friendship invite from ${message.friendRequestId}`);
+                            this.showFriendListPrompt(message.friendRequestId, message.targetPlayerId, ws);
+                            break;
+
+                    case 'friendshipResponse':
+                            if (message.response === 'yes') {
+                                console.log(`${message.playerId} accepted friendship invite from ${message.friendRequestId}`);
+                                alert(`You are now friends with ${message.friendRequestId.slice(0, 6)}`);
+                            } else {
+                                console.log(`${message.playerId} denied friendship invite from ${message.friendRequestId}`);
+                                alert(`Friendship invite denied.`);
+                            }
+                            break;
+
                     case 'update':
                         if (message.playerId !== this.playerId) {
                             const car = this.otherPlayers[message.playerId];
@@ -757,9 +774,19 @@ export default class
                         }
                         break;
 
+                    // case 'invite':
+                    //     console.log(`Received invite from ${message.inviterId}`);
+                    //     this.showInvitePrompt(message.inviterId, message.targetPlayerId, ws);
+                    //     break;
+
                     case 'invite':
-                        console.log(`Received invite from ${message.inviterId}`);
-                        this.showInvitePrompt(message.inviterId, message.targetPlayerId, ws);
+                        if (!this.inParty) {
+                            console.log(`Received invite from ${message.inviterId}`);
+                            this.showInvitePrompt(message.inviterId, message.targetPlayerId, ws);
+                        } else {
+                            console.log('Already in a party. Ignoring invite.');
+                            // alert('You are already in a party and cannot be invited.');
+                        }
                         break;
 
                     case 'inviteResponse':
@@ -781,6 +808,9 @@ export default class
                         // Ensure no duplicate players are added
                         const uniqueMembers = new Set([...this.partyMembers, ...message.party.members]);
                         this.partyMembers = Array.from(uniqueMembers); // Deduplicate members
+
+                        // Remove the player who left from the local list
+                        this.partyMembers = this.partyMembers.filter(memberId => message.party.members.includes(memberId));
                         
                         this.updatePartyUI(message.party.leader, this.partyMembers, this.physics, ws);
                         
@@ -822,6 +852,7 @@ export default class
 
                     case 'partyDisbanded':
                         this.inParty = false;
+                        this.isPartyLeader = false;
                         this.partyMembers = [];
                         this.clearChatContainer();
                         this.hideChatContainer();
@@ -866,8 +897,7 @@ export default class
                         }
                         break;
 
-                    case 'dropKrashcoin':
-
+                        case 'dropKrashcoin':
                             // Check if a coin is already active
                             if (this.coinActive) {
                                 console.log("Coin is already active, skipping drop.");
@@ -1340,6 +1370,87 @@ export default class
             }
         }
 
+        showFriendListPrompt(friendRequestId, targetPlayerId, ws) {
+            let inviteElement = document.getElementById('friend-invite-prompt');
+            if (!inviteElement) {
+                inviteElement = document.createElement('div');
+                inviteElement.id = 'friend-invite-prompt';
+                inviteElement.style = `
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    background-color: rgba(0, 0, 0, 0.5);
+                    color: white;
+                    padding: 10px;
+                    border-radius: 10px;
+                    z-index: 1000;
+                    display: flex;
+                    align-items: center;
+                    flex-direction: column;
+                    width: 250px;
+                `;
+        
+                const messageElement = document.createElement('div');
+                messageElement.id = 'friend-invite-message';
+                messageElement.style.fontFamily = 'Orbitron, sans-serif';
+                inviteElement.appendChild(messageElement);
+        
+                const buttonContainer = document.createElement('div');
+                buttonContainer.style = `
+                    display: flex;
+                    justify-content: space-between;
+                    width: 100%;
+                `;
+        
+                const acceptButton = document.createElement('button');
+                acceptButton.innerHTML = '✅ Accept';
+                acceptButton.style = `
+                    margin-right: 10px;
+                    background-color: #8CFF80;
+                    color: #000;
+                    flex: 1;
+                    font-family: Orbitron, sans-serif;
+                `;
+                acceptButton.onclick = () => this.respondToFriendshipInvite('yes', friendRequestId, targetPlayerId, ws);
+                buttonContainer.appendChild(acceptButton);
+        
+                const denyButton = document.createElement('button');
+                denyButton.innerHTML = '❌ Deny';
+                denyButton.style = `
+                    background-color: #FF5733;
+                    flex: 1;
+                    font-family: Orbitron, sans-serif;
+                `;
+                denyButton.onclick = () => this.respondToFriendshipInvite('no', friendRequestId, targetPlayerId, ws);
+                buttonContainer.appendChild(denyButton);
+        
+                inviteElement.appendChild(buttonContainer);
+                document.body.appendChild(inviteElement);
+        
+                setTimeout(() => this.hideInvitePrompt(inviteElement), 20000); // Auto-hide after 20 seconds
+            }
+        
+            const messageElement = document.getElementById('friend-invite-message');
+            messageElement.innerText = `${friendRequestId.slice(0, 6)} wants to add you as a friend. Accept?`;
+        }        
+
+        respondToFriendshipInvite(response, friendRequestId, playerId, ws) {
+            if (ws) {
+                ws.send(JSON.stringify({
+                    type: 'friendshipResponse',
+                    response: response,
+                    friendRequestId: friendRequestId,
+                    playerId: playerId
+                }));
+            }
+        
+            const inviteElement = document.getElementById('friend-invite-prompt');
+            if (inviteElement) {
+                inviteElement.style.display = 'none';
+            }
+        }           
+
         // Function to clear the chat container
         clearChatContainer = () => {
             const chatBox = document.getElementById('party-chat-box');
@@ -1399,6 +1510,19 @@ export default class
             }));
             // updatePartyUI(inviterId, playerId);
         }
+
+        updateFriendListUI(friendList) {
+            const friendListContainer = document.getElementById('friend-list');
+            if (friendListContainer) {
+                friendListContainer.innerHTML = ''; // Clear existing list
+        
+                friendList.forEach(friendId => {
+                    const friendElement = document.createElement('div');
+                    friendElement.textContent = `Friend ID: ${friendId}`;
+                    friendListContainer.appendChild(friendElement);
+                });
+            }
+        }        
                 
         // Update party UI
         updatePartyUI(inviterId, members, physics, ws) {
@@ -1651,6 +1775,11 @@ export default class
                     console.error("WebSocket connection is not available");
                   }
 
+                // Update the UI for the player leaving
+                this.inParty = false;
+                this.partyMembers = [];
+                this.isPartyLeader = false;
+
                 const partyElement = document.getElementById('party-info');
                 if (partyElement) {
                     partyElement.style.display = 'none';
@@ -1747,16 +1876,13 @@ export default class
                 this.carName = carName;
                 this.matcaps = matcaps;
 
+                this.cars = {};
+                this.otherPlayers = {};
+
                 // Add the token to the WebSocket URL query parameter
                 const serverAddress = `wss://krashbox.glitch.me?token=${token}`;
                 const ws = new WebSocket(serverAddress)
                 this.ws = ws;  // Store the WebSocket connection
-
-                this.cars = {};
-                this.otherPlayers = {};
-                this.partyMembers = [];
-                this.inParty = false;
-                this.isPartyLeader = false;
 
                 // Set up WebSocket event handlers
                 this.setupWebSocketHandlers(ws);     
@@ -1860,6 +1986,33 @@ export default class
                         this.dropAirdrop(playerCar);
                     }
                 };
+
+                document.getElementById('friend-invite-button').addEventListener('click', () => {
+                    const targetPlayerId = this.detectNearestTarget();
+                    if (targetPlayerId) {
+                        const playerId = this.car.playerId;
+                
+                        console.log(`Sending friendship invite from ${playerId} to ${targetPlayerId}`);
+                        sendFriendInvite(targetPlayerId, playerId);
+                    } else {
+                        console.error('No target player found for friendship invite.');
+                    }
+                });
+                
+                // Invite a target player to friendship
+                function sendFriendInvite(targetPlayerId, playerId) {
+                    if (ws.readyState === WebSocket.OPEN) {
+                        ws.send(JSON.stringify({
+                            type: 'inviteFriendship',
+                            friendRequestId: playerId,
+                            targetPlayerId: targetPlayerId
+                        }));
+                
+                        console.log(`Friendship invite sent from ${playerId} to ${targetPlayerId}`);
+                    } else {
+                        console.error('WebSocket connection is not open. Invite not sent.');
+                    }
+                }                            
 
                 // Add the invite button event listener
                 document.getElementById('invite-button').addEventListener('click', () => {
@@ -1985,7 +2138,17 @@ export default class
                 //             response: response
                 //         }));
                 //     }
-                // };                
+                // };    
+                
+                // const handlePartyCallResponse = (senderId, response) => {
+                //     const message = response === 'yes'
+                //         ? `${formatPlayerId(senderId)} joined the party call.`
+                //         : `${formatPlayerId(senderId)} declined the party call.`;
+                //     displayPartyMessage(senderId, message, false);
+                // };
+
+                // Add event listener to existing button (no need to create it dynamically)
+                // document.getElementById('toggle-chat-button').addEventListener('click', toggleChatVisibility);
             
                 // Event listener for sending a message
                 document.getElementById('send-message-button').addEventListener('click', () => {
@@ -1997,15 +2160,18 @@ export default class
                     }
                 });
 
-                // const handlePartyCallResponse = (senderId, response) => {
-                //     const message = response === 'yes'
-                //         ? `${formatPlayerId(senderId)} joined the party call.`
-                //         : `${formatPlayerId(senderId)} declined the party call.`;
-                //     displayPartyMessage(senderId, message, false);
-                // };
-
-                // Add event listener to existing button (no need to create it dynamically)
-                // document.getElementById('toggle-chat-button').addEventListener('click', toggleChatVisibility);
+                // Event listener for sending a message with the Enter key
+                document.getElementById('party-message-input').addEventListener('keydown', (event) => {
+                    if (event.key === 'Enter') {
+                        const messageInput = event.target;
+                        const messageText = messageInput.value;
+                        if (messageText) {
+                            this.sendPartyMessage(messageText);
+                            messageInput.value = ''; // Clear the input after sending
+                        }
+                        event.preventDefault(); // Prevent the default behavior of Enter (like form submission)
+                    }
+                });
 
                 // Create chat UI but hide it initially
                 const chatContainer = document.createElement('div');
@@ -2549,10 +2715,10 @@ export default class
             const scoreElement = document.getElementById('score-status');
             const coinMarket = document.getElementById('coin-market');
             const inviteButton = document.getElementById('invite-button');
-            const tradeButton = document.getElementById('trade-button');
+            const inviteFriend = document.getElementById('friend-invite-button');
 
-            inviteButton.innerText = 'INVITE';
-            tradeButton.innerText = 'TRADE';
+            inviteButton.innerText = '+ PARTY';
+            inviteFriend.innerText = '+ FRIEND';
             
             if (userDisplay) {
                 userDisplay.innerHTML = formatPlayerId(playerId);
@@ -2560,7 +2726,8 @@ export default class
                 scoreElement.style.opacity = 1;
                 coinMarket.style.opacity = 1;
                 inviteButton.style.opacity = 1;
-                tradeButton.style.opacity = 1;
+                inviteFriend.style.opacity = 1;
+                inviteFriend.style.opacity = 1;
             }
     
             return playerId;

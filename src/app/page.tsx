@@ -963,7 +963,7 @@ return (
     <div id="coin-market"></div>
     <div id="target-player-id"></div>
     <button id="invite-button" style={{ opacity: 0 }}></button>
-    <button id="trade-button" style={{ opacity: 0 }}></button>
+    <button id="friend-invite-button" style={{ opacity: 0 }}></button>
     <div id="touch-radio" style={{ opacity: 0 }}></div>
     <div id="touch-previous" style={{ opacity: 0 }}></div>
     <div id="touch-next" style={{ opacity: 0 }}></div>

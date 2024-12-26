@@ -730,7 +730,7 @@ export default function GaragePage() {
         const loadBackground = async () => {
             const loader = new GLTFLoader();
             loader.load(
-                '/garage/background.glb',
+                '/garage/showroom.glb',
                 (gltf) => {
                     const backgroundMesh = gltf.scene;
                     backgroundMesh.position.set(0, 0, 0);
@@ -1528,7 +1528,7 @@ export default function GaragePage() {
             localStorage.removeItem("matcaps");
             localStorage.removeItem("selectedCarName");
         }
-
+        
     }, [navigateToPage, router]);
 
     // Smooth camera transition function
@@ -1994,7 +1994,7 @@ export default function GaragePage() {
                         Kybertruck
                     </h3>
                 )}
-                {view === 'rocket' && (
+                {/* {view === 'rocket' && (
                     <h3
                         style={{
                             fontSize: '30px',
@@ -2003,7 +2003,7 @@ export default function GaragePage() {
                     >
                         Venerium
                     </h3>
-                )}
+                )} */}
                 {/* {view === 'showroom' && (
                     <h3
                         style={{
