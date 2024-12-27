@@ -320,7 +320,7 @@ export default class Controls extends EventEmitter
         inviteButton.style.display = this.isVerticalDisplay() ? 'none' : 'none';
         // toggleContact.style.display = this.isVerticalDisplay() ? 'none' : 'none';
         contacts.style.display = this.isVerticalDisplay() ? 'none' : 'none';
-        settingsButton.style.display = this.isVerticalDisplay() ? 'none' : 'none';
+        // settingsButton.style.display = this.isVerticalDisplay() ? 'none' : 'none';
         touchRadio.style.display = this.isVerticalDisplay() ? 'none' : 'none';
         touchMute.style.display = this.isVerticalDisplay() ? 'none' : 'none';
         touchSlider.style.display = this.isVerticalDisplay() ? 'none' : 'none';
@@ -550,7 +550,13 @@ export default class Controls extends EventEmitter
                 touchSlider.style.display = 'block';
                 touchPrevious.style.display = 'block';
                 touchNext.style.display = 'block';
-                touchContacts.style.display = 'flex';
+
+                // if (touchContacts) {
+                //     touchContacts.style.display = 'flex';
+                // } else {
+                //     touchContacts.style.display = 'none'
+                // }
+
                 if (partyInfo) {
                     partyInfo.style.display = 'block';
                 }
@@ -569,7 +575,7 @@ export default class Controls extends EventEmitter
                 touchSlider.style.display = 'none';
                 touchPrevious.style.display = 'none';
                 touchNext.style.display = 'none';
-                touchContacts.style.display = 'none';
+                // touchContacts.style.display = 'none';
                 if (partyInfo) {
                     partyInfo.style.display = 'none';
                 }

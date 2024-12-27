@@ -690,7 +690,7 @@ const handleWorldSelection = (worldId: string, listItem: HTMLLIElement, worldLis
               </div>
               <div id='garage' className='garage'>
                 <button id='garage-button' onClick={handleGarageButtonClick}>SHOWROOM</button>
-                <button id='chatbox-button'>MESSENGER</button>
+                <button id='chatbox-button'>TEXTBOX</button>
               </div>
             </>
           )}
@@ -718,12 +718,14 @@ const handleWorldSelection = (worldId: string, listItem: HTMLLIElement, worldLis
             {/*Friend List */}
             <div id="contact-list-container">
                 <button id="toggle-contact-list" className='toggle-contact-list'></button>
-                <div id="contact-list"></div>
+                <div id="contact-list">
+                  <h1 style={{textAlign: 'center', paddingBottom: '10px'}}>CONNECTION LIST</h1>
+                </div>
             </div>
 
             {/*Controller Settings */}
             <div id="settings-container">
-                <button id="toggle-settings">SETTINGS</button>
+                <button id="toggle-settings"></button>
                 <div id="toggle-settings-window" className="display:none;"></div>
             </div>
 

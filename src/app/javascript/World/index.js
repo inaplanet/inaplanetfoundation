@@ -610,14 +610,16 @@ export default class
             const friendListContainer = document.getElementById('contact-list');
 
             // Clear any existing friend list data
-            friendListContainer.innerHTML = '';
+            if (friendListContainer) {
+                // friendListContainer.innerHTML = '';
 
-            // Add each friend to the friend list container
-            friendList.forEach(friendId => {
-                const friendElement = document.createElement('div');
-                friendElement.textContent = `${friendId}`;
-                friendListContainer.appendChild(friendElement);
-            });
+                // Add each friend to the friend list container
+                friendList.forEach(friendId => {
+                    const friendElement = document.createElement('div');
+                    friendElement.textContent = `${friendId}`;
+                    friendListContainer.appendChild(friendElement);
+                });
+            }
         }
 
         setupWebSocketHandlers(ws) {
@@ -2795,9 +2797,10 @@ export default class
             const contactList = document.getElementById('toggle-contact-list');
             const settings = document.getElementById('settings-container');
 
-            inviteButton.innerText = 'PARTY';
-            inviteFriend.innerText = 'CONTACT';
-            contactList.innerText = 'CONTACTS';
+            inviteButton.innerText = 'TEAM UP';
+            inviteFriend.innerText = 'LINK UP';
+            contactList.innerText = 'LINK BOX';
+            settings.innerText = 'SETTINGS';
             
             if (userDisplay) {
                 userDisplay.innerHTML = formatPlayerId(playerId);

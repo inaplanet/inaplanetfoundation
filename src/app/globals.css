@@ -256,6 +256,7 @@ opacity: 0;
   height: 10px;
   text-align: center;
   font-family: 'Orbitron', sans-serif;
+  font-weight: 600;
   font-size: 8px;
   top: 121px;
   align-items: center;
@@ -278,6 +279,7 @@ opacity: 0;
   height: 10px;
   text-align: center;
   font-family: 'Orbitron', sans-serif;
+  font-weight: 600;
   font-size: 8px;
   top: 151px;
   align-items: center;
@@ -300,6 +302,7 @@ opacity: 0;
     height: 10px;
     text-align: center;
     font-family: 'Orbitron', sans-serif;
+    font-weight: 600;
     font-size: 8px;
     top: 121px;
     align-items: center;
@@ -325,7 +328,8 @@ opacity: 0;
   #contact-list {
     background-color: rgba(0, 0, 0, 0.3);
     position: absolute;
-    margin: 5px;
+    margin: 0;
+    padding: 20px;
     bottom: 0;
     right: 0;
     width: 400px;
@@ -339,7 +343,7 @@ opacity: 0;
     z-index: 10000;
     backdrop-filter: blur(5px);
     transition: all 2s;
-    justify-content: center;
+    justify-content: initial;
     display: none;
   }
 
@@ -350,6 +354,10 @@ opacity: 0;
     padding: 20px;
     justify-content: center;
     box-shadow: 0px 0px 1px rgba(0, 255, 16, 0.1);
+  }
+
+  #contact-list div:last-child:before {
+    margin: 10px;
   }
 
   #settings-container {
@@ -432,6 +440,7 @@ opacity: 0;
     height: 10px !important;
     text-align: center;
     font-family: 'Orbitron', sans-serif;
+    font-weight: 600;
     font-size: 8px;
     top: 194px;
     align-items: center;
@@ -450,10 +459,11 @@ opacity: 0;
   #contact-list {
     background-color: rgba(0, 0, 0, 0.3);
     position: absolute;
-    margin: 5px;
+    margin: 0 !important;
+    padding: 20px;
     bottom: 0;
     right: 0;
-    width: 400px;
+    width: 100vw;
     height: 350px;
     max-height: calc(100% - 40px);
     display: flex;
@@ -464,8 +474,31 @@ opacity: 0;
     z-index: 10000;
     backdrop-filter: blur(5px);
     transition: ease-in-out 2s;
-    justify-content: center;
+    justify-content: initial;
     display: none;
+  }
+  
+  #settings-container {
+    position: absolute;
+    border: unset;
+    width: 65px;
+    height: 10px !important;
+    text-align: center;
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 600;
+    font-size: 8px;
+    top: 218px;
+    align-items: center;
+    justify-content: center;
+    display: flex;
+    left: 306px;
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    padding: 10px 10px;
+    border-radius: 5px;
+    z-index: 10;
+    backdrop-filter: blur(10px);
+    opacity: 0;
   }
 }
 
@@ -674,10 +707,10 @@ opacity: 0;
   text-shadow: '2px 2px 4px rgba(0, 0, 0, 0.9)';
 }
 
-#garage-button::after {
+/* #garage-button::after {
   content: "UP";
   position: absolute;
-  top: 25px; /* Adjust the positioning of the label */
+  top: 25px;
   left: 50%;
   transform: translateX(-50%);
   background-color: transparent;
@@ -686,9 +719,8 @@ opacity: 0;
   padding: 2px 10px;
   border-radius: 0px;
   font-family: 'Orbitron', sans-serif;
-  /* box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.5); */
-  z-index: 101; /* Ensure the label appears above the button */
-}
+  z-index: 101;
+} */
 
 #garage-button:hover,
 #chatbox-button:hover {
@@ -717,10 +749,10 @@ opacity: 0;
   text-shadow: '2px 2px 4px rgba(0, 0, 0, 0.9)';
 }
 
-#chatbox-button::after {
+/* #chatbox-button::after {
   content: "DOWN";
   position: absolute;
-  top: 25px; /* Adjust the positioning of the label */
+  top: 25px;
   left: 50%;
   transform: translateX(-50%);
   background-color: transparent;
@@ -729,9 +761,8 @@ opacity: 0;
   padding: 2px 10px;
   border-radius: 0px;
   font-family: 'Orbitron', sans-serif;
-  /* box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.5); */
-  z-index: 101; /* Ensure the label appears above the button */
-}
+  z-index: 101;
+} */
 
 @media (max-width: 767px) {
   .garage {
@@ -768,7 +799,7 @@ opacity: 0;
     transition: background-color 0.3s ease;
   }
 
-  #garage-button::after {
+  /* #garage-button::after {
     content: "UP";
     position: absolute;
     top: 35px !important;
@@ -780,18 +811,16 @@ opacity: 0;
     padding: 2px 10px;
     border-radius: 0px;
     font-family: 'Orbitron', sans-serif;
-    /* box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.5); */
-    z-index: 101; /* Ensure the label appears above the button */
-  }
+    z-index: 101;
+  } */
 
   #chatbox-button {
-    position: static; /* Use static positioning to follow flexbox layout */
+    position: static;
     font-size: 15px;
     background-color: rgba(255, 255, 255, 0.01);
     width: 150px;
     height: 50px;
-    /* margin-right: 10%; */
-    padding: 10px 20px; /* Adjust padding for better touch target size */
+    padding: 10px 20px;
     backdrop-filter: blur(5px);
     z-index: 100;
     text-align: center;
@@ -800,12 +829,12 @@ opacity: 0;
     box-sizing: border-box;
     border-top: 5px solid transparent;
     border-bottom: 5px solid transparent;
-    rotate: 0deg; /* No rotation needed on mobile */
+    rotate: 0deg;
     cursor: pointer;
     transition: background-color 0.3s ease;
   }
 
-  #chatbox-button::after {
+  /* #chatbox-button::after {
     content: "DOWN";
     position: absolute;
     top: 35px !important;
@@ -817,9 +846,8 @@ opacity: 0;
     padding: 2px 10px;
     border-radius: 0px;
     font-family: 'Orbitron', sans-serif;
-    /* box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.5); */
-    z-index: 101; /* Ensure the label appears above the button */
-  }
+    z-index: 101;
+  } */
 
   #garage-button {
     margin-right: 5px; /* Add spacing only to the right of the first button */
