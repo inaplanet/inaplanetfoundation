@@ -315,7 +315,13 @@ opacity: 0;
     opacity: 0;
   }
 
-  /* Friend list container styles */
+  /* Hover effect on the button */
+  #toggle-contact-list:hover {
+    background-color: #7DFF61;
+    color: #000;
+  }
+
+  /* Friend list container content styles (optional) */
   #contact-list {
     background-color: rgba(0, 0, 0, 0.3);
     position: absolute;
@@ -324,7 +330,7 @@ opacity: 0;
     right: 0;
     width: 400px;
     height: 350px;
-    max-height: calc(100% - 40px); /* Ensures it doesn't overflow vertically */
+    max-height: calc(100% - 40px);
     display: flex;
     flex-direction: column;
     border-radius: 10px;
@@ -333,24 +339,16 @@ opacity: 0;
     z-index: 10000;
     backdrop-filter: blur(5px);
     transition: all 2s;
-    display: none; /* Initially hidden */
-  }
-
-  /* Hover effect on the button */
-  #toggle-contact-list:hover {
-    background-color: #7DFF61;
-  }
-
-  /* Friend list container content styles (optional) */
-  #contact-list div {
-    color: white;
-    padding: 10px;
-    border-bottom: 1px solid #ffffff33; /* Light separator for each friend item */
-    font-size: 14px;
+    justify-content: center;
+    display: none;
   }
 
   #contact-list div:last-child {
-    border-bottom: none; /* Remove border from the last item */
+    display: flex;
+    border-bottom: none;
+    font-size: 10px;
+    padding: 20px;
+    justify-content: center;
   }
 
   #settings-container {
@@ -373,6 +371,12 @@ opacity: 0;
     z-index: 10;
     backdrop-filter: blur(10px);
     opacity: 0;
+  }
+
+  /* Hover effect on the button */
+  #settings-container:hover {
+    background-color: #7DFF61;
+    color: #000;
   }
 
 @media (max-width: 767px) {
@@ -419,11 +423,6 @@ opacity: 0;
     backdrop-filter: blur(10px);
     opacity: 0;
     }
-}
-
-#party-chat-container.active {
-  transform: translateY(0); /* Slide into view */
-  opacity: 1; /* Visible */
 }
 
 .overflow-hidden {
@@ -1591,6 +1590,11 @@ opacity: 0;
     transform: scale(1); /* Back to original size */
     opacity: 0.7;
   }
+}
+
+#party-chat-container.active {
+  transform: translateY(0); /* Slide into view */
+  opacity: 1; /* Visible */
 }
 
 .chat-box {

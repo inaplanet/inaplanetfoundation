@@ -605,6 +605,21 @@ export default class
             }
         }       
 
+        // Function to populate the friend list UI
+        populateFriendList(friendList) {
+            const friendListContainer = document.getElementById('contact-list');
+
+            // Clear any existing friend list data
+            friendListContainer.innerHTML = '';
+
+            // Add each friend to the friend list container
+            friendList.forEach(friendId => {
+                const friendElement = document.createElement('div');
+                friendElement.textContent = `${friendId}`;
+                friendListContainer.appendChild(friendElement);
+            });
+        }
+
         setupWebSocketHandlers(ws) {
 
             ws.onopen = () => {
@@ -620,6 +635,14 @@ export default class
 
                 // Request the player's score from the server
                 this.requestPlayerScore(this.playerId);
+
+                // Send a request to the server to get the friend list for the player
+                const getContact = {
+                    type: 'getFriends',
+                    playerId: this.playerId
+                };
+
+                ws.send(JSON.stringify(getContact));
 
                 while (this.messageQueue.length > 0) {
                     ws.send(JSON.stringify(this.messageQueue.shift()));
@@ -637,6 +660,12 @@ export default class
                     } else {
                         console.warn('playerCountDisplay element not found');
                     }
+                }
+
+                if (message.type === 'friendList') {
+                    // Populate the contact list with the retrieved friends
+                    this.populateFriendList(message.friends);
+                    console.log("Friends", message.friends)
                 }
     
                 switch (message.type) {
@@ -1885,25 +1914,25 @@ export default class
             };
 
             // Function to toggle the visibility of the friend list
-            toggleFriendList() {
+            toggleFriendList = () => {
                 const friendListContainer = document.getElementById('contact-list');
-                const toggleButton = document.getElementById('toggle-contact-list');
 
-                // Use optional chaining to check if elements exist before accessing their properties
-                if (friendListContainer && toggleButton) {
-                    if (friendListContainer.style.display === 'none' || friendListContainer.style.display === '') {
-                        // Show the friend list
-                        friendListContainer.style.display = 'block';
-                        toggleButton.textContent = 'Hide Friend List'; // Update button text
-                    } else {
-                        // Hide the friend list
-                        friendListContainer.style.display = 'none';
-                        toggleButton.textContent = 'Show Friend List'; // Update button text
-                    }
-                } else {
-                    console.error('Friend list or toggle button not found.');
+                if (!friendListContainer) {
+                    console.error('Friend list container not found!');
+                    return;
                 }
-            }
+
+                console.log('Friend list container found. Toggling visibility.');
+
+                // Toggle friend list visibility
+                if (friendListContainer.style.display === 'block') {
+                    friendListContainer.style.display = 'none';
+                    console.log("Toggling friend-list")
+                } else {
+                    friendListContainer.style.display = 'block';
+                    console.log("Toggling back")
+                }
+            };
 
         setupMultiplayer = async (playerId, token, carName, matcaps) => {
             try {
@@ -2039,18 +2068,11 @@ export default class
                         console.error('No target player found for friendship invite.');
                     }
                 });
-                
+
+                // Initialize the friend list toggle after the DOM is loaded
                 document.addEventListener('DOMContentLoaded', () => {
-                    const toggleButton = document.getElementById('toggle-contact-list');
-                    if (toggleButton) {
-                        toggleButton.addEventListener('click', () => {
-                            this.toggleFriendList();
-                        });
-                    } else {
-                        console.error('Toggle button not found.');
-                    }
-                });
-                
+                    this.createFriendListToggle();
+                });                        
                 
                 // Invite a target player to friendship
                 function sendFriendInvite(targetPlayerId, playerId) {
@@ -2202,6 +2224,7 @@ export default class
 
                 // Add event listener to existing button (no need to create it dynamically)
                 // document.getElementById('toggle-chat-button').addEventListener('click', toggleChatVisibility);
+                document.getElementById('toggle-contact-list').addEventListener('click', this.toggleFriendList);
             
                 // Event listener for sending a message
                 document.getElementById('send-message-button').addEventListener('click', () => {

@@ -307,7 +307,7 @@ export default class Controls extends EventEmitter
         const targetPlayerId = document.getElementById('target-player-id');
         const inviteButton = document.getElementById('invite-button');
         const settingsButton = document.getElementById('settings-container');
-        const toggleContact = document.getElementById('toggle-contact-list');
+        // const toggleContact = document.getElementById('toggle-contact-list');
         const contacts = document.getElementById('friend-invite-button');
         const touchRadio = document.getElementById('touch-radio');
         const touchMute = document.getElementById('touch-mute');
@@ -318,7 +318,7 @@ export default class Controls extends EventEmitter
 
         targetPlayerId.style.display = this.isVerticalDisplay() ? 'unset' : 'none';
         inviteButton.style.display = this.isVerticalDisplay() ? 'none' : 'none';
-        toggleContact.style.display = this.isVerticalDisplay() ? 'none' : 'none';
+        // toggleContact.style.display = this.isVerticalDisplay() ? 'none' : 'none';
         contacts.style.display = this.isVerticalDisplay() ? 'none' : 'none';
         settingsButton.style.display = this.isVerticalDisplay() ? 'none' : 'none';
         touchRadio.style.display = this.isVerticalDisplay() ? 'none' : 'none';
