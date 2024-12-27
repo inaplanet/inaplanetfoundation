@@ -250,25 +250,25 @@ opacity: 0;
 } */
 
 #invite-button {
-position: absolute;
-border: unset;
-width: 72px;
-height: 10px;
-text-align: center;
-font-family: 'Orbitron', sans-serif;
-font-size: 8px;
-top: 121px;
-align-items: center;
-justify-content: center;
-display: flex;
-left: 20px;
-background: rgba(0, 0, 0, 0.5);
-color: white;
-padding: 10px 10px;
-border-radius: 5px;
-z-index: 10;
-backdrop-filter: blur(10px);
-opacity: 0;
+  position: absolute;
+  border: unset;
+  width: 72px;
+  height: 10px;
+  text-align: center;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 8px;
+  top: 121px;
+  align-items: center;
+  justify-content: center;
+  display: flex;
+  left: 20px;
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  padding: 10px 10px;
+  border-radius: 5px;
+  z-index: 10;
+  backdrop-filter: blur(10px);
+  opacity: 0;
 }
 
 #friend-invite-button {
@@ -291,6 +291,88 @@ opacity: 0;
   z-index: 10;
   backdrop-filter: blur(10px);
   opacity: 0;
+  }
+
+  #toggle-contact-list {
+    position: absolute;
+    border: unset;
+    width: 72px;
+    height: 10px;
+    text-align: center;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 8px;
+    top: 121px;
+    align-items: center;
+    justify-content: center;
+    display: flex;
+    left: 100px;
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    padding: 10px 10px;
+    border-radius: 5px;
+    z-index: 10;
+    backdrop-filter: blur(10px);
+    opacity: 0;
+  }
+
+  /* Friend list container styles */
+  #contact-list {
+    background-color: rgba(0, 0, 0, 0.3);
+    position: absolute;
+    margin: 10px;
+    bottom: 0;
+    right: 0;
+    width: 400px;
+    height: 350px;
+    max-height: calc(100% - 40px); /* Ensures it doesn't overflow vertically */
+    display: flex;
+    flex-direction: column;
+    border-radius: 10px;
+    box-shadow: 0 5px 8px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+    z-index: 10000;
+    backdrop-filter: blur(5px);
+    transition: all 2s;
+    display: none; /* Initially hidden */
+  }
+
+  /* Hover effect on the button */
+  #toggle-contact-list:hover {
+    background-color: #7DFF61;
+  }
+
+  /* Friend list container content styles (optional) */
+  #contact-list div {
+    color: white;
+    padding: 10px;
+    border-bottom: 1px solid #ffffff33; /* Light separator for each friend item */
+    font-size: 14px;
+  }
+
+  #contact-list div:last-child {
+    border-bottom: none; /* Remove border from the last item */
+  }
+
+  #settings-container {
+    position: absolute;
+    border: unset;
+    width: 72px;
+    height: 10px;
+    text-align: center;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 8px;
+    top: 151px;
+    align-items: center;
+    justify-content: center;
+    display: flex;
+    left: 100px;
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    padding: 10px 10px;
+    border-radius: 5px;
+    z-index: 10;
+    backdrop-filter: blur(10px);
+    opacity: 0;
   }
 
 @media (max-width: 767px) {
@@ -324,7 +406,7 @@ opacity: 0;
     text-align: center;
     font-family: 'Orbitron', sans-serif;
     font-size: 8px;
-    top: 145px;
+    top: 169px;
     align-items: center;
     justify-content: center;
     display: flex;
@@ -338,8 +420,6 @@ opacity: 0;
     opacity: 0;
     }
 }
-
-
 
 #party-chat-container.active {
   transform: translateY(0); /* Slide into view */
@@ -1647,7 +1727,7 @@ opacity: 0;
   transform: translateX(-50%);
   width: 100%;
   background-color: transparent;
-  backdrop-filter: blur(5px);
+  /* backdrop-filter: blur(5px); */
   padding: 10px;
   /* border-radius: 20px; */
   overflow: hidden;
@@ -1710,7 +1790,7 @@ opacity: 0;
   transform: translateX(-50%);
   width: 100%;
   background-color: transparent;
-  backdrop-filter: blur(5px);
+  /* backdrop-filter: blur(5px); */
   padding: 10px;
   /* border-radius: 20px; */
   overflow: hidden;

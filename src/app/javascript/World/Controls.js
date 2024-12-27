@@ -306,7 +306,9 @@ export default class Controls extends EventEmitter
         // Display none if horizontal
         const targetPlayerId = document.getElementById('target-player-id');
         const inviteButton = document.getElementById('invite-button');
-        const tradeButton = document.getElementById('trade-button');
+        const settingsButton = document.getElementById('settings-container');
+        const toggleContact = document.getElementById('toggle-contact-list');
+        const contacts = document.getElementById('friend-invite-button');
         const touchRadio = document.getElementById('touch-radio');
         const touchMute = document.getElementById('touch-mute');
         const touchSlider = document.getElementById('touch-slider');
@@ -316,7 +318,9 @@ export default class Controls extends EventEmitter
 
         targetPlayerId.style.display = this.isVerticalDisplay() ? 'unset' : 'none';
         inviteButton.style.display = this.isVerticalDisplay() ? 'none' : 'none';
-        tradeButton.style.display = this.isVerticalDisplay() ? 'none' : 'none';
+        toggleContact.style.display = this.isVerticalDisplay() ? 'none' : 'none';
+        contacts.style.display = this.isVerticalDisplay() ? 'none' : 'none';
+        settingsButton.style.display = this.isVerticalDisplay() ? 'none' : 'none';
         touchRadio.style.display = this.isVerticalDisplay() ? 'none' : 'none';
         touchMute.style.display = this.isVerticalDisplay() ? 'none' : 'none';
         touchSlider.style.display = this.isVerticalDisplay() ? 'none' : 'none';
@@ -518,6 +522,7 @@ export default class Controls extends EventEmitter
         // Select the elements to be toggled
         const targetPlayerId = document.getElementById('target-player-id');
         const inviteButton = document.getElementById('invite-button');
+        const addContact = document.getElementById('friend-invite-button');
         const touchRadio = document.getElementById('touch-radio');
         const touchMute = document.getElementById('touch-mute');
         const touchSlider = document.getElementById('touch-slider');
@@ -538,6 +543,7 @@ export default class Controls extends EventEmitter
                 // Show elements
                 targetPlayerId.style.display = 'block';
                 inviteButton.style.display = 'flex';
+                addContact.style.display = 'flex';
                 touchRadio.style.display = 'block';
                 touchMute.style.display = 'block';
                 touchSlider.style.display = 'block';
@@ -555,6 +561,7 @@ export default class Controls extends EventEmitter
                 // Hide elements
                 targetPlayerId.style.display = 'none';
                 inviteButton.style.display = 'none';
+                addContact.style.display = 'none';
                 touchRadio.style.display = 'none';
                 touchMute.style.display = 'none';
                 touchSlider.style.display = 'none';

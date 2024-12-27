@@ -1511,18 +1511,38 @@ export default class
             // updatePartyUI(inviterId, playerId);
         }
 
+        // updateFriendListUI(friendList) {
+        //     const friendListContainer = document.getElementById('friend-list');
+        //     if (friendListContainer) {
+        //         friendListContainer.innerHTML = ''; // Clear existing list
+        
+        //         friendList.forEach(friendId => {
+        //             const friendElement = document.createElement('div');
+        //             friendElement.textContent = `Friend ID: ${friendId}`;
+        //             friendListContainer.appendChild(friendElement);
+        //         });
+        //     }
+        // }     
+        
+        // Function to update the friend list UI
         updateFriendListUI(friendList) {
             const friendListContainer = document.getElementById('friend-list');
             if (friendListContainer) {
                 friendListContainer.innerHTML = ''; // Clear existing list
-        
-                friendList.forEach(friendId => {
-                    const friendElement = document.createElement('div');
-                    friendElement.textContent = `Friend ID: ${friendId}`;
-                    friendListContainer.appendChild(friendElement);
-                });
+                
+                if (friendList.length === 0) {
+                    const noFriendsElement = document.createElement('div');
+                    noFriendsElement.textContent = 'No friends added yet.';
+                    friendListContainer.appendChild(noFriendsElement);
+                } else {
+                    friendList.forEach(friendId => {
+                        const friendElement = document.createElement('div');
+                        friendElement.textContent = `Friend ID: ${friendId}`;
+                        friendListContainer.appendChild(friendElement);
+                    });
+                }
             }
-        }        
+        }
                 
         // Update party UI
         updatePartyUI(inviterId, members, physics, ws) {
@@ -1864,6 +1884,27 @@ export default class
                 }
             };
 
+            // Function to toggle the visibility of the friend list
+            toggleFriendList() {
+                const friendListContainer = document.getElementById('contact-list');
+                const toggleButton = document.getElementById('toggle-contact-list');
+
+                // Use optional chaining to check if elements exist before accessing their properties
+                if (friendListContainer && toggleButton) {
+                    if (friendListContainer.style.display === 'none' || friendListContainer.style.display === '') {
+                        // Show the friend list
+                        friendListContainer.style.display = 'block';
+                        toggleButton.textContent = 'Hide Friend List'; // Update button text
+                    } else {
+                        // Hide the friend list
+                        friendListContainer.style.display = 'none';
+                        toggleButton.textContent = 'Show Friend List'; // Update button text
+                    }
+                } else {
+                    console.error('Friend list or toggle button not found.');
+                }
+            }
+
         setupMultiplayer = async (playerId, token, carName, matcaps) => {
             try {
                 // Check if the token is provided
@@ -1998,6 +2039,18 @@ export default class
                         console.error('No target player found for friendship invite.');
                     }
                 });
+                
+                document.addEventListener('DOMContentLoaded', () => {
+                    const toggleButton = document.getElementById('toggle-contact-list');
+                    if (toggleButton) {
+                        toggleButton.addEventListener('click', () => {
+                            this.toggleFriendList();
+                        });
+                    } else {
+                        console.error('Toggle button not found.');
+                    }
+                });
+                
                 
                 // Invite a target player to friendship
                 function sendFriendInvite(targetPlayerId, playerId) {
@@ -2716,9 +2769,12 @@ export default class
             const coinMarket = document.getElementById('coin-market');
             const inviteButton = document.getElementById('invite-button');
             const inviteFriend = document.getElementById('friend-invite-button');
+            const contactList = document.getElementById('toggle-contact-list');
+            const settings = document.getElementById('settings-container');
 
-            inviteButton.innerText = '+ PARTY';
-            inviteFriend.innerText = '+ FRIEND';
+            inviteButton.innerText = 'PARTY';
+            inviteFriend.innerText = 'CONTACT';
+            contactList.innerText = 'CONTACTS';
             
             if (userDisplay) {
                 userDisplay.innerHTML = formatPlayerId(playerId);
@@ -2727,7 +2783,8 @@ export default class
                 coinMarket.style.opacity = 1;
                 inviteButton.style.opacity = 1;
                 inviteFriend.style.opacity = 1;
-                inviteFriend.style.opacity = 1;
+                contactList.style.opacity = 1;
+                settings.style.opacity = 1;
             }
     
             return playerId;

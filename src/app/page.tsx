@@ -936,6 +936,18 @@ return (
             <div className="battery-bar"></div>
           </div>
 
+          {/*Friend List */}
+          <div id="contact-list-container">
+              <button id="toggle-contact-list" className='toggle-contact-list'>CONTACTS</button>
+              <div id="contact-list" className="display:none;"></div>
+          </div>
+
+          {/*Controller Settings */}
+          <div id="settings-container">
+              <button id="toggle-settings">SETTINGS</button>
+              <div id="toggle-settings-window" className="display:none;"></div>
+          </div>
+
           {/* Speedometer */}
           <div id="speedometer">
             <div id="needle"></div>
