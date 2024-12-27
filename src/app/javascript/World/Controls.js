@@ -524,6 +524,7 @@ export default class Controls extends EventEmitter
         const inviteButton = document.getElementById('invite-button');
         const addContact = document.getElementById('friend-invite-button');
         const touchRadio = document.getElementById('touch-radio');
+        const touchContacts = document.getElementById('toggle-contact-list ');
         const touchMute = document.getElementById('touch-mute');
         const touchSlider = document.getElementById('touch-slider');
         const touchPrevious = document.getElementById('touch-previous');
@@ -549,6 +550,7 @@ export default class Controls extends EventEmitter
                 touchSlider.style.display = 'block';
                 touchPrevious.style.display = 'block';
                 touchNext.style.display = 'block';
+                touchContacts.style.display = 'flex';
                 if (partyInfo) {
                     partyInfo.style.display = 'block';
                 }
@@ -567,6 +569,7 @@ export default class Controls extends EventEmitter
                 touchSlider.style.display = 'none';
                 touchPrevious.style.display = 'none';
                 touchNext.style.display = 'none';
+                touchContacts.style.display = 'none';
                 if (partyInfo) {
                     partyInfo.style.display = 'none';
                 }
