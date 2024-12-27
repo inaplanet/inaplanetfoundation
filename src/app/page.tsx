@@ -399,10 +399,10 @@ export default function Home() {
 
      wsRef.current.onclose = (event) => {
       console.log('WebSocket closed', event);
-      if (event.code !== 1000) {
-        console.error('WebSocket closed unexpectedly with code:', event.code);
-        console.error('Reason:', event.reason);
-      }
+      // if (event.code !== 1000) {
+      //   console.error('WebSocket closed unexpectedly with code:', event.code);
+      //   console.error('Reason:', event.reason);
+      // }
       
       // setIsWebSocketReady(false);
     };
