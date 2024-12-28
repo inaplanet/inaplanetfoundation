@@ -2833,7 +2833,7 @@ export default class
             inviteButton.innerText = 'TEAM UP';
             inviteFriend.innerText = 'LINK UP';
             contactList.innerText = 'LINK BOX';
-            settings.innerText = 'SETTINGS';
+            settings.innerText = 'JOYSTICK';
             
             if (userDisplay) {
                 userDisplay.innerHTML = formatPlayerId(playerId);

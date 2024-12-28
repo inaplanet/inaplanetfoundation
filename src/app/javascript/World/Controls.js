@@ -281,19 +281,19 @@ export default class Controls extends EventEmitter
         this.touch.radio.$icon.style.left = radioButtonIconLeft;
         this.touch.radio.$icon.style.rotate = radioButtonIconRotate;
 
-        const cameraButtonElementBottom = this.isVerticalDisplay() ? '175px' : '110px';
-        const cameraButtonElementLeft = this.isVerticalDisplay() ? '10px': '165px';
+        // const cameraButtonElementBottom = this.isVerticalDisplay() ? '175px' : '110px';
+        // const cameraButtonElementLeft = this.isVerticalDisplay() ? '10px': '165px';
 
-        this.touch.camera.$element.style.bottom = cameraButtonElementBottom;
-        this.touch.camera.$element.style.left = cameraButtonElementLeft;
+        // this.touch.camera.$element.style.bottom = cameraButtonElementBottom;
+        // this.touch.camera.$element.style.left = cameraButtonElementLeft;
         
-        const resetButtonElementBottom = this.isVerticalDisplay() ? '175px' : '40px';
         // const resetButtonElementBottom = this.isVerticalDisplay() ? '175px' : '40px';
-        const resetButtonElementLeft = this.isVerticalDisplay() ? '83px': '165px';
+        // const resetButtonElementBottom = this.isVerticalDisplay() ? '175px' : '40px';
+        // const resetButtonElementLeft = this.isVerticalDisplay() ? '83px': '165px';
         // const resetButtonElementLeft = this.isVerticalDisplay() ? '83px': '165px';
 
-        this.touch.reset.$element.style.bottom = resetButtonElementBottom;
-        this.touch.reset.$element.style.left = resetButtonElementLeft;
+        // this.touch.reset.$element.style.bottom = resetButtonElementBottom;
+        // this.touch.reset.$element.style.left = resetButtonElementLeft;
 
         // const partyInfo = document.getElementById('party-info')
 
@@ -527,7 +527,11 @@ export default class Controls extends EventEmitter
             const forward = this.touch.forward.$element;
             const backward = this.touch.backward.$element;
             const brake = this.touch.brake.$element;
-            const radio = this.touch.radio.$element;
+
+            if (typeof window !== 'undefined') {
+                // Function to determine if the display is vertical or horizontal
+                this.isVerticalDisplay = () => window.innerHeight > window.innerWidth;
+            }
 
             if (joystick) {
                 // Reset
@@ -544,6 +548,13 @@ export default class Controls extends EventEmitter
             if (camera) {
                 // Reset
                 camera.style.left = '';
+                // if (this.touch.camera.$element) {
+                //     let cameraButtonElementBottom = this.touch.camera.$element.style.bottom;
+                //     // this.touch.camera.$element.style.left = cameraButtonElementLeft;
+                //     cameraButtonElementBottom = this.isVerticalDisplay() ? '175px' : '110px';
+                //     // const cameraButtonElementLeft = this.isVerticalDisplay() ? '10px': '165px';
+                //     this.updateButtonPositions();
+                // }
 
                 // Set
                 camera.style.right = '10px';
@@ -556,6 +567,13 @@ export default class Controls extends EventEmitter
             if (reset) {
                 // Reset
                 reset.style.left = '';
+                // if (this.touch.reset.$element) {
+                //     let resetButtonElementBottom = this.touch.reset.$element.style.bottom;
+                //     // this.touch.reset.$element.style.left = resetButtonElementLeft;
+                //     resetButtonElementBottom = this.isVerticalDisplay() ? '175px' : '40px';
+                //     // const resetButtonElementLeft = this.isVerticalDisplay() ? '83px': '165px';
+                //     this.updateButtonPositions();
+                // }
 
                 // Set
                 reset.style.right = '80px';
@@ -576,6 +594,78 @@ export default class Controls extends EventEmitter
             } else {
                 console.error('Speedometer element not found.');
             }
+
+            if (shoot) {
+                // Reset
+                shoot.style.left = '78px';
+
+                // Set
+                shoot.style.right = '';
+
+                console.log("Shoot moved to the right.");
+            } else {
+                console.error('Shoot element not found.');
+            }
+
+            if (boost) {
+                // Reset
+                boost.style.left = '8px';
+
+                // Set
+                boost.style.right = '';
+
+                console.log("Boost moved to the right.");
+            } else {
+                console.error('Boost element not found.');
+            }
+
+            if (siren) {
+                // Reset
+                siren.style.left = '78px';
+
+                // Set
+                siren.style.right = '';
+
+                console.log("Siren moved to the right.");
+            } else {
+                console.error('Siren element not found.');
+            }
+
+            if (forward) {
+                // Reset
+                forward.style.left = '8px';
+
+                // Set
+                forward.style.right = '';
+
+                console.log("Forward moved to the right.");
+            } else {
+                console.error('Forward element not found.');
+            }
+
+            if (backward) {
+                // Reset
+                backward.style.left = '78px';
+
+                // Set
+                backward.style.right = '';
+
+                console.log("Backward moved to the right.");
+            } else {
+                console.error('Backward element not found.');
+            }
+
+            if (brake) {
+                // Reset
+                brake.style.left = '8px';
+
+                // Set
+                brake.style.right = '';
+
+                console.log("Brake moved to the right.");
+            } else {
+                console.error('Brake element not found.');
+            }
         }
 
         // Add event listener for the "Right" button
@@ -585,7 +675,6 @@ export default class Controls extends EventEmitter
         function moveJoystickLeft() {
             const joystick = this.touch.joystick.$element;
             const speedometer = document.getElementById('speedometer');
-            console.log("Speedometer element", speedometer);
             const camera = this.touch.camera.$element;
             const reset = this.touch.reset.$element;
             const shoot = this.touch.shoot.$element;
@@ -594,7 +683,6 @@ export default class Controls extends EventEmitter
             const forward = this.touch.forward.$element;
             const backward = this.touch.backward.$element;
             const brake = this.touch.brake.$element;
-            const radio = this.touch.radio.$element;
 
             if (joystick) {
                 // Reset left position
@@ -611,6 +699,13 @@ export default class Controls extends EventEmitter
             if (camera) {
                 // Reset
                 camera.style.right = '';
+                // if (this.touch.camera.$element) {
+                //     let cameraButtonElementBottom = this.touch.camera.$element.style.bottom;
+                //     // this.touch.camera.$element.style.left = cameraButtonElementLeft;
+                //     cameraButtonElementBottom = this.isVerticalDisplay() ? '175px' : '110px';
+                //     // const cameraButtonElementLeft = this.isVerticalDisplay() ? '10px': '165px';
+                //     this.updateButtonPositions();
+                // }
 
                 // Set
                 camera.style.left = '10px';
@@ -623,6 +718,14 @@ export default class Controls extends EventEmitter
             if (reset) {
                 // Reset
                 reset.style.right = '';
+
+                // if (this.touch.reset.$element) {
+                //     let resetButtonElementBottom = this.touch.reset.$element.style.bottom;
+                //     // this.touch.reset.$element.style.left = resetButtonElementLeft;
+                //     resetButtonElementBottom = this.isVerticalDisplay() ? '175px' : '40px';
+                //     // const resetButtonElementLeft = this.isVerticalDisplay() ? '83px': '165px';
+                //     this.updateButtonPositions();
+                // }
 
                 // Set
                 reset.style.left = '80px';
@@ -642,6 +745,78 @@ export default class Controls extends EventEmitter
                 console.log("Speedometer moved to the right.");
             } else {
                 console.error('Speedometer element not found.');
+            }
+
+            if (shoot) {
+                // Reset
+                shoot.style.left = '';
+
+                // Set
+                shoot.style.right = '78px';
+
+                console.log("Shoot moved to the right.");
+            } else {
+                console.error('Shoot element not found.');
+            }
+
+            if (boost) {
+                // Reset
+                boost.style.left = '';
+
+                // Set
+                boost.style.right = '8px';
+
+                console.log("Boost moved to the right.");
+            } else {
+                console.error('Boost element not found.');
+            }
+
+            if (siren) {
+                // Reset
+                siren.style.left = '';
+
+                // Set
+                siren.style.right = '78px';
+
+                console.log("Siren moved to the right.");
+            } else {
+                console.error('Siren element not found.');
+            }
+
+            if (forward) {
+                // Reset
+                forward.style.left = '';
+
+                // Set
+                forward.style.right = '8px';
+
+                console.log("Forward moved to the right.");
+            } else {
+                console.error('Forward element not found.');
+            }
+
+            if (backward) {
+                // Reset
+                backward.style.left = '';
+
+                // Set
+                backward.style.right = '78px';
+
+                console.log("Backward moved to the right.");
+            } else {
+                console.error('Backward element not found.');
+            }
+
+            if (brake) {
+                // Reset
+                brake.style.left = '';
+
+                // Set
+                brake.style.right = '8px';
+
+                console.log("Brake moved to the right.");
+            } else {
+                console.error('Brake element not found.');
             }
         }
 
