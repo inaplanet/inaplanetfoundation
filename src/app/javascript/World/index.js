@@ -1927,11 +1927,32 @@ export default class
                 console.log('Friend list container found. Toggling visibility.');
 
                 // Toggle friend list visibility
-                if (friendListContainer.style.display === 'block') {
+                if (friendListContainer.style.display === 'flex') {
                     friendListContainer.style.display = 'none';
                     console.log("Toggling friend-list")
                 } else {
-                    friendListContainer.style.display = 'block';
+                    friendListContainer.style.display = 'flex';
+                    console.log("Toggling back")
+                }
+            };
+
+            // Function to toggle the visibility of the friend list
+            toggleSettings = () => {
+                const settingsContainer = document.getElementById('settings-window');
+
+                if (!settingsContainer) {
+                    console.error('Settings container not found!');
+                    return;
+                }
+
+                console.log('Settings container found. Toggling visibility.');
+
+                // Toggle settings container visibility
+                if (settingsContainer) {
+                    settingsContainer.style.display = 'none';
+                    console.log("Toggling settings container")
+                } else {
+                    settingsContainer.style.display = 'flex';
                     console.log("Toggling back")
                 }
             };
@@ -2227,6 +2248,7 @@ export default class
                 // Add event listener to existing button (no need to create it dynamically)
                 // document.getElementById('toggle-chat-button').addEventListener('click', toggleChatVisibility);
                 document.getElementById('toggle-contact-list').addEventListener('click', this.toggleFriendList);
+                document.getElementById('toggle-settings').addEventListener('click', this.toggleSettings);
             
                 // Event listener for sending a message
                 document.getElementById('send-message-button').addEventListener('click', () => {
@@ -2795,7 +2817,7 @@ export default class
             const inviteButton = document.getElementById('invite-button');
             const inviteFriend = document.getElementById('friend-invite-button');
             const contactList = document.getElementById('toggle-contact-list');
-            const settings = document.getElementById('settings-container');
+            const settings = document.getElementById('toggle-settings');
 
             inviteButton.innerText = 'TEAM UP';
             inviteFriend.innerText = 'LINK UP';

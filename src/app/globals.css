@@ -272,6 +272,11 @@ opacity: 0;
   opacity: 0;
 }
 
+#invite-button:hover {
+  background-color: #7DFF61;
+  color: #000;
+}
+
 #friend-invite-button {
   position: absolute;
   border: unset;
@@ -293,6 +298,11 @@ opacity: 0;
   z-index: 10;
   backdrop-filter: blur(10px);
   opacity: 0;
+  }
+
+  #friend-invite-button:hover {
+    background-color: #7DFF61;
+    color: #000;
   }
 
   #toggle-contact-list {
@@ -324,6 +334,35 @@ opacity: 0;
     color: #000;
   }
 
+  #toggle-settings {
+    position: absolute;
+    border: unset;
+    width: 65px;
+    height: 10px !important;
+    text-align: center;
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 600;
+    font-size: 8px;
+    top: 151px;
+    align-items: center;
+    justify-content: center;
+    display: flex;
+    left: 100px;
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    padding: 10px 10px;
+    border-radius: 5px;
+    z-index: 10;
+    backdrop-filter: blur(10px);
+    opacity: 0;
+  }
+
+  /* Hover effect on the button */
+  #toggle-settings:hover {
+    background-color: #7DFF61;
+    color: #000;
+  }
+
   /* Friend list container content styles (optional) */
   #contact-list {
     background-color: rgba(0, 0, 0, 0.3);
@@ -351,41 +390,36 @@ opacity: 0;
     display: flex;
     border-bottom: none;
     font-size: 10px;
+    border-radius: 5px;
     padding: 20px;
     justify-content: center;
-    box-shadow: 0px 0px 1px rgba(0, 255, 16, 0.1);
+    box-shadow: 0px 0px 1px rgba(0, 255, 16, 0.5);
   }
 
   #contact-list div:last-child:before {
     margin: 10px;
   }
 
-  #settings-container {
+  #settings-window {
+    background-color: rgba(0, 0, 0, 0.3);
     position: absolute;
-    border: unset;
-    width: 72px;
-    height: 10px;
-    text-align: center;
-    font-family: 'Orbitron', sans-serif;
-    font-size: 8px;
-    top: 151px;
-    align-items: center;
-    justify-content: center;
+    margin: 0;
+    padding: 20px;
+    bottom: 0;
+    right: 0;
+    width: 400px;
+    height: 350px;
+    max-height: calc(100% - 40px);
     display: flex;
-    left: 100px;
-    background: rgba(0, 0, 0, 0.5);
-    color: white;
-    padding: 10px 10px;
-    border-radius: 5px;
-    z-index: 10;
-    backdrop-filter: blur(10px);
-    opacity: 0;
-  }
-
-  /* Hover effect on the button */
-  #settings-container:hover {
-    background-color: #7DFF61;
-    color: #000;
+    flex-direction: column;
+    border-radius: 10px;
+    box-shadow: 0 5px 8px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+    z-index: 10000;
+    backdrop-filter: blur(5px);
+    transition: all 2s;
+    justify-content: initial;
+    display: none;
   }
 
 @media (max-width: 767px) {
@@ -456,6 +490,29 @@ opacity: 0;
     opacity: 0;
   }
 
+  #toggle-settings {
+    position: absolute;
+    border: unset;
+    width: 65px;
+    height: 10px !important;
+    text-align: center;
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 600;
+    font-size: 8px;
+    top: 218px;
+    align-items: center;
+    justify-content: center;
+    display: flex;
+    left: 306px;
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    padding: 10px 10px;
+    border-radius: 5px;
+    z-index: 10;
+    backdrop-filter: blur(10px);
+    opacity: 0;
+  }
+
   #contact-list {
     background-color: rgba(0, 0, 0, 0.3);
     position: absolute;
@@ -477,28 +534,27 @@ opacity: 0;
     justify-content: initial;
     display: none;
   }
-  
-  #settings-container {
+
+  #settings-window {
+    background-color: rgba(0, 0, 0, 0.3);
     position: absolute;
-    border: unset;
-    width: 65px;
-    height: 10px !important;
-    text-align: center;
-    font-family: 'Orbitron', sans-serif;
-    font-weight: 600;
-    font-size: 8px;
-    top: 218px;
-    align-items: center;
-    justify-content: center;
+    margin: 0;
+    padding: 20px;
+    bottom: 0;
+    right: 0;
+    width: 100vw;
+    height: 350px;
+    max-height: calc(100% - 40px);
     display: flex;
-    left: 306px;
-    background: rgba(0, 0, 0, 0.5);
-    color: white;
-    padding: 10px 10px;
-    border-radius: 5px;
-    z-index: 10;
-    backdrop-filter: blur(10px);
-    opacity: 0;
+    flex-direction: column;
+    border-radius: 10px;
+    box-shadow: 0 5px 8px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+    z-index: 10000;
+    backdrop-filter: blur(5px);
+    transition: all 2s;
+    justify-content: initial;
+    display: none;
   }
 }
 

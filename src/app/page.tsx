@@ -725,8 +725,10 @@ const handleWorldSelection = (worldId: string, listItem: HTMLLIElement, worldLis
 
             {/*Controller Settings */}
             <div id="settings-container">
-                <button id="toggle-settings"></button>
-                <div id="toggle-settings-window" className="display:none;"></div>
+                <button id="toggle-settings" className="toggle-settings"></button>
+                <div id="settings-window">
+                  <h1 style={{textAlign: 'center', paddingBottom: '10px'}}>CONTROLLER</h1>
+                </div>
             </div>
 
             {/* Speedometer */}
