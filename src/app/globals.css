@@ -98,7 +98,7 @@ body {
 #speedometer {
   position: fixed;
   bottom: 20px;
-  left: -5px;
+  /* left: -5px; */
   width: 190px;
   height: 190px;
   border-radius: 50%;
@@ -434,6 +434,13 @@ opacity: 0;
     left: 50%;
     transform: translate(-50%, -50%);
     display: none;
+  }
+
+  #joystick-setup-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
   }
 
   #toggle-settings-window {

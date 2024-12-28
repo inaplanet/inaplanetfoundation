@@ -339,6 +339,9 @@ export default class Controls extends EventEmitter
             this.isVerticalDisplay = () => window.innerHeight > window.innerWidth;
         }
 
+        const speedometer = document.getElementById('speedometer');
+        speedometer.style.left = '-5px';
+
         /**
          * Joystick
          */
@@ -515,17 +518,63 @@ export default class Controls extends EventEmitter
         // Function to move the joystick to the right
         function moveJoystickRight() {
             const joystick = this.touch.joystick.$element;
+            const speedometer = document.getElementById('speedometer');
+            const camera = this.touch.camera.$element;
+            const reset = this.touch.reset.$element;
+            const shoot = this.touch.shoot.$element;
+            const boost = this.touch.boost.$element;
+            const siren = this.touch.siren.$element;
+            const forward = this.touch.forward.$element;
+            const backward = this.touch.backward.$element;
+            const brake = this.touch.brake.$element;
+            const radio = this.touch.radio.$element;
 
             if (joystick) {
-                // Reset left position
+                // Reset
                 joystick.style.left = '';
 
-                // Set right position
-                joystick.style.right = '10px';  // Adjust this value based on your requirements
+                // Set
+                joystick.style.right = '10px';
 
                 console.log("Joystick moved to the right.");
             } else {
                 console.error('Joystick element not found.');
+            }
+
+            if (camera) {
+                // Reset
+                camera.style.left = '';
+
+                // Set
+                camera.style.right = '10px';
+
+                console.log("Camera moved to the right.");
+            } else {
+                console.error('Camera element not found.');
+            }
+
+            if (reset) {
+                // Reset
+                reset.style.left = '';
+
+                // Set
+                reset.style.right = '80px';
+
+                console.log("Reset moved to the right.");
+            } else {
+                console.error('Reset element not found.');
+            }
+
+            if (speedometer) {
+                // Reset
+                speedometer.style.left = '';
+
+                // Set
+                speedometer.style.right = '-5px';
+
+                console.log("Speedometer moved to the right.");
+            } else {
+                console.error('Speedometer element not found.');
             }
         }
 
@@ -535,6 +584,17 @@ export default class Controls extends EventEmitter
         // Function to move the joystick to the right
         function moveJoystickLeft() {
             const joystick = this.touch.joystick.$element;
+            const speedometer = document.getElementById('speedometer');
+            console.log("Speedometer element", speedometer);
+            const camera = this.touch.camera.$element;
+            const reset = this.touch.reset.$element;
+            const shoot = this.touch.shoot.$element;
+            const boost = this.touch.boost.$element;
+            const siren = this.touch.siren.$element;
+            const forward = this.touch.forward.$element;
+            const backward = this.touch.backward.$element;
+            const brake = this.touch.brake.$element;
+            const radio = this.touch.radio.$element;
 
             if (joystick) {
                 // Reset left position
@@ -546,6 +606,42 @@ export default class Controls extends EventEmitter
                 console.log("Joystick moved to the left.");
             } else {
                 console.error('Joystick element not found.');
+            }
+
+            if (camera) {
+                // Reset
+                camera.style.right = '';
+
+                // Set
+                camera.style.left = '10px';
+
+                console.log("Camera moved to the right.");
+            } else {
+                console.error('Camera element not found.');
+            }
+
+            if (reset) {
+                // Reset
+                reset.style.right = '';
+
+                // Set
+                reset.style.left = '80px';
+
+                console.log("Reset moved to the right.");
+            } else {
+                console.error('Reset element not found.');
+            }
+
+            if (speedometer) {
+                // Reset
+                speedometer.style.right = '';
+
+                // Set
+                speedometer.style.left = '-5px';
+
+                console.log("Speedometer moved to the right.");
+            } else {
+                console.error('Speedometer element not found.');
             }
         }
 

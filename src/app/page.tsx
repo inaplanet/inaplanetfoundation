@@ -731,8 +731,10 @@ const handleWorldSelection = (worldId: string, listItem: HTMLLIElement, worldLis
                 <div id="settings-window" className='display: block;'>
                   <h1 style={{textAlign: 'center', paddingBottom: '10px'}}>CONTROLLER</h1>
                   <button id='toggle-settings-window' className='toggle-settings-window'></button>
-                  <button id="move-joystick-left">LEFT</button>
-                  <button id="move-joystick-right">RIGHT</button>
+                  <div id='joystick-setup-container' className='joystick-setup-container'>
+                    <button id="move-joystick-left"><i data-feather="arrow-down-left"></i> </button>
+                    <button id="move-joystick-right"><i data-feather="arrow-down-right"></i> </button>
+                    </div>
                 </div>
             </div>
 
