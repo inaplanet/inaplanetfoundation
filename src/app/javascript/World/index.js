@@ -679,22 +679,6 @@ export default class
                             }
                         });
                         break;
-
-                    case 'playerScore':
-                        // Update the player's score upon retrieval from the server
-                        if (message.playerId === this.playerId) {
-                            if (!this.cars[message.playerId]) {
-                                this.cars[message.playerId] = {}; // Initialize if not present
-                            }
-                            this.cars[message.playerId].score = message.score;
-                            this.updateScoreStatus(this.cars[message.playerId].score); // Display updated score
-                            if(this.cars[message.playerId.score] !== 0) {
-                                // dropAirdrop(this.cars[message.playerId]);
-                            } else {
-                                console.log("Player score is 0")
-                            }
-                        }
-                        break;
     
                     case 'playerJoined':
                             if (message.playerId !== this.playerId) {
@@ -708,6 +692,22 @@ export default class
                             console.error(`The world ${message.worldId} is full. Please try joining another world.`);
                             // Handle world full situation (e.g., prompt the user to join another world or retry)
                             // For example, you might want to retry joining with a different worldId or notify the user
+                            break;
+
+                    case 'playerScore':
+                            // Update the player's score upon retrieval from the server
+                            if (message.playerId === this.playerId) {
+                                if (!this.cars[message.playerId]) {
+                                    this.cars[message.playerId] = {}; // Initialize if not present
+                                }
+                                    this.cars[message.playerId].score = message.score;
+                                    this.updateScoreStatus(this.cars[message.playerId].score); // Display updated score
+                                if(this.cars[message.playerId.score] !== 0) {
+                                    // dropAirdrop(this.cars[message.playerId]);
+                                } else {
+                                    console.log("Player score is 0")
+                                }
+                            }
                             break;
 
                     case 'inviteFriendship':
