@@ -396,7 +396,7 @@ export default class
         });
         this.container.add(this.car.container);
         this.updateBatteryStatus(this.car.battery);
-        this.updateScoreStatus(this.car.score);
+        // this.updateScoreStatus(this.car.score);
         console.log("This car car name", this.car.carName)
       }
 
