@@ -419,7 +419,7 @@ opacity: 0;
     bottom: 0;
     right: 0;
     width: 400px;
-    height: 350px;
+    height: 400px;
     max-height: calc(100% - 40px);
     display: flex;
     flex-direction: column;
@@ -452,6 +452,98 @@ opacity: 0;
     border: none;
     padding: 10px 5px;
     cursor: pointer;
+  }
+
+  /* Flex container for draggable buttons */
+  .customize-button-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin: 20px 54px;
+    flex-wrap: wrap;
+    max-width: 250px;
+  }
+
+  .draggable {
+    width: 50px;
+    height: 50px;
+    background-color: #8CFF80;
+    color: #000;
+    font-size: 14px;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 5px;
+    cursor: move;
+    position: relative;
+    flex-wrap: wrap;
+  }
+
+  .drop-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    margin: 0 54px;
+    max-width: 250px;
+    gap: 10px;
+  }
+
+  .drop-slot {
+    width: 50px;
+    height: 50px;
+    background: transparent;
+    border-radius: 5px;
+    display: flex;
+    border: 2px dashed #888;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    line-height: 80px;
+    overflow: hidden;
+  }
+
+  .drop-slot .draggable {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+  /* Provide a clear indication of the slot */
+  .drop-slot:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+  }
+
+  /* Add visual feedback when dragging */
+  .dragging {
+    opacity: 0.5;
+  }
+
+  .btn1,
+  .btn2,
+  .btn3,
+  .btn4,
+  .btn5,
+  .btn6,
+  .btn7,
+  .btn8
+   {
+    background: #18ff00;
+  }
+
+  .slot,
+  .slot2,
+  .slot3,
+  .slot4,
+  .slot5,
+  .slot6,
+  .slot7,
+  .slot8
+   {
+    background: #808080;
   }
 
 @media (max-width: 767px) {
@@ -575,7 +667,7 @@ opacity: 0;
     bottom: 0;
     right: 0;
     width: 100vw;
-    height: 350px;
+    height: 400px;
     max-height: calc(100% - 40px);
     display: flex;
     flex-direction: column;

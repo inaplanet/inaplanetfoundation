@@ -735,6 +735,33 @@ const handleWorldSelection = (worldId: string, listItem: HTMLLIElement, worldLis
                     <button id="move-joystick-left"><i data-feather="arrow-down-left"></i> </button>
                     <button id="move-joystick-right"><i data-feather="arrow-down-right"></i> </button>
                     </div>
+                    {/* First div with 8 buttons to drag */}
+                    <div id="button-setup" className="customize-button-container">
+                        {/*  Create 8 draggable buttons */}
+                        <button className="draggable btn1" id="btn1" draggable="true">1</button>
+                        <button className="draggable btn2" id="btn2" draggable="true">2</button>
+                        <button className="draggable btn3" id="btn3" draggable="true">3</button>
+                        <button className="draggable btn4" id="btn4" draggable="true">4</button>
+                        <button className="draggable btn5" id="btn5" draggable="true">5</button>
+                        <button className="draggable btn6" id="btn6" draggable="true">6</button>
+                        <button className="draggable btn7" id="btn7" draggable="true">7</button>
+                        <button className="draggable btn8" id="btn8" draggable="true">8</button>
+                    </div>
+
+                    {/* Drop area container -->} */}
+                    <div id="drop-area" className="drop-container">
+                        <div className="drop-slot" id="slot1"></div>
+                        <div className="drop-slot" id="slot2"></div>
+                        <div className="drop-slot" id="slot3"></div>
+                        <div className="drop-slot" id="slot4"></div>
+                        <div className="drop-slot" id="slot5"></div>
+                        <div className="drop-slot" id="slot6"></div>
+                        <div className="drop-slot" id="slot7"></div>
+                        <div className="drop-slot" id="slot8"></div>
+                    </div>
+
+                    <button style={{paddingTop: '20px'}} id="reset-button">RESET</button>
+
                 </div>
             </div>
 
