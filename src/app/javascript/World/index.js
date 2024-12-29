@@ -95,6 +95,7 @@ export default class
         this.setAreas()
         this.setStartingScreen()
     }
+
     
 
     /**
