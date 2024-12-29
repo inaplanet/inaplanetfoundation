@@ -389,7 +389,7 @@ export default class
             worldId: this.worldId,
             bullets: this.bullets,
             battery: this.battery,
-            score: this.score,
+            score: this.score || 0,
             ws: this.ws,
             carName: this.carName,
             matcaps: this.matcaps
@@ -985,11 +985,11 @@ export default class
             };
 
             // Use this function to ensure the score is updated before closing the WebSocket connection
-            window.addEventListener("beforeunload", () => {
-                // Send the final score when the player is leaving or reloading the page
-                const finalScore = this.car.score; // Get the player's score from the car object
-                this.updateDataScore(finalScore); // Send the final score to the server
-            });
+            // window.addEventListener("beforeunload", () => {
+            //     // Send the final score when the player is leaving or reloading the page
+            //     const finalScore = this.car.score; // Get the player's score from the car object
+            //     this.updateDataScore(finalScore); // Send the final score to the server
+            // });
     
             ws.onclose = () => {
                 console.log('Disconnected from WebSocket server');
@@ -2892,6 +2892,7 @@ export default class
         const scoreElement= document.getElementById('coin-market');
         if (score !== undefined && score !== null ) {
             scoreElement.textContent = `₭ ${score}`;
+            this.car.score = score;
         }
     }
 
