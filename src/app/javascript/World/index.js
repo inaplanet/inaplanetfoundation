@@ -1956,6 +1956,18 @@ export default class
                 }
             };
 
+            // Function to show the popup with a custom message
+            showPopup(message) {
+                const popup = document.getElementById('no-target-popup');
+                const messageElement = document.getElementById('popup-message');
+
+                // Update the message dynamically
+                messageElement.textContent = message;
+
+                // Show the popup
+                popup.style.display = 'flex';
+            }
+
         setupMultiplayer = async (playerId, token, carName, matcaps) => {
             try {
                 // Check if the token is provided
@@ -2087,7 +2099,8 @@ export default class
                         console.log(`Sending friendship invite from ${playerId} to ${targetPlayerId}`);
                         sendFriendInvite(targetPlayerId, playerId);
                     } else {
-                        console.error('No target player found for friendship invite.');
+                        this.showPopup(`No target player found for connection invite.`);
+                        // console.error('No target player found for friendship invite.');
                     }
                 });
 
@@ -2182,14 +2195,22 @@ export default class
 
                         // Check if the targetPlayerId is already in a party
                         if (this.partyMembers && this.partyMembers.includes(targetPlayerId)) {
-                            alert(`Target player ${targetPlayerId} is already in party.`);
+                            this.showPopup(`Target player ${targetPlayerId} is already in party.`);
                         } else {
                             console.log(`Sending invite from ${playerId} to ${targetPlayerId}`);
                             sendInvite(targetPlayerId, playerId);
                         }
                     } else {
                         console.error('No target player found for invite.');
+                        // Show the popup with a custom message
+                        this.showPopup('No target player found for invite!');
                     }
+                });
+
+                // Add event listener to the OK button to close the popup
+                document.getElementById('ok-button').addEventListener('click', () => {
+                    const popup = document.getElementById('no-target-popup');
+                    popup.style.display = 'none'; // Hide the popup
                 });
 
                 // Add party call button functionality
