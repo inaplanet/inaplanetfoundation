@@ -2010,6 +2010,10 @@ export default class
                 partyToggleButton.style.display = 'block';
             }
 
+            if (partyToggleButton) {
+                partyToggleButton.style.opacity = '1';
+            }
+
         }
         
 

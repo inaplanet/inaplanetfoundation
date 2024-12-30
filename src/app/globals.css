@@ -290,6 +290,7 @@ opacity: 0;
   z-index: 10;
   backdrop-filter: blur(10px);
   cursor: pointer;
+  opacity: 0;
 }
 
 #toggle-party-list:hover {
@@ -432,6 +433,7 @@ opacity: 0;
     transition: all 2s;
     justify-content: initial;
     display: none;
+    overflow-y: auto;
   }
 
   #contact-list div {
@@ -711,6 +713,7 @@ opacity: 0;
     z-index: 10;
     backdrop-filter: blur(10px);
     cursor: pointer;
+    opacity: 0;
   }
 
   #contact-list {
@@ -733,6 +736,7 @@ opacity: 0;
     transition: ease-in-out 2s;
     justify-content: initial;
     display: none;
+    overflow-y: auto;
   }
 
   #settings-window {
@@ -2875,11 +2879,11 @@ opacity: 0;
   background-color: rgba(0, 0, 0, 0.3);
   position: absolute;
   margin: 0;
-  /* padding: 20px; */
-  bottom: 0;
-  right: 0;
-  width: 400px;
-  height: 400px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 300px;
+  height: 300px;
   max-height: calc(100% - 40px);
   display: flex;
   flex-direction: column;
@@ -2896,13 +2900,14 @@ opacity: 0;
 .popup-content {
   flex-grow: 1;
   display: flex;
-  width: 400px;
-  height: 400px;
+  width: auto;
+  height: auto;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  font-size: 15px;
+  font-size: 8px;
   gap: 20px;
+  margin: 20px;
 }
 
 #ok-button {
