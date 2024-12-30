@@ -719,10 +719,11 @@ export default class
                     case 'friendshipResponse':
                             if (message.response === 'yes') {
                                 console.log(`${message.playerId} accepted friendship invite from ${message.friendRequestId}`);
-                                alert(`You are now friends with ${message.friendRequestId.slice(0, 6)}`);
+                                this.showPopup(`You are now connected with ${message.friendRequestId.slice(0, 6)}`);
+                                this.updateFriendListUI();
                             } else {
                                 console.log(`${message.playerId} denied friendship invite from ${message.friendRequestId}`);
-                                alert(`Friendship invite denied.`);
+                                this.showPopup(`Connection invite denied.`);
                             }
                             break;
 
@@ -817,6 +818,7 @@ export default class
                         } else {
                             console.log('Already in a party. Ignoring invite.');
                             // alert('You are already in a party and cannot be invited.');
+                            this.showPopup('Target player is already in a party and cannot be invited.');
                         }
                         break;
 
@@ -2679,7 +2681,7 @@ export default class
                 // Create the toggle chat visibility button inside the chat box
                 const toggleChatButton = document.createElement('button')
                 toggleChatButton.id = 'toggle-chat-visibility-button';
-                toggleChatButton.innerHTML = `${feather.icons['minimize'].toSvg({ width: 15, height: 15 })}`;
+                toggleChatButton.innerHTML = `${feather.icons['x'].toSvg({ width: 15, height: 15 })}`;
                 toggleChatButton.style.position = 'absolute';
                 toggleChatButton.style.top = '10px';
                 toggleChatButton.style.right = '10px';
