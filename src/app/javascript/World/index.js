@@ -1902,7 +1902,7 @@ export default class
                     width: 400px;
                     height: 400px;
                     max-height: calc(100% - 40px);
-                    margin: 0;
+                    margin: 10px;
                     padding: 20px;
                     display: flex;
                     flex-direction: column;
@@ -2258,6 +2258,7 @@ export default class
                     chatContainer.style.display = 'none';
                 } else {
                     chatContainer.style.display = 'block';
+                    // Hide the notification badge when the chat is opened
                     // Remove the notification badge if it exists
                     if (notificationBadge) {
                         toggleButton.removeChild(notificationBadge);

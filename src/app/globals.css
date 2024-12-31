@@ -252,12 +252,13 @@ opacity: 0;
 #party-info {
   background-color: rgba(0, 0, 0, 0.3);
   position: absolute;
-  margin: 0;
+  margin: 20px;
   padding: 20px;
   bottom: 0;
   right: 0;
   width: 400px;
-  height: 300px;
+  height: 200px;
+  margin: 10px;
   max-height: calc(100% - 40px);
   display: flex;
   flex-direction: column;
@@ -416,7 +417,7 @@ opacity: 0;
   #contact-list {
     background-color: rgba(0, 0, 0, 0.3);
     position: absolute;
-    margin: 0;
+    margin: 10px;
     padding: 20px;
     bottom: 0;
     right: 0;
@@ -469,7 +470,7 @@ opacity: 0;
   #settings-window {
     background-color: rgba(0, 0, 0, 0.3);
     position: absolute;
-    margin: 0;
+    margin: 10px;
     padding: 20px;
     bottom: 0;
     right: 0;
