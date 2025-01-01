@@ -1898,7 +1898,7 @@ export default class
                     width: 400px;
                     height: 300px;
                     max-height: calc(100% - 40px);
-                    margin: 10px;
+                    margin: 0;
                     padding: 20px;
                     display: flex;
                     flex-direction: column;
