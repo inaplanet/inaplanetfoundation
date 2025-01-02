@@ -72,6 +72,8 @@ export default class
         this.otherPlayers = [];
         this.bullets = [];
 
+        console.log("INDEX CAR NAME", this.carName);
+
         this.messageQueue = [];
         
         this.lastKnownPositions = {};
@@ -686,7 +688,7 @@ export default class
                     `;
                     copyButton.onclick = (event) => {
                         navigator.clipboard.writeText(friendId).then(() => {
-                            this.showPopup(`Copied address to clipboard.`);
+                            this.showPopup(`Address copied to clipboard.`);
                         }).catch(err => {
                             console.error('Failed to copy text:', err);
                         });
@@ -924,8 +926,8 @@ export default class
                         // Initialize all existing players' cars
                         message.state.forEach(playerState => {
                             if (playerState.playerId !== this.playerId) {
-                                const { selectedCar, matcaps } = playerState;
-                                this.createOtherPlayerCar(playerState.playerId, playerState, selectedCar, matcaps);
+                                // const { selectedCar, matcaps } = playerState;
+                                this.createOtherPlayerCar(playerState.playerId, playerState);
                             }
                         });
                         break;
@@ -933,8 +935,8 @@ export default class
                     case 'playerJoined':
                             if (message.playerId !== this.playerId) {
                                 console.log("Message for other player car", message)
-                                const { selectedCar, matcaps } = message;  // Use default value for matcaps
-                                this.createOtherPlayerCar(message.playerId, message.state, selectedCar, matcaps);
+                                // const { selectedCar, matcaps } = message;  // Use default value for matcaps
+                                this.createOtherPlayerCar(message.playerId, message.state);
                             }
                         break;
 
@@ -1215,18 +1217,11 @@ export default class
             };
         }
 
-        createOtherPlayerCar = (playerId, data, selectedCar, matcaps) => {
+        createOtherPlayerCar = (playerId, data) => {
 
             // if (this.otherPlayers[playerId]) {
             //     removePlayerCar(playerId);
             // }
-            matcaps = matcaps || {};
-
-            console.log("Selected car from create function", selectedCar);
-            // Log received values for debugging
-            console.log("Creating car for player:", playerId);
-            console.log("Selected car:", selectedCar);
-            console.log("Matcaps:", matcaps);
 
             const carClasses = [
                 Car1, Car2, Car3, Car4, Car5, Car6, Car7, Car8, Car9, Car10,
@@ -1253,9 +1248,7 @@ export default class
                 battery: this.battery,
                 worldId: this.worldId,
                 score: this.score,
-                ws: this.ws,
-                carName: selectedCar,
-                matcaps: matcaps
+                ws: this.ws
             });
 
             this.otherPlayers[playerId] = otherPlayerCar;
@@ -2368,7 +2361,7 @@ export default class
                         console.log(`Sending friendship invite from ${playerId} to ${targetPlayerId}`);
                         sendFriendInvite(targetPlayerId, playerId);
                     } else {
-                        this.showPopup(`"No target player found for the connection invite."`);
+                        this.showPopup(`No target player found for the connection invite.`);
                         // console.error('No target player found for friendship invite.');
                     }
                 });
@@ -2472,7 +2465,7 @@ export default class
                     } else {
                         console.error('No target player found for invite.');
                         // Show the popup with a custom message
-                        this.showPopup('"No target player found for the party invite."');
+                        this.showPopup('No target player found for the party invite.');
                     }
                 });
 
