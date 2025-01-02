@@ -304,14 +304,24 @@ const Application = ({ playerId, selectedWorldId, token, carName, matcaps }) => 
 
                     // Calculate a position close to the car for a better perspective
                     const cameraOffset = forwardVector.clone().multiplyScalar(-distance); // Position behind the car
-                    cameraOffset.z = 3; // Raise the camera for a better view
+                    cameraOffset.z = 2.5; // Raise the camera for a better view
 
+                    // Adjust the camera's position to render distant areas
+                    const preloadOffset = forwardVector.clone().multiplyScalar(-distance * 1.2); // Look ahead distance
+                    const preloadPosition = chassisObject.position.clone().add(preloadOffset);
+
+                    this.camera.instance.position.lerp(preloadPosition, 0.1); // Smooth movement towards the target position
                     this.camera.instance.position.copy(chassisObject.position).add(cameraOffset);
                     this.camera.instance.lookAt(chassisObject.position);
 
+                    // Adjust clipping planes
+                    this.camera.instance.near = 0.1; // Keep a close near plane
+                    this.camera.instance.far = 2000; // Extended far plane for rendering distant areas
+                    this.camera.instance.updateProjectionMatrix();
+
                     // Apply zoom settings
-                    this.camera.zoom.targetValue = 1;
-                    this.camera.zoom.value = 1;
+                    this.camera.zoom.targetValue = 0;
+                    this.camera.zoom.value = 0;
                     this.camera.zoom.distance = this.camera.zoom.minDistance + this.camera.zoom.amplitude * this.camera.zoom.value;
                 } else {
                     // Old camera logic
