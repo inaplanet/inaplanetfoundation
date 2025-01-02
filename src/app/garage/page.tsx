@@ -1516,19 +1516,138 @@ export default function GaragePage() {
     };    
 
     // Trigger navigation when `navigateToPage` is set
+    // React.useEffect(() => {
+    //     if (navigateToPage) {
+    //         sendSelectedCarToServer();
+    //         router.push(navigateToPage); // Perform navigation
+    //         setNavigateToPage(null); // Reset navigation state
+    //         if (wsRef.current) {
+    //             wsRef.current.close();
+    //             wsRef.current = null;
+    //           }
+    //         localStorage.removeItem("matcaps");
+    //         localStorage.removeItem("selectedCarName");
+    //     }
+        
+    // }, [navigateToPage, router]);
+
+    // Declare refs and state variables
+    const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
+    const sceneRef = useRef<THREE.Scene | null>(null);
+    const videoRef = useRef<HTMLVideoElement | null>(null);
+    const animationFrameId = useRef<number | null>(null);
+
+    // Placeholder functions for event handlers and state setters
+    const handleResize = () => {
+        console.log("Resize handled");
+    };
+    const handleMouseClick = () => {
+        console.log("Mouse click handled");
+    };
+    const setGarageState = (state: any) => {
+        console.log("Garage state reset to:", state);
+    };
+
+    // Trigger navigation and clean up when navigateToPage is set
     React.useEffect(() => {
         if (navigateToPage) {
-            sendSelectedCarToServer();
-            router.push(navigateToPage); // Perform navigation
-            setNavigateToPage(null); // Reset navigation state
-            if (wsRef.current) {
-                wsRef.current.close();
-                wsRef.current = null;
-              }
-            localStorage.removeItem("matcaps");
-            localStorage.removeItem("selectedCarName");
+            const cleanupGaragePage = () => {
+                try {
+                    console.log("Cleaning up the garage page...");
+
+                    // Send selected car to the server, if needed
+                    sendSelectedCarToServer();
+
+                    // Close WebSocket connection if active
+                    if (wsRef.current) {
+                        console.log("Closing WebSocket connection...");
+                        wsRef.current.close();
+                        wsRef.current = null;
+                    }
+
+                    // Dispose of Three.js renderer and resources
+                    if (rendererRef.current) {
+                        console.log("Disposing renderer...");
+                        rendererRef.current.dispose();
+                        rendererRef.current = null;
+                    }
+
+                    // Traverse and dispose of all objects in the scene
+                    if (sceneRef.current) {
+                        console.log("Clearing scene objects...");
+                        sceneRef.current.traverse((child: any) => {
+                            if (child.geometry) {
+                                console.log(`Disposing geometry for: ${child.name}`);
+                                child.geometry.dispose();
+                            }
+                            if (child.material) {
+                                if (Array.isArray(child.material)) {
+                                    child.material.forEach((mat: THREE.Material) => {
+                                        console.log(`Disposing material for: ${child.name}`);
+                                        mat.dispose();
+                                    });
+                                } else {
+                                    console.log(`Disposing material for: ${child.name}`);
+                                    child.material.dispose();
+                                }
+                            }
+                        });
+                        sceneRef.current.clear();
+                        sceneRef.current = null;
+                    }
+
+                    // Reset matcap textures
+                    if (matcapTextures.current) {
+                        console.log("Disposing matcap textures...");
+                        Object.values(matcapTextures.current).forEach((texture: THREE.Texture) => texture.dispose());
+                        matcapTextures.current = {};
+                    }
+
+                    // Stop and reset video if used
+                    if (videoRef.current) {
+                        console.log("Stopping video playback...");
+                        videoRef.current.pause();
+                        videoRef.current.src = '';
+                    }
+
+                    // Cancel animation frames
+                    if (animationFrameId.current) {
+                        console.log("Cancelling animation frame...");
+                        cancelAnimationFrame(animationFrameId.current);
+                        animationFrameId.current = null;
+                    }
+
+                    // Remove all event listeners
+                    console.log("Removing event listeners...");
+                    window.removeEventListener('resize', handleResize);
+                    window.removeEventListener('click', handleMouseClick);
+
+                    // Clear local storage items
+                    console.log("Clearing localStorage...");
+                    localStorage.removeItem("matcaps");
+                    localStorage.removeItem("selectedCarName");
+
+                    // Reset state variables
+                    console.log("Resetting state variables...");
+                    setSelectedCar(null);
+                    setGarageState(null);
+
+                    console.log("Garage page cleanup completed!");
+                } catch (error) {
+                    console.error("Error during garage page cleanup:", error);
+                }
+            };
+
+            // Perform cleanup
+            cleanupGaragePage();
+
+            // Perform navigation to the target page
+            console.log("Navigating to:", navigateToPage);
+            router.push(navigateToPage);
+
+            // Reset the navigation state
+            setNavigateToPage(null);
         }
-        
     }, [navigateToPage, router]);
 
     // Smooth camera transition function
