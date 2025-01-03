@@ -2336,7 +2336,6 @@ export default class
                     popup.style.transform = 'translate(-50%, -50%) scale(1)';
                     popup.style.opacity = '1';
                 }, 10);
-        
             }            
 
         setupMultiplayer = async (playerId, token, carName, matcaps) => {
