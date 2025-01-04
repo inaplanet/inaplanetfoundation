@@ -270,7 +270,43 @@ export default class Controls extends EventEmitter
                 console.log(`Button for action "${action}" placed at ${slotId}`);
             }
         });
-    }    
+    }
+
+    resetPositions = {
+        slot1: { action: 'shoot', bottom: 'calc(70px * 2 + 35px)', right: '78px', left: 'unset' },
+        slot2: { action: 'boost', bottom: 'calc(70px * 2 + 35px)', right: '0px', left: 'unset' },
+        slot3: { action: 'siren', bottom: '98px', right: '78px', left: 'unset' },
+        slot4: { action: 'forward', bottom: '98px', right: '0px', left: 'unset' },
+        slot5: { action: 'backward', bottom: '20px', right: '78px', left: 'unset' },
+        slot6: { action: 'brake', bottom: '20px', right: '0px', left: 'unset' },
+        slot7: { action: 'camera', bottom: '175px', left: '10px', right: 'unset' },
+        slot8: { action: 'reset', bottom: '175px', left: '80px', right: 'unset' },
+    };    
+
+    resetController() {
+        // Reset buttons to their initial positions based on resetPositions
+        Object.keys(this.resetPositions).forEach(slotKey => {
+            const { action, bottom, right, left } = this.resetPositions[slotKey];
+            const touchElement = this.touch[action]?.$element; // Access the correct touch element by action name
+    
+            if (touchElement) {
+                // Apply the initial position values
+                touchElement.style.position = 'fixed';
+                touchElement.style.bottom = bottom;
+                touchElement.style.right = right;
+                touchElement.style.left = left;
+    
+                // Ensure the button is visible
+                touchElement.style.opacity = '1';
+    
+                console.log(`Button for action "${action}" reset to initial position at ${slotKey}`);
+            }
+        });
+    
+        // Clear localStorage to reset saved positions
+        localStorage.removeItem('buttonPositions');
+    
+    }
 
     updateButtonPositions() {
 
@@ -708,7 +744,7 @@ export default class Controls extends EventEmitter
         }
 
         // Add event listener for the "Right" button
-        document.getElementById('move-joystick-right').addEventListener('click', moveJoystickRight.bind(this));
+        // document.getElementById('move-joystick-right').addEventListener('click', moveJoystickRight.bind(this));
 
         // Function to move the joystick to the right
         function moveJoystickLeft() {
@@ -845,7 +881,7 @@ export default class Controls extends EventEmitter
         }
 
         // Add event listener for the "Right" button
-        document.getElementById('move-joystick-left').addEventListener('click', moveJoystickLeft.bind(this));
+        // document.getElementById('move-joystick-left').addEventListener('click', moveJoystickLeft.bind(this));
 
         /**
          * Switch

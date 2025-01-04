@@ -2429,6 +2429,7 @@ export default class
                         const index = initialPosition.index;
                         parent.insertBefore(button, parent.children[index]); // Move the button back to its original position
                     });
+                    this.controls.resetController();
                     this.showPopup('Buttons reset to initial positions.');
                 });
             
