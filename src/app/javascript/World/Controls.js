@@ -221,52 +221,53 @@ export default class Controls extends EventEmitter
         document.addEventListener('mouseup', this.mouse.events.mouseUp)
     }
 
-    fixedButtonPositions = {
-        shoot: { left: '80px', bottom: '120px' },
-        boost: { left: '160px', bottom: '120px' },
-        siren: { left: '240px', bottom: '120px' },
-        forward: { left: '80px', bottom: '200px' },
-        backward: { left: '160px', bottom: '200px' },
-        brake: { left: '240px', bottom: '200px' },
-        camera: { left: '80px', bottom: '280px' },
-        reset: { left: '160px', bottom: '280px' },
-    };    
+    slotPositions = {
+        slot1: { bottom: 'calc(70px * 2 + 35px)', right: '78px' },
+        slot2: { bottom: 'calc(70px * 2 + 35px)', right: '0px' },
+        slot3: { bottom: '98px', right: '78px' },
+        slot4: { bottom: '98px', right: '0px' },
+        slot5: { bottom: '20px', right: '78px' },
+        slot6: { bottom: '20px', right: '0px' },
+        slot7: { bottom: '175px', left: '10px' },
+        slot8: { bottom: '175px', left: '80px' },
+    };
 
     updateController() {
         // Retrieve saved positions from localStorage
         const savedPositions = JSON.parse(localStorage.getItem('buttonPositions')) || {};
     
-        // Define button elements
-        const buttonElements = {
-            btn1: 'shoot',
-            btn2: 'boost',
-            btn3: 'siren',
-            btn4: 'forward',
-            btn5: 'backward',
-            btn6: 'brake',
-            btn7: 'camera',
-            btn8: 'reset',
+        // Define a mapping between actions and touch elements
+        const actionToTouchElement = {
+            shoot: this.touch.shoot.$element,
+            boost: this.touch.boost.$element,
+            siren: this.touch.siren.$element,
+            forward: this.touch.forward.$element,
+            backward: this.touch.backward.$element,
+            brake: this.touch.brake.$element,
+            camera: this.touch.camera.$element,
+            reset: this.touch.reset.$element,
         };
     
-        // Loop through each slot and update the button positions
+        // Loop through each saved position and apply it
         Object.keys(savedPositions).forEach(slotNumber => {
-            const buttonId = savedPositions[slotNumber];
-            const action = buttonElements[buttonId];
+            const action = savedPositions[slotNumber];
+            const touchElement = actionToTouchElement[action];
+            const slotId = `slot${slotNumber}`;
     
-            if (action && fixedButtonPositions[action]) {
-                const buttonElement = document.getElementById(buttonId);
-                if (buttonElement) {
-                    // Apply fixed position based on action
-                    const position = fixedButtonPositions[action];
-                    buttonElement.style.position = 'fixed';
-                    buttonElement.style.left = position.left;
-                    buttonElement.style.bottom = position.bottom;
+            if (touchElement && this.slotPositions[slotId]) {
+                // Get the defined position for this slot
+                const position = this.slotPositions[slotId];
     
-                    // Ensure the button is visible
-                    buttonElement.style.opacity = '1';
+                // Apply the position values
+                touchElement.style.position = 'fixed';
+                if (position.bottom) touchElement.style.bottom = position.bottom;
+                if (position.right) touchElement.style.right = position.right;
+                if (position.left) touchElement.style.left = position.left;
     
-                    console.log(`Button ${buttonId} placed at fixed position for action ${action}.`);
-                }
+                // Ensure the touch element is visible
+                touchElement.style.opacity = '1';
+    
+                console.log(`Button for action "${action}" placed at ${slotId}`);
             }
         });
     }    
@@ -1106,8 +1107,13 @@ export default class Controls extends EventEmitter
         this.touch.reset.$element.id = 'touch-reset';
         this.touch.reset.$element.style.userSelect = 'none';
         this.touch.reset.$element.style.position = 'fixed';
-        this.touch.reset.$element.style.bottom = '175px';
-        this.touch.reset.$element.style.left = '80px'; // Adjust the position as needed
+        // this.touch.reset.$element.style.bottom = '175px';
+        // this.touch.reset.$element.style.left = '80px';
+
+        const initialReset = this.slotPositions.slot8;
+        this.touch.reset.$element.style.bottom = initialReset.bottom;
+        this.touch.reset.$element.style.right = initialReset.left;
+
         this.touch.reset.$element.style.width = '95px';
         this.touch.reset.$element.style.height = '70px';
         this.touch.reset.$element.style.transition = 'opacity 0.3s 0.4s';
@@ -1186,8 +1192,13 @@ export default class Controls extends EventEmitter
         this.touch.camera.$element.id = 'camera-view';
         this.touch.camera.$element.style.userSelect = 'none';
         this.touch.camera.$element.style.position = 'fixed';
-        this.touch.camera.$element.style.bottom = '175px';
-        this.touch.camera.$element.style.left = '10px';
+        // this.touch.camera.$element.style.bottom = '175px';
+        // this.touch.camera.$element.style.left = '10px';
+
+        const initialCamera = this.slotPositions.slot7;
+        this.touch.camera.$element.style.bottom = initialCamera.bottom;
+        this.touch.camera.$element.style.right = initialCamera.left;
+
         this.touch.camera.$element.style.width = '95px';
         this.touch.camera.$element.style.height = '70px';
         this.touch.camera.$element.style.transition = 'opacity 0.3s 0.4s';
@@ -1714,8 +1725,13 @@ export default class Controls extends EventEmitter
         this.touch.siren.$element = document.createElement('div');
         this.touch.siren.$element.style.userSelect = 'none';
         this.touch.siren.$element.style.position = 'absolute';
-        this.touch.siren.$element.style.bottom = '98px';
-        this.touch.siren.$element.style.right = '78px'; // Adjust the position as needed
+        // this.touch.siren.$element.style.bottom = '98px';
+        // this.touch.siren.$element.style.right = '78px';
+
+        const initialSiren = this.slotPositions.slot3;
+        this.touch.siren.$element.style.bottom = initialSiren.bottom;
+        this.touch.siren.$element.style.right = initialSiren.right;
+
         this.touch.siren.$element.style.width = '95px';
         this.touch.siren.$element.style.height = '70px';
         this.touch.siren.$element.style.transition = 'opacity 0.3s 0.4s';
@@ -1804,8 +1820,13 @@ export default class Controls extends EventEmitter
         this.touch.boost.$element = document.createElement('div')
         this.touch.boost.$element.style.userSelect = 'none'
         this.touch.boost.$element.style.position = 'fixed'
-        this.touch.boost.$element.style.bottom = 'calc(70px * 2 + 35px)'
-        this.touch.boost.$element.style.right = '0px'
+        // this.touch.boost.$element.style.bottom = 'calc(70px * 2 + 35px)'
+        // this.touch.boost.$element.style.right = '0px'
+
+        const initialBoost = this.slotPositions.slot2;
+        this.touch.boost.$element.style.bottom = initialBoost.bottom;
+        this.touch.boost.$element.style.right = initialBoost.right;
+
         this.touch.boost.$element.style.width = '95px'
         this.touch.boost.$element.style.height = '70px'
         this.touch.boost.$element.style.transition = 'opacity 0.3s 0.4s'
@@ -1889,8 +1910,13 @@ export default class Controls extends EventEmitter
         this.touch.forward.$element = document.createElement('div')
         this.touch.forward.$element.style.userSelect = 'none'
         this.touch.forward.$element.style.position = 'fixed'
-        this.touch.forward.$element.style.bottom = '98px'
-        this.touch.forward.$element.style.right = '0px'
+        // this.touch.forward.$element.style.bottom = '98px'
+        // this.touch.forward.$element.style.right = '0px'
+
+        const initialForward = this.slotPositions.slot4;
+        this.touch.forward.$element.style.bottom = initialForward.bottom;
+        this.touch.forward.$element.style.right = initialForward.right;
+
         this.touch.forward.$element.style.width = '95px'
         this.touch.forward.$element.style.height = '70px'
         this.touch.forward.$element.style.transition = 'opacity 0.3s 0.3s'
@@ -1970,10 +1996,16 @@ export default class Controls extends EventEmitter
 
         // Element creation and styling
         this.touch.shoot.$element = document.createElement('div');
+        this.touch.shoot.$element.id = 'btn1';
         this.touch.shoot.$element.style.userSelect = 'none';
         this.touch.shoot.$element.style.position = 'fixed';
-        this.touch.shoot.$element.style.bottom = 'calc(70px * 2 + 35px)';
-        this.touch.shoot.$element.style.right = '78px';
+        // this.touch.shoot.$element.style.bottom = 'calc(70px * 2 + 35px)';
+        // this.touch.shoot.$element.style.right = '78px';
+        // Apply initial position from slotPositions
+        const initialPosition = this.slotPositions.slot1;
+        this.touch.shoot.$element.style.bottom = initialPosition.bottom;
+        this.touch.shoot.$element.style.right = initialPosition.right;
+
         this.touch.shoot.$element.style.width = '95px';
         this.touch.shoot.$element.style.height = '70px';
         this.touch.shoot.$element.style.transition = 'opacity 0.3s 0.4s';
@@ -2060,8 +2092,13 @@ export default class Controls extends EventEmitter
         this.touch.brake.$element = document.createElement('div')
         this.touch.brake.$element.style.userSelect = 'none'
         this.touch.brake.$element.style.position = 'fixed'
-        this.touch.brake.$element.style.bottom = '20px'
-        this.touch.brake.$element.style.right = '0px'
+        // this.touch.brake.$element.style.bottom = '20px'
+        // this.touch.brake.$element.style.right = '0px'
+
+        const initialBrake = this.slotPositions.slot6;
+        this.touch.brake.$element.style.bottom = initialBrake.bottom;
+        this.touch.brake.$element.style.right = initialBrake.right;
+
         this.touch.brake.$element.style.width = '95px'
         this.touch.brake.$element.style.height = '70px'
         this.touch.brake.$element.style.transition = 'opacity 0.3s 0.2s'
@@ -2143,8 +2180,13 @@ export default class Controls extends EventEmitter
         this.touch.backward.$element.style.userSelect = 'none'
         this.touch.backward.$element.style.position = 'fixed'
         this.touch.backward.$element.style.display = 'block'
-        this.touch.backward.$element.style.bottom = '20px'
-        this.touch.backward.$element.style.right = '78px'
+        // this.touch.backward.$element.style.bottom = '20px'
+        // this.touch.backward.$element.style.right = '78px'
+
+        const initialBackward = this.slotPositions.slot5;
+        this.touch.backward.$element.style.bottom = initialBackward.bottom;
+        this.touch.backward.$element.style.right = initialBackward.right;
+
         this.touch.backward.$element.style.width = '95px'
         this.touch.backward.$element.style.height = '70px'
         this.touch.backward.$element.style.transition = 'opacity 0.3s 0.1s'
