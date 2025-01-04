@@ -837,8 +837,8 @@ const handleWorldSelection = (worldId: string, listItem: HTMLLIElement, worldLis
                     </div>
 
                     <div className='flex justify-center'>
-                      <button style={{paddingTop: '20px', paddingRight: '10px'}} id="reset-button">RESET</button>
-                      <button style={{paddingTop: '20px', paddingLeft: '10px'}} id="save-settings-button">SAVE</button>
+                      <button style={{paddingTop: '30px', paddingRight: '10px'}} id="reset-button">RESET</button>
+                      <button style={{paddingTop: '30px', paddingLeft: '10px'}} id="save-settings-button">SAVE</button>
                     </div>
                 </div>
             </div>

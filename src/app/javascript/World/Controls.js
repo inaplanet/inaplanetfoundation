@@ -1134,11 +1134,10 @@ export default class Controls extends EventEmitter
         resetLabel.id = 'reset-label';
         resetLabel.textContent = '7';
         resetLabel.style.position = 'fixed';
-        resetLabel.style.bottom = '175px';
-        resetLabel.style.left = '98px';
+        resetLabel.style.bottom = '220px';
+        resetLabel.style.left = '105px';
         resetLabel.style.color = 'white';
         resetLabel.style.fontSize = '10px';
-        resetLabel.style.fontWeight = 'bold';
         resetLabel.style.pointerEvents = 'none';
         resetLabel.style.opacity = '0';
 
@@ -1257,8 +1256,8 @@ export default class Controls extends EventEmitter
         cameraLabel.id = 'camera-label';
         cameraLabel.textContent = '8';
         cameraLabel.style.position = 'fixed';
-        cameraLabel.style.bottom = '175px';
-        cameraLabel.style.left = '30px';
+        cameraLabel.style.bottom = '220px';
+        cameraLabel.style.left = '35px';
         cameraLabel.style.color = 'white';
         cameraLabel.style.fontSize = '10px';
         cameraLabel.style.pointerEvents = 'none';
@@ -1674,7 +1673,9 @@ export default class Controls extends EventEmitter
          * Mute
          */
 
-        this.touch.mute = {};
+        this.touch.mute = {
+            isActive: false,
+        };
 
         // Element
         this.touch.mute.$element = document.getElementById('touch-mute');
@@ -1718,6 +1719,11 @@ export default class Controls extends EventEmitter
         // Append to body
         document.body.appendChild(this.touch.mute.$element)
 
+        // Toggle background color based on isActive flag
+        const updateMuteButtonStyle = () => {
+            this.touch.mute.$border.style.background = this.touch.mute.isActive ? '#FF5733' : 'rgba(0, 0, 0, 0.5)';
+        };
+
         // Events
         this.touch.mute.events = {};
         this.touch.mute.touchIdentifier = null;
@@ -1734,6 +1740,16 @@ export default class Controls extends EventEmitter
                 this.sounds.muted = !this.sounds.muted;
                 Howler.mute(this.sounds.muted);
 
+                // Toggle isActive flag
+                this.touch.mute.isActive = !this.touch.mute.isActive;
+
+                // Toggle mute state
+                this.sounds.muted = this.touch.mute.isActive;
+                Howler.mute(this.sounds.muted);
+
+                // Update button style
+                updateMuteButtonStyle();
+
                 this.touch.mute.$border.style.opacity = '0.5';
 
                 document.addEventListener('touchend', this.touch.mute.events.touchend);
@@ -1746,6 +1762,9 @@ export default class Controls extends EventEmitter
 
             if (touch) {
                 this.touch.mute.$border.style.opacity = '1';
+
+                // Ensure style update
+                updateMuteButtonStyle();
 
                 document.removeEventListener('touchend', this.touch.mute.events.touchend);
             }
@@ -1784,7 +1803,7 @@ export default class Controls extends EventEmitter
         sirenLabel.textContent = '3';
         sirenLabel.style.position = 'fixed';
         sirenLabel.style.bottom = '145px';
-        sirenLabel.style.right = '145px';
+        sirenLabel.style.right = '143px';
         sirenLabel.style.color = 'white';
         sirenLabel.style.fontSize = '10px';
         sirenLabel.style.pointerEvents = 'none';
@@ -1894,7 +1913,7 @@ export default class Controls extends EventEmitter
         boostLabel.textContent = '2';
         boostLabel.style.position = 'fixed';
         boostLabel.style.bottom = '220px';
-        boostLabel.style.right = '70px';
+        boostLabel.style.right = '63px';
         boostLabel.style.color = 'white';
         boostLabel.style.fontSize = '10px';
         boostLabel.style.pointerEvents = 'none';
@@ -1999,7 +2018,7 @@ export default class Controls extends EventEmitter
         forwardLabel.textContent = '4';
         forwardLabel.style.position = 'fixed';
         forwardLabel.style.bottom = '145px'
-        forwardLabel.style.right = '70px';
+        forwardLabel.style.right = '63px';
         forwardLabel.style.color = 'white';
         forwardLabel.style.fontSize = '10px';
         forwardLabel.style.pointerEvents = 'none';
@@ -2101,7 +2120,7 @@ export default class Controls extends EventEmitter
         shootLabel.id = 'shoot-label';
         shootLabel.style.position = 'fixed';
         shootLabel.style.bottom = '220px';
-        shootLabel.style.right = '150px';
+        shootLabel.style.right = '145px';
         shootLabel.style.color = 'white';
         shootLabel.style.fontSize = '10px';
         shootLabel.style.pointerEvents = 'none';
@@ -2212,8 +2231,8 @@ export default class Controls extends EventEmitter
         brakeLabel.id = 'brake-label';
         brakeLabel.textContent = '6';
         brakeLabel.style.position = 'fixed';
-        brakeLabel.style.bottom = '70px';
-        brakeLabel.style.right = '70px';
+        brakeLabel.style.bottom = '68px';
+        brakeLabel.style.right = '62px';
         brakeLabel.style.color = 'white';
         brakeLabel.style.fontSize = '10px';
         brakeLabel.style.pointerEvents = 'none';
@@ -2315,8 +2334,8 @@ export default class Controls extends EventEmitter
         backwardLabel.id = 'backward-label';
         backwardLabel.textContent = '5';
         backwardLabel.style.position = 'fixed';
-        backwardLabel.style.bottom = '70px';
-        backwardLabel.style.right = '145px';
+        backwardLabel.style.bottom = '68px';
+        backwardLabel.style.right = '140px';
         backwardLabel.style.color = 'white';
         backwardLabel.style.fontSize = '10px';
         backwardLabel.style.pointerEvents = 'none';

@@ -2469,7 +2469,19 @@ export default class
                     this.showPopup('Settings saved successfully.');
                     this.controls.updateController();
                 });
-            }                          
+            }
+            
+            initCustomController() {
+                // Check if buttonPositions exist in localStorage
+                const savedPositions = JSON.parse(localStorage.getItem('buttonPositions'));
+            
+                if (savedPositions) {
+                    console.log('Applying saved button positions...');
+                    this.controls.updateController(); // Apply saved positions
+                } else {
+                    console.log('Applying default button positions...');
+                }
+            }
 
         setupMultiplayer = async (playerId, token, carName, matcaps) => {
             try {
@@ -2499,6 +2511,7 @@ export default class
 
                 this.initializeTargetDetection();
                 this.initControllerSetup();
+                this.initCustomController();
 
                 // Update the Areas instance with the correct car after initialization
                 if (this.areas) {
