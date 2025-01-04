@@ -221,6 +221,56 @@ export default class Controls extends EventEmitter
         document.addEventListener('mouseup', this.mouse.events.mouseUp)
     }
 
+    fixedButtonPositions = {
+        shoot: { left: '80px', bottom: '120px' },
+        boost: { left: '160px', bottom: '120px' },
+        siren: { left: '240px', bottom: '120px' },
+        forward: { left: '80px', bottom: '200px' },
+        backward: { left: '160px', bottom: '200px' },
+        brake: { left: '240px', bottom: '200px' },
+        camera: { left: '80px', bottom: '280px' },
+        reset: { left: '160px', bottom: '280px' },
+    };    
+
+    updateController() {
+        // Retrieve saved positions from localStorage
+        const savedPositions = JSON.parse(localStorage.getItem('buttonPositions')) || {};
+    
+        // Define button elements
+        const buttonElements = {
+            btn1: 'shoot',
+            btn2: 'boost',
+            btn3: 'siren',
+            btn4: 'forward',
+            btn5: 'backward',
+            btn6: 'brake',
+            btn7: 'camera',
+            btn8: 'reset',
+        };
+    
+        // Loop through each slot and update the button positions
+        Object.keys(savedPositions).forEach(slotNumber => {
+            const buttonId = savedPositions[slotNumber];
+            const action = buttonElements[buttonId];
+    
+            if (action && fixedButtonPositions[action]) {
+                const buttonElement = document.getElementById(buttonId);
+                if (buttonElement) {
+                    // Apply fixed position based on action
+                    const position = fixedButtonPositions[action];
+                    buttonElement.style.position = 'fixed';
+                    buttonElement.style.left = position.left;
+                    buttonElement.style.bottom = position.bottom;
+    
+                    // Ensure the button is visible
+                    buttonElement.style.opacity = '1';
+    
+                    console.log(`Button ${buttonId} placed at fixed position for action ${action}.`);
+                }
+            }
+        });
+    }    
+
     updateButtonPositions() {
 
         const userDisplay = document.getElementById('userDisplay');

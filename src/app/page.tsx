@@ -5,6 +5,7 @@ import React from 'react';
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAccount } from 'wagmi';
+import Image from 'next/image';
 import { useWebSocket } from './context/WebSocketContext';
 import { initGlobe, addSignalEffect, removeSignalEffect } from './globe'; // Adjust path as necessary
 import { FaRedo } from 'react-icons/fa';
@@ -738,30 +739,107 @@ const handleWorldSelection = (worldId: string, listItem: HTMLLIElement, worldLis
                     {/* First div with 8 buttons to drag */}
                     <div id="button-setup" className="customize-button-container">
                         {/*  Create 8 draggable buttons */}
-                        <button className="draggable btn1" id="btn1" draggable="true">1</button>
-                        <button className="draggable btn2" id="btn2" draggable="true">2</button>
-                        <button className="draggable btn3" id="btn3" draggable="true">3</button>
-                        <button className="draggable btn4" id="btn4" draggable="true">4</button>
-                        <button className="draggable btn5" id="btn5" draggable="true">5</button>
-                        <button className="draggable btn6" id="btn6" draggable="true">6</button>
-                        <button className="draggable btn7" id="btn7" draggable="true">7</button>
-                        <button className="draggable btn8" id="btn8" draggable="true">8</button>
+                        <button className="draggable btn1" id="btn1" draggable="true">
+                          <div
+                              className="button-icon"
+                              style={{
+                                  backgroundImage: `url('/images/mobile/paperPlane.png')`,
+                              }}
+                            />
+                        </button>
+                        <button className="draggable btn2" id="btn2" draggable="true">
+                          <div
+                              className="button-icon"
+                              style={{
+                                  backgroundImage: `url('/images/mobile/doubleTriangle.png')`,
+                              }}
+                              />
+                        </button>
+                        <button className="draggable btn3" id="btn3" draggable="true">
+                          <div
+                                className="button-icon"
+                                style={{
+                                    backgroundImage: `url('/images/mobile/siren.png')`,
+                                }}
+                              />
+                        </button>
+                        <button className="draggable btn4" id="btn4" draggable="true">
+                          <div
+                                  className="button-icon"
+                                  style={{
+                                      backgroundImage: `url('/images/mobile/triangle.png')`,
+                                  }}
+                                />
+                        </button>
+                        <button className="draggable btn5" id="btn5" draggable="true">
+                          <div
+                                    className="button-icon"
+                                    style={{
+                                        backgroundImage: `url('/images/mobile/triangle.png')`,
+                                        rotate: '180deg'
+                                    }}
+                                />
+                        </button>
+                        <button className="draggable btn6" id="btn6" draggable="true">
+                          <div
+                                    className="button-icon"
+                                    style={{
+                                        backgroundImage: `url('/images/mobile/cross.png')`,
+                                    }}
+                                />
+                        </button>
+                        <button className="draggable btn7" id="btn7" draggable="true">
+                          <div
+                                      className="button-icon"
+                                      style={{
+                                          backgroundImage: `url('/images/mobile/warning.png')`,
+                                      }}
+                                />
+                        </button>
+                        <button className="draggable btn8" id="btn8" draggable="true">
+                          <div
+                                        className="button-icon"
+                                        style={{
+                                            width: '70%',
+                                            height: '70%',
+                                            backgroundImage: `url('/images/mobile/start.png')`,
+                                        }}
+                                />
+                        </button>
                     </div>
 
-                    {/* Drop area container -->} */}
+                    {/* Drop area container */}
                     <div id="drop-area" className="drop-container">
-                        <div className="drop-slot" id="slot1"></div>
-                        <div className="drop-slot" id="slot2"></div>
-                        <div className="drop-slot" id="slot3"></div>
-                        <div className="drop-slot" id="slot4"></div>
-                        <div className="drop-slot" id="slot5"></div>
-                        <div className="drop-slot" id="slot6"></div>
-                        <div className="drop-slot" id="slot7"></div>
-                        <div className="drop-slot" id="slot8"></div>
+                        <div className="drop-slot" id="slot1" data-slot="1">
+                            <span className="slot-label">1</span>
+                        </div>
+                        <div className="drop-slot" id="slot2" data-slot="2">
+                            <span className="slot-label">2</span>
+                        </div>
+                        <div className="drop-slot" id="slot3" data-slot="3">
+                            <span className="slot-label">3</span>
+                        </div>
+                        <div className="drop-slot" id="slot4" data-slot="4">
+                            <span className="slot-label">4</span>
+                        </div>
+                        <div className="drop-slot" id="slot5" data-slot="5">
+                            <span className="slot-label">5</span>
+                        </div>
+                        <div className="drop-slot" id="slot6" data-slot="6">
+                            <span className="slot-label">6</span>
+                        </div>
+                        <div className="drop-slot" id="slot7" data-slot="7">
+                            <span className="slot-label">7</span>
+                        </div>
+                        <div className="drop-slot" id="slot8" data-slot="8">
+                            <span className="slot-label">8</span>
+                        </div>
                     </div>
 
-                    <button style={{paddingTop: '20px'}} id="reset-button">RESET</button>
-
+                    <div className='flex justify-center'>
+                      <button style={{paddingTop: '20px', paddingRight: '10px'}} id="reset-button">RESET</button>
+                      <button style={{paddingTop: '20px', paddingLeft: '10px'}} id="save-settings-button">SAVE</button>
+                    </div>
                 </div>
             </div>
 

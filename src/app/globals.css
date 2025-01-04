@@ -525,7 +525,7 @@ opacity: 0;
   .draggable {
     width: 50px;
     height: 50px;
-    background-color: #8CFF80;
+    /* background-color: #8CFF80; */
     color: #000;
     font-size: 14px;
     text-align: center;
@@ -567,7 +567,22 @@ opacity: 0;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-}
+  }
+
+  .slot-label {
+    position: absolute;
+    top: -30px;
+    left: 0;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 14px;
+    color: #fff;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9);
+    padding: 2px 6px;
+    border-radius: 4px;
+    pointer-events: none;
+    z-index: 10;
+  }
+
 
   /* Provide a clear indication of the slot */
   .drop-slot:hover {
@@ -588,7 +603,7 @@ opacity: 0;
   .btn7,
   .btn8
    {
-    background: #18ff00;
+    background: rgba(0, 0, 0, 0.1);
   }
 
   .slot,
@@ -697,7 +712,7 @@ opacity: 0;
   #toggle-party-list {
     position: absolute;
     border: unset;
-    width: 72px;
+    width: 65px;
     height: 10px;
     text-align: center;
     font-family: 'Orbitron', sans-serif;

@@ -237,7 +237,6 @@ export default class
             }
         });
     }
-    
 
     // New function to detect the nearest target player
     detectNearestTarget() {
@@ -287,7 +286,6 @@ export default class
     
         return nearestPlayerId;
     }
-    
     
     // Other methods remain unchanged
     showTargetPlayerId(targetPlayerId) {
@@ -2351,7 +2349,113 @@ export default class
                     popup.style.transform = 'translate(-50%, -50%) scale(1)';
                     popup.style.opacity = '1';
                 }, 10);
-            }            
+            }      
+            
+            initControllerSetup() {
+                const draggableButtons = document.querySelectorAll('.draggable');
+                const dropSlots = document.querySelectorAll('.drop-slot');
+                const resetButton = document.getElementById('reset-button');
+                const saveSettingsButton = document.getElementById('save-settings-button');
+            
+                // Define button actions
+                const buttonActions = {
+                    btn1: 'shoot',
+                    btn2: 'boost',
+                    btn3: 'siren',
+                    btn4: 'forward',
+                    btn5: 'backward',
+                    btn6: 'brake',
+                    btn7: 'camera',
+                    btn8: 'reset'
+                };
+            
+                // Store initial positions of the buttons
+                const initialButtonPositions = {};
+                draggableButtons.forEach(button => {
+                    initialButtonPositions[button.id] = {
+                        parent: button.parentElement,
+                        index: Array.from(button.parentElement.children).indexOf(button)
+                    };
+                });
+            
+                // Drag start
+                draggableButtons.forEach(button => {
+                    button.addEventListener('dragstart', (e) => {
+                        e.dataTransfer.setData('text', e.target.id); // Set the ID of the dragged element
+                        e.target.classList.add('dragging');
+                        e.target.style.opacity = '0.5'; // Change opacity of the dragged button
+                    });
+            
+                    button.addEventListener('dragend', (e) => {
+                        e.target.classList.remove('dragging');
+                        e.target.style.opacity = '1'; // Reset opacity when dragging ends
+                    });
+                });
+            
+                // Enable dropping by adding event listeners to the drop slots
+                dropSlots.forEach(slot => {
+                    slot.addEventListener('dragover', (e) => {
+                        e.preventDefault(); // Allow drop
+                    });
+            
+                    slot.addEventListener('drop', (e) => {
+                        e.preventDefault();
+                        const draggedElementId = e.dataTransfer.getData('text');
+                        const draggedElement = document.getElementById(draggedElementId);
+            
+                        // Ensure the dropped element isn't already inside the slot
+                        if (slot && !slot.contains(draggedElement)) {
+                            slot.appendChild(draggedElement); // Append the dragged element to the slot
+                            slot.style.backgroundColor = 'rgba(0, 0, 0, 0.2)'; // Optional: Highlight the slot
+                        }
+                    });
+            
+                    // Double-click event to remove button
+                    slot.addEventListener('dblclick', (e) => {
+                        const button = e.target.querySelector('.draggable');
+                        if (button) {
+                            // Move the button back to the original container
+                            document.getElementById('button-setup').appendChild(button);
+                            e.target.style.backgroundColor = ''; // Reset background color of the slot
+                        }
+                    });
+                });
+            
+                // Reset the positions of the buttons to their initial positions
+                resetButton.addEventListener('click', () => {
+                    draggableButtons.forEach(button => {
+                        const initialPosition = initialButtonPositions[button.id];
+                        const parent = initialPosition.parent;
+                        const index = initialPosition.index;
+                        parent.insertBefore(button, parent.children[index]); // Move the button back to its original position
+                    });
+                    this.showPopup('Buttons reset to initial positions.');
+                });
+            
+                // Save the current button positions
+                saveSettingsButton.addEventListener('click', () => {
+                    const buttonPositions = {};
+            
+                    dropSlots.forEach(slot => {
+                        const slotNumber = slot.getAttribute('data-slot');
+                        const button = slot.querySelector('.draggable');
+            
+                        if (button) {
+                            const action = buttonActions[button.id]; // Map the button to its action
+                            buttonPositions[slotNumber] = action;
+                        } else {
+                            buttonPositions[slotNumber] = null; // No button in this slot
+                        }
+                    });
+            
+                    console.log('Saved Button Positions:', buttonPositions);
+            
+                    // Save to localStorage
+                    localStorage.setItem('buttonPositions', JSON.stringify(buttonPositions));
+                    this.showPopup('Settings saved successfully.');
+                    this.controls.updateController();
+                });
+            }                   
 
         setupMultiplayer = async (playerId, token, carName, matcaps) => {
             try {
@@ -2380,6 +2484,7 @@ export default class
                 const playerCar = this.car;
 
                 this.initializeTargetDetection();
+                this.initControllerSetup();
 
                 // Update the Areas instance with the correct car after initialization
                 if (this.areas) {
@@ -2494,67 +2599,67 @@ export default class
                     this.createFriendListToggle();
                 });     
                 
-                const draggableButtons = document.querySelectorAll('.draggable');
-                const dropSlots = document.querySelectorAll('.drop-slot');
-                const resetButton = document.getElementById('reset-button');
+                // const draggableButtons = document.querySelectorAll('.draggable');
+                // const dropSlots = document.querySelectorAll('.drop-slot');
+                // const resetButton = document.getElementById('reset-button');
             
-                // Store initial positions of the buttons
-                const initialButtonPositions = {};
-                draggableButtons.forEach(button => {
-                    initialButtonPositions[button.id] = { parent: button.parentElement, index: Array.from(button.parentElement.children).indexOf(button) };
-                });
+                // // Store initial positions of the buttons
+                // const initialButtonPositions = {};
+                // draggableButtons.forEach(button => {
+                //     initialButtonPositions[button.id] = { parent: button.parentElement, index: Array.from(button.parentElement.children).indexOf(button) };
+                // });
             
-                // Drag start
-                draggableButtons.forEach(button => {
-                    button.addEventListener('dragstart', (e) => {
-                        e.dataTransfer.setData('text', e.target.id); // Set the ID of the dragged element
-                        e.target.classList.add('dragging');
-                        e.target.style.opacity = '0.5'; // Change opacity of the dragged button
-                    });
+                // // Drag start
+                // draggableButtons.forEach(button => {
+                //     button.addEventListener('dragstart', (e) => {
+                //         e.dataTransfer.setData('text', e.target.id); // Set the ID of the dragged element
+                //         e.target.classList.add('dragging');
+                //         e.target.style.opacity = '0.5'; // Change opacity of the dragged button
+                //     });
             
-                    button.addEventListener('dragend', (e) => {
-                        e.target.classList.remove('dragging');
-                        e.target.style.opacity = '1'; // Reset opacity when dragging ends
-                    });
-                });
+                //     button.addEventListener('dragend', (e) => {
+                //         e.target.classList.remove('dragging');
+                //         e.target.style.opacity = '1'; // Reset opacity when dragging ends
+                //     });
+                // });
             
-                // Enable dropping by adding event listeners to the drop slots
-                dropSlots.forEach(slot => {
-                    slot.addEventListener('dragover', (e) => {
-                        e.preventDefault(); // Allow drop
-                    });
+                // // Enable dropping by adding event listeners to the drop slots
+                // dropSlots.forEach(slot => {
+                //     slot.addEventListener('dragover', (e) => {
+                //         e.preventDefault(); // Allow drop
+                //     });
             
-                    slot.addEventListener('drop', (e) => {
-                        e.preventDefault();
-                        const draggedElementId = e.dataTransfer.getData('text');
-                        const draggedElement = document.getElementById(draggedElementId);
+                //     slot.addEventListener('drop', (e) => {
+                //         e.preventDefault();
+                //         const draggedElementId = e.dataTransfer.getData('text');
+                //         const draggedElement = document.getElementById(draggedElementId);
             
-                        // Ensure the dropped element isn't already inside the slot
-                        if (slot && !slot.contains(draggedElement)) {
-                            slot.appendChild(draggedElement); // Append the dragged element to the slot
-                        }
-                    });
+                //         // Ensure the dropped element isn't already inside the slot
+                //         if (slot && !slot.contains(draggedElement)) {
+                //             slot.appendChild(draggedElement); // Append the dragged element to the slot
+                //         }
+                //     });
             
-                    // Double-click event to remove button
-                    slot.addEventListener('dblclick', (e) => {
-                        const button = e.target.querySelector('.draggable');
-                        if (button) {
-                            // Move the button back to the original container
-                            document.getElementById('button-setup').appendChild(button);
-                            e.target.style.backgroundColor = ''; // Reset background color of the slot
-                        }
-                    });
-                });
+                //     // Double-click event to remove button
+                //     slot.addEventListener('dblclick', (e) => {
+                //         const button = e.target.querySelector('.draggable');
+                //         if (button) {
+                //             // Move the button back to the original container
+                //             document.getElementById('button-setup').appendChild(button);
+                //             e.target.style.backgroundColor = ''; // Reset background color of the slot
+                //         }
+                //     });
+                // });
             
-                // Reset the positions of the buttons to their initial positions
-                resetButton.addEventListener('click', () => {
-                    draggableButtons.forEach(button => {
-                        const initialPosition = initialButtonPositions[button.id];
-                        const parent = initialPosition.parent;
-                        const index = initialPosition.index;
-                        parent.insertBefore(button, parent.children[index]); // Move the button back to its original position
-                    });
-                });
+                // // Reset the positions of the buttons to their initial positions
+                // resetButton.addEventListener('click', () => {
+                //     draggableButtons.forEach(button => {
+                //         const initialPosition = initialButtonPositions[button.id];
+                //         const parent = initialPosition.parent;
+                //         const index = initialPosition.index;
+                //         parent.insertBefore(button, parent.children[index]); // Move the button back to its original position
+                //     });
+                // });
                 
                 // Invite a target player to friendship
                 function sendFriendInvite(targetPlayerId, playerId) {
