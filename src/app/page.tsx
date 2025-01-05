@@ -423,7 +423,7 @@ let currentCounts: Record<string, number> = {}; // Define the shape of `counts`
 const updatePlayerCount = (count: number) => {
   const playerCountElement = document.getElementById('userCountDisplay');
   if (playerCountElement) {
-    playerCountElement.innerText = `ON: ${count}`;
+    playerCountElement.innerText = `${count}`;
   }
 
   const barThresholds = [1, 150, 300, 500];
