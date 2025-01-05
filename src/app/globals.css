@@ -2595,8 +2595,8 @@ opacity: 0;
     align-items: center;
     justify-content: center;
     width: 100px!important;
-    top: 5px!important;
-    left: 5px!important;
+    top: 5px !important;
+    left: 10px!important;
     margin-top: -5px;
     border-radius: 0px!important;
     height: 50px!important;
@@ -2675,7 +2675,7 @@ opacity: 0;
   justify-content: center;
   width: 80px;
   height: 40px;
-  top: 5px;
+  top: 10px;
   left: 10px;
   margin-top: -5px;
   backdrop-filter: blur(5px);
@@ -2736,30 +2736,59 @@ opacity: 0;
 }
 
 .my-wallet {
-    background-color: unset;
+  width: 300px;
+  height: 50px;
+  background: rgba(0, 0, 0, 0.5);
+  text-transform: uppercase;
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 500;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9);
+  background-color: rgba(255, 255, 255, 0.01);
+  padding: 0 20px 0 20px;
+  border-radius: 10px;
+  z-index: 100;
+  text-align: center;
+  font-family: 'Orbitron', sans-serif;
+  backdrop-filter: blur(5px);
+  box-shadow: 0px 0px 10px rgb(0, 0, 0, 0.1);
+  box-sizing: border-box;
+  border-top: 10px solid transparent;
+  border-bottom: 10px solid transparent;
+  text-shadow: '2px 2px 4px rgba(0, 0, 0, 0.9)';
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
 }
 
 @media (max-width: 767px) {
   .my-wallet {
-    position: static; /* Use static positioning to follow flexbox layout */
-    font-size: 15px;
+    width: 300px;
+    height: 50px;
+    background: rgba(0, 0, 0, 0.5);
+    text-transform: uppercase;
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 500;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9);
     background-color: rgba(255, 255, 255, 0.01);
-    padding: 10px;
-    border-radius: 30px;
-    margin-left: 5px;
+    padding: 0 20px 0 20px;
+    margin-left: 15px;
+    border-radius: 10px;
+    z-index: 100;
+    display: block;
+    text-align: center;
+    font-family: 'Orbitron', sans-serif;
+    backdrop-filter: blur(5px);
+    box-shadow: 0px 0px 10px rgb(0, 0, 0, 0.1);
+    box-sizing: border-box;
+    border-top: 10px solid transparent;
+    border-bottom: 10px solid transparent;
+    text-shadow: '2px 2px 4px rgba(0, 0, 0, 0.9)';
     display: flex;
     justify-content: center;
     align-items: center;
-    backdrop-filter: blur(5px);
-    z-index: 100;
-    text-align: center;
-    font-family: 'Orbitron', sans-serif;
-    box-sizing: border-box;
-    rotate: 0deg; /* No rotation needed on mobile */
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-    animation: rotateGradient 7s linear infinite;
-}
+    gap: 5px;
+  }
 }
 
 .bar-1 {

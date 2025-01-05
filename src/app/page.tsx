@@ -6,9 +6,11 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAccount } from 'wagmi';
 import Image from 'next/image';
+import { useModal } from '../../context/index';
 import { useWebSocket } from './context/WebSocketContext';
 import { initGlobe, addSignalEffect, removeSignalEffect } from './globe'; // Adjust path as necessary
 import { FaRedo } from 'react-icons/fa';
+import { FaEthereum } from 'react-icons/fa';
 
 // Dynamically import the Application component and disable SSR
 const Application = dynamic(() => import('./javascript/Application'), {
@@ -18,7 +20,7 @@ const Application = dynamic(() => import('./javascript/Application'), {
 export default function Home() {
   const wsRef = useRef<WebSocket | null>(null);
   // const { initializeWebSocket, wsRef, isWebSocketReady } = useWebSocket();
-
+  const modal = useModal();
   const { address, isConnected, isDisconnected } = useAccount();
   const [isEverythingReady, setIsEverythingReady] = useState(false);
   const [playerId, setPlayerId] = useState<string | null>(null);
@@ -49,6 +51,14 @@ export default function Home() {
 
   const worldPlayerCounts = new Map<string, number>(); // To track player counts per worldId
   const activeSignals = new Map<string, THREE.Object3D>(); // To track active signals
+
+  const handleModal = async () => {
+    try {
+      await modal.open();
+    } catch (error) {
+      console.error('Error opening WalletConnect modal:', error);
+    }
+  };
 
   const handleReload = () => {
     window.location.reload(); // Reload the page
@@ -623,6 +633,14 @@ const handleWorldSelection = (worldId: string, listItem: HTMLLIElement, worldLis
     }
   };
 
+  // Utility function to format playerId
+  function formatPlayerId(address: string): string {
+    if (!address) return '';
+    const firstPart = address.substring(0, 6);
+    const lastPart = address.substring(address.length - 6);
+    return `${firstPart}...${lastPart}`;
+  }
+
   return (
     <main className="overflow-hidden flex flex-col items-center" style={{ backgroundColor: '#000', fontFamily: "'Orbitron', sans-serif" }}>
       <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
@@ -652,7 +670,10 @@ const handleWorldSelection = (worldId: string, listItem: HTMLLIElement, worldLis
         <div id="loading-container">
           <div id="loading-layer" className="loading-layer overflow-hidden"></div>
           <div id="w3m-layer" className='w3m-layer flex-container'>
-            <button className='my-wallet'> <w3m-button /> </button>
+            <button className='my-wallet' onClick={handleModal}>
+              <FaEthereum size={15} style={{ color: '#fff' }} />
+               {playerId ? formatPlayerId(playerId) : 'Connect Wallet'} 
+               </button>
             <div className="user-count-wrapper">
               <span id="userCountDisplay" className="user-count-display">0</span>
             </div>
