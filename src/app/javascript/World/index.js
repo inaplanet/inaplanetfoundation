@@ -77,6 +77,8 @@ export default class
         this.lastKnownPositions = {};
         this.coinActive = false;
 
+        this.messengerVisible = false;
+
         // Debug
         if(this.debug)
         {
@@ -1050,10 +1052,10 @@ export default class
                         const messenger = document.getElementById('toggle-lobby');
                         if (messenger && this.inParty) {
                             messenger.style.opacity = 1;
-                        }
-
-                        if (messenger) {
-                            messenger.addEventListener('click', () => {
+                    
+                            // Add event listener to toggle chat visibility
+                            messenger.replaceWith(messenger.cloneNode(true));
+                            document.getElementById('toggle-lobby').addEventListener('click', () => {
                                 this.toggleChatVisibility();
                             });
                         }
@@ -2160,47 +2162,49 @@ export default class
             // Toggle chat visibility on button click with animation
             toggleChatVisibility = () => {
                 const chatContainer = document.getElementById('party-chat-container');
-                const notificationBadge = document.getElementById('chat-notification-badge'); // Badge element
-
+                const notificationBadge = document.getElementById('chat-notification-badge');  // Badge element
+            
                 if (!chatContainer) {
                     console.error('Chat container not found!');
                     return;
                 }
-
+            
                 console.log('Chat container found. Toggling visibility.');
-
-                // Toggle visibility with animation
-                if (chatContainer.style.display === 'flex') {
-                    // Hide with scaling animation
+            
+                if (this.messengerVisible) {
+                    // Hide chat with scaling animation
                     chatContainer.style.transform = 'scale(1.25)';
                     chatContainer.style.opacity = '1';
-
+            
                     setTimeout(() => {
                         chatContainer.style.transform = 'scale(0)';
                         chatContainer.style.opacity = '0';
                     }, 10);
-
-                    // Set display to none after animation ends
+            
                     setTimeout(() => {
                         chatContainer.style.display = 'none';
-                    }, 500); // Match the animation duration
+                    }, 500);  // Match the animation duration
+            
+                    this.messengerVisible = false;  // Update flag
                 } else {
-                    // Show with scaling animation
+                    // Show chat with scaling animation
                     chatContainer.style.display = 'flex';
                     chatContainer.style.transform = 'scale(0)';
                     chatContainer.style.opacity = '0';
-
+            
                     setTimeout(() => {
                         chatContainer.style.transform = 'scale(1)';
                         chatContainer.style.opacity = '1';
                     }, 10);
-
-                    // Hide the notification badge when the chat is opened
+            
+                    // Remove notification badge when chat is opened
                     if (notificationBadge) {
                         notificationBadge.remove();
                     }
+            
+                    this.messengerVisible = true;  // Update flag
                 }
-            };
+            };            
 
             toggleFriendList = () => {
                 const friendListContainer = document.getElementById('contact-list');

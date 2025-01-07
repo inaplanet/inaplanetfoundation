@@ -649,9 +649,9 @@ const handleWorldSelection = (worldId: string, listItem: HTMLLIElement, worldLis
       {!isConnected && (
         <div className="connectWalletDiv flex flex-col justify-between items-center h-screen p-4">
           <div className="flex-grow flex justify-center items-center">
-            <button className="connectWalletButton flex flex-col justify-center items-center">
+            <button className="connectWalletButton flex flex-col justify-center items-center" onClick={handleModal}>
               <span></span><span></span><span></span><span></span>
-              <w3m-button />
+              CONNECT WALLET
             </button>
           </div>
           <div className="w-full flex justify-center pb-10">
