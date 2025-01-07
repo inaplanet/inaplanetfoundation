@@ -342,7 +342,7 @@ opacity: 0;
   top: 181px;
   left: 20px;
   background: rgba(0, 0, 0, 0.5);
-  display: unset;
+  display: flex;
   color: white;
   padding: 10px 10px;
   border-radius: 5px;

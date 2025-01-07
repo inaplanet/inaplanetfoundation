@@ -883,8 +883,8 @@ const handleWorldSelection = (worldId: string, listItem: HTMLLIElement, worldLis
 
             {/* Party Chat */}
             <button id="toggle-party-list"></button>
-            <button id="party-call-button" style={{display: 'none'}}>PHONE</button>
-            <button id="toggle-lobby" style={{display: 'none'}}>TALK</button>
+            <button id="party-call-button" style={{display: 'none'}}>VOICE</button>
+            <button id="toggle-lobby">INBOX</button>
             <div id="party-chat-container" className="chat-box" style={{ display: 'none' }}>
               <div id="party-chat-box" className="chat-box-body"></div>
               <div className="chat-box-footer">
