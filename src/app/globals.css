@@ -299,6 +299,64 @@ opacity: 0;
   color: #000;
 }
 
+#party-call-button {
+  position: absolute;
+  border: unset;
+  width: 72px;
+  height: 10px;
+  text-align: center;
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 600;
+  font-size: 8px;
+  justify-content: center;
+  align-items: center;
+  top: 211px;
+  left: 100px;
+  background: rgba(0, 0, 0, 0.5);
+  display: unset;
+  color: white;
+  padding: 10px 10px;
+  border-radius: 5px;
+  z-index: 10;
+  backdrop-filter: blur(10px);
+  cursor: pointer;
+  opacity: 1;
+}
+
+#party-call-button:hover {
+  background-color: #FF5733;
+  color: #000;
+}
+
+#toggle-lobby {
+  position: absolute;
+  border: unset;
+  width: 72px;
+  height: 10px;
+  text-align: center;
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 600;
+  font-size: 8px;
+  justify-content: center;
+  align-items: center;
+  top: 181px;
+  left: 20px;
+  background: rgba(0, 0, 0, 0.5);
+  display: unset;
+  color: white;
+  padding: 10px 10px;
+  border-radius: 5px;
+  z-index: 10;
+  backdrop-filter: blur(10px);
+  cursor: pointer;
+  opacity: 1;
+}
+
+#toggle-lobby:hover {
+  background-color: #FF5733;
+  color: #000;
+}
+
 #invite-button {
   position: absolute;
   border: unset;
@@ -777,6 +835,50 @@ opacity: 0;
     transition: all 0.5s ease-in-out;
   }
 
+  #party-call-button {
+    position: absolute;
+    border: unset;
+    width: 110px;
+    height: 10px;
+    text-align: center;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 8px;
+    top: 190px;
+    align-items: center;
+    justify-content: center;
+    display: flex;
+    left: 181px;
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    padding: 10px 10px;
+    border-radius: 5px;
+    z-index: 10;
+    backdrop-filter: blur(10px);
+    opacity: 1;
+  }
+  
+  #toggle-lobby {
+    position: absolute;
+    border: unset;
+    width: 110px;
+    height: 10px;
+    text-align: center;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 8px;
+    top: 165px;
+    align-items: center;
+    justify-content: center;
+    display: flex;
+    left: 181px;
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    padding: 10px 10px;
+    border-radius: 5px;
+    z-index: 10;
+    backdrop-filter: blur(10px);
+    opacity: 1;
+  }
+
   .open {
     z-index: 10000 !important;
   }
@@ -948,7 +1050,7 @@ opacity: 0;
   top: 12%;
   left: 30px;
   width: 21%;
-  /* background-color: rgba(255, 255, 255, 0.01); */
+  background-color: rgba(255, 255, 255, 0.01);
   padding: 0 20px 0 20px;
   border-radius: 10px;
   z-index: 100; /* Higher z-index to display on top */
@@ -1101,6 +1203,7 @@ opacity: 0;
     box-sizing: border-box;
     border-top: 5px solid transparent;
     border-bottom: 5px solid transparent;
+    text-shadow: '2px 2px 4px rgba(0, 0, 0, 0.9)';
     rotate: 0deg;
     cursor: pointer;
     transition: background-color 0.3s ease;
@@ -1140,6 +1243,7 @@ opacity: 0;
     rotate: 0deg;
     cursor: pointer;
     transition: background-color 0.3s ease;
+    text-shadow: '2px 2px 4px rgba(0, 0, 0, 0.9)';
   }
 
   /* #chatbox-button::after {
@@ -1211,7 +1315,7 @@ opacity: 0;
     top: 55%;
     left: 20px;
     width: 88%;
-    /* background-color: rgba(255, 255, 255, 0.01); Semi-transparent background */
+    background: rgba(255, 255, 255, 0.01);
     /* box-shadow: 0px 0px 10px rgb(0, 0, 0, 0.5); */
     padding: 0 20px 0 20px;
     border-radius: 10px;
@@ -2738,7 +2842,7 @@ opacity: 0;
 .my-wallet {
   width: 300px;
   height: 50px;
-  background: rgba(0, 0, 0, 0.5);
+  background:rgba(255, 255, 255, 0.01);
   text-transform: uppercase;
   font-family: 'Orbitron', sans-serif;
   font-weight: 500;
@@ -2765,7 +2869,7 @@ opacity: 0;
   .my-wallet {
     width: 300px;
     height: 50px;
-    background: rgba(0, 0, 0, 0.5);
+    /* background: rgba(0, 0, 0, 0.5); */
     text-transform: uppercase;
     font-family: 'Orbitron', sans-serif;
     font-weight: 500;

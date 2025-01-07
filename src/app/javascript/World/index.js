@@ -88,7 +88,7 @@ export default class
         this.container = new THREE.Object3D()
         this.container.matrixAutoUpdate = false
 
-        this.setAxes()
+        // this.setAxes()
         this.setSounds()
         this.setControls()
         // this.setFloor()
@@ -444,60 +444,7 @@ export default class
                 videoTexture.needsUpdate = true;
             }
         });
-    }  
-
-    // addAdvertisementPlane() {
-    //     // Create a video element
-    //     const video = document.createElement('video');
-    //     video.src = videoAdSource;
-    //     video.id = 'video-ad';
-    //     video.crossOrigin = 'anonymous';
-    //     video.playsInline = true;
-    //     video.autoplay = true;
-    //     video.muted = true;
-    //     video.loop = true;
-    //     video.style = 'display: none'; // Hide the video element itself
-    
-    //     // Append the video to the DOM
-    //     document.body.appendChild(video);
-
-    //     // Create a VideoTexture from the video element
-    //     const videoTexture = new THREE.VideoTexture(video);
-    //     videoTexture.minFilter = THREE.LinearFilter;
-    //     videoTexture.magFilter = THREE.LinearFilter;
-    //     videoTexture.format = THREE.RGBFormat;
-
-    //     // Calculate dimensions for the plane to cover the top side of the world
-    //     const planeWidth = 1200; // Distance from start to end on the x-axis
-    //     const planeHeight = 5; // Adjust this as per your preference
-
-    //     // Create the plane geometry
-    //     const planeGeometry = new THREE.PlaneGeometry(planeWidth, planeHeight);
-
-    //     // Create a material using the video texture
-    //     const planeMaterial = new THREE.MeshBasicMaterial({
-    //         map: videoTexture,
-    //         side: THREE.DoubleSide,
-    //         toneMapped: false,
-    //     });
-
-    //     // Create the plane mesh
-    //     const videoPlane = new THREE.Mesh(planeGeometry, planeMaterial);
-
-    //     // Position the plane (spanning the top side of the scene)
-    //     videoPlane.position.set(0, -595, 3); // Center of the specified range (adjust y-axis if needed)
-    //     videoPlane.rotation.x = -Math.PI / 2; // Rotate 90 degrees to face downward from the top
-
-    //     // Add the video plane to the Three.js scene
-    //     this.container.add(videoPlane);
-
-    //     // Ensure the video texture updates on each frame
-    //     this.time.on('tick', () => {
-    //         if (videoTexture && video.readyState >= video.HAVE_CURRENT_DATA) {
-    //             videoTexture.needsUpdate = true;
-    //         }
-    //     });
-    // }
+    }
 
     setCityTour() {
         // Create a video element
@@ -879,7 +826,6 @@ export default class
                 // Clear old party state in case the player was previously in a party
                 this.inParty = false;
                 this.partyMembers = [];
-                this.inParty = false;
                 this.isPartyLeader = false;
 
                 ws.send(JSON.stringify({ type: 'join', playerId: this.playerId, worldId: this.worldId }));
@@ -1079,22 +1025,37 @@ export default class
                         break;
 
                     case 'inviteResponse':
-                            if (message.response === 'yes') {
-                                this.addPlayerToParty(message.inviterId, message.playerId);
-                            } else {
-                                this.showPopup(`Party invite denied.`);
-                            }
+                        if (message.response === 'yes') {
+                            console.log('Invite response received. Adding player to party...');
+                            this.addPlayerToParty(message.inviterId, message.playerId);
+                        } else {
+                            this.showPopup(`Party invite denied.`);
+                        }
                         break;
 
                     case 'partyUpdate':
                         this.inParty = true;
                         this.isPartyLeader = message.party.leader === this.playerId;  // Check if current player is the leader
+                        console.log(`Party update received. Current player: ${this.playerId}, Party leader: ${message.party.leader}`);
+                        console.log(`Is party leader: ${this.isPartyLeader}`);
+
                         this.updateToggleButtonVisibility(this.inParty);
 
                         const partyInfo = document.getElementById('party-info');
                         if (partyInfo) {
                             partyInfo.style.opacity = 1;
                             partyInfo.style.display = 'flex';
+                        }
+
+                        const messenger = document.getElementById('toggle-lobby');
+                        if (messenger && this.inParty) {
+                            messenger.style.display = 'flex';
+                        }
+
+                        if (messenger) {
+                            messenger.addEventListener('click', () => {
+                                this.toggleChatVisibility();
+                            });
                         }
                         
                         // Ensure no duplicate players are added
@@ -1105,8 +1066,49 @@ export default class
                         this.partyMembers = this.partyMembers.filter(memberId => message.party.members.includes(memberId));
                         
                         this.updatePartyUI(message.party.leader, this.partyMembers, this.physics, ws);
+
+                        // Handle the party call button functionality
+                        const partyCallButton = document.getElementById('party-call-button');
+                        if (partyCallButton) {
+                            partyCallButton.style.display = this.isPartyLeader ? 'flex' : 'none';
+
+                            if (this.isPartyLeader) {
+                                console.log('Party call button displayed for the party leader.');
+
+                                // Remove any existing event listeners and add a new one
+                                partyCallButton.replaceWith(partyCallButton.cloneNode(true));
+                                document.getElementById('party-call-button').addEventListener('click', () => {
+                                    console.log('Party call button clicked. Initiating party call...');
+                                    this.initiatePartyCall(message.party.leader, message.party.members);  // Pass leader and members
+                                });
+                            } else {
+                                console.log('Party call button hidden for non-leaders.');
+                            }
+                        } else {
+                            console.error('Party call button not found in the DOM.');
+                        }
                         
-                        break;                            
+                        break;    
+                        
+                    case 'partyCallEnded':
+                        console.log("Handling partyCallEnded message...");
+                        this.displayPartyMessage(message.leaderId, "Audiocast has been terminated.", false);
+
+                        // Stop the timer and remove the session UI
+                        clearInterval(this.timerInterval);
+                        document.getElementById('party-call-session')?.remove();
+
+                        break;
+
+                    case 'partyCallEndedForMember':
+                        console.log("Handling partyCallEndedForMember message...");
+                        this.displayPartyMessage(message.senderId, "You have left the audiocast.", false);
+
+                        // Stop the timer and remove the session UI
+                        clearInterval(this.timerInterval);
+                        document.getElementById('party-call-session')?.remove();
+
+                        break;
 
                     case 'partyMessage':  // New case for party messages
                         if (this.inParty) {
@@ -1114,15 +1116,32 @@ export default class
                         }
                         break;
 
-                    // case 'partyCall':
-                    //     if (this.inParty && message.senderId === message.party.leader) {
-                    //         promptPartyCallParticipation(message.senderId);  // Prompt other party members to join the call
-                    //     }
-                    //     break;
+                    case 'partyCall':
+                        console.log("Handling partyCall message...");
+                        if (this.inParty && message.senderId === message.party.leader) {
+                            this.promptPartyCallParticipation(message.senderId);
+                        }
 
-                    // case 'partyCallResponse':
-                    //     handlePartyCallResponse(message.senderId, message.response);
-                    //     break;
+                        break;
+
+                    case 'partyCallResponse':
+                        console.log("Handling partyCallResponse message...");
+
+                        this.handlePartyCallResponse(message.senderId, message.response, message.leaderId);
+                        console.log("Handling partyCallResponse message with leaderId", message.leaderId);
+
+                        // Start the call session using leaderId
+                        // if (this.inParty && message.response === 'yes') {
+                        //     this.displayPartyMessage(message.leaderId, "Party call started.", false);
+                        //     // this.startPartyCallSession(message.leaderId);
+                        // }
+                        break;
+                        
+                    case 'partyCallStarted':
+                        console.log(`Party call started. Leader: ${message.leaderId}`);
+                        this.displayPartyMessage(message.leaderId, "Audiocast initialized.", false);
+                        this.startPartyCallSession(message.leaderId);
+                        break;
 
                     // case 'batteryStatus':
                     //     updateBatteryStatus(message.playerId, message.battery);
@@ -1143,56 +1162,55 @@ export default class
                         this.clearPartyState();
                         break;
 
-                        case 'dropKrashcoin':
-                            // Check if a coin is already active
-                            if (this.coinActive) {
-                                console.log("Coin is already active, skipping drop.");
-                                return; // Exit the function to prevent multiple coins
-                            }
+                    case 'dropKrashcoin':
+                        // Check if a coin is already active
+                        if (this.coinActive) {
+                            console.log("Coin is already active, skipping drop.");
+                            return; // Exit the function to prevent multiple coins
+                        }
 
-                            const { position } = message;
-                            console.log("Client side position", position)
+                        const { position } = message;
+                        console.log("Client side position", position)
                         
-                            this.dropCoinAtPosition(position); // Use the server-sent position
-                            this.coinActive = true;
-                        
-                            break;  
+                        this.dropCoinAtPosition(position); // Use the server-sent position
+                        this.coinActive = true;
+                        break;  
                             
-                        case 'hideCoin':
-                            if (this.coinActive) {
-                                    this.hideCoin();
-                                    this.coinActive = false;
-                                }
-                            break;
+                    case 'hideCoin':
+                        if (this.coinActive) {
+                            this.hideCoin();
+                            this.coinActive = false;
+                        }
+                        break;
 
-                        case 'updateNonCollidablePairs':
-                            // Update the local non-collidable pairs list on the client side
-                            const newNonCollidablePairs = new Set(message.nonCollidablePairs);
+                    case 'updateNonCollidablePairs':
+                        // Update the local non-collidable pairs list on the client side
+                        const newNonCollidablePairs = new Set(message.nonCollidablePairs);
 
-                            // Update the physics or collision detection logic with the new non-collidable pairs
-                            this.physics.nonCollidableCars = newNonCollidablePairs;
-                            break;
+                        // Update the physics or collision detection logic with the new non-collidable pairs
+                        this.physics.nonCollidableCars = newNonCollidablePairs;
+                        break;
 
-                        case 'checkBattery':
-                            // const car = this.otherPlayers[message.carId];
-                            const car = playerCar
+                    case 'checkBattery':
+                        // const car = this.otherPlayers[message.carId];
+                        const car = playerCar
                     
-                            if (car && message.battery <= 0) {
-                                // Update non-collidable cars since battery is zero
-                                this.physics.updateNonCollidableCars(car, Object.values(this.otherPlayers));
-                                console.log("Non collidable cars", this.physics.nonCollidableCars)
+                        if (car && message.battery <= 0) {
+                        // Update non-collidable cars since battery is zero
+                        this.physics.updateNonCollidableCars(car, Object.values(this.otherPlayers));
+                        console.log("Non collidable cars", this.physics.nonCollidableCars)
                     
-                                // Trigger crash effect and put the car to sleep (optional, based on desired behavior)
-                                if (typeof car.createCrashEffect === 'function') {
-                                    car.createCrashEffect(car.chassis.object.position, car.chassis.object.quaternion);
-                                }
-                                // Set a timeout to recreate the car after 5 seconds
-                                setTimeout(() => {
-                                    car.recreate(); // Recreate the car
-                                    car.battery = 100; // Reset battery after recreation
-                                }, 15000); // 5 seconds delay
-                            }
-                            break;
+                        // Trigger crash effect and put the car to sleep (optional, based on desired behavior)
+                        if (typeof car.createCrashEffect === 'function') {
+                            car.createCrashEffect(car.chassis.object.position, car.chassis.object.quaternion);
+                        }
+                        // Set a timeout to recreate the car after 5 seconds
+                        setTimeout(() => {
+                            car.recreate(); // Recreate the car
+                            car.battery = 100; // Reset battery after recreation
+                            }, 15000); // 5 seconds delay
+                        }
+                        break;
     
                     default:
                         // console.error('Unknown message type:', message.type);
@@ -1880,7 +1898,10 @@ export default class
                 padding-left: 10px;
                 transition: all 0.5s ease-in-out;
             `;
-            toggleCallButton.addEventListener('click', this.toggleChatVisibility);
+            // Update the event listener to initiate the party call
+            // toggleCallButton.addEventListener('click', () => {
+            //     this.initiatePartyCall();
+            // });
             partyElement.appendChild(toggleCallButton);
         
             // Populate party info
@@ -2037,7 +2058,9 @@ export default class
                     messageElement.style.transform = 'scale(1)';
                     messageElement.style.opacity = '1';
                 }, 10);
-            };            
+            };         
+            
+            
 
             // Update battery status in the UI
             updateBatteryStatus(playerId, battery) {
@@ -2081,10 +2104,15 @@ export default class
 
             // Function to format playerId
             formatPlayerId(playerId) {
+                if (!playerId || typeof playerId !== 'string') {
+                    console.error("Invalid playerId:", playerId);
+                    return "Unknown";
+                }
+            
                 const firstPart = playerId.substring(0, 4);
                 const lastPart = playerId.substring(playerId.length - 4);
                 return `${firstPart}...${lastPart}`;
-            }
+            }            
 
             // // Function to show a notification badge on the toggle button
             // showNotificationBadge = () => {
@@ -2477,11 +2505,212 @@ export default class
             
                 if (savedPositions) {
                     console.log('Applying saved button positions...');
-                    this.controls.updateController(); // Apply saved positions
+                    // this.controls.updateController(); // Apply saved positions
                 } else {
                     console.log('Applying default button positions...');
                 }
             }
+
+            
+            initiatePartyCall = (leaderId, members) => {
+                if (!this.playerId) {
+                    console.error("Player ID is undefined. Cannot initiate party call.");
+                    return;
+                }
+            
+                console.log(`Attempting to initiate a party call. Leader: ${leaderId}, Members:`, members);
+            
+                if (this.isPartyLeader && this.ws && this.ws.readyState === WebSocket.OPEN) {
+                    console.log("Party call conditions met. Sending partyCall message...");
+            
+                    // Ensure all fields are correctly populated
+                    const message = {
+                        type: 'partyCall',
+                        senderId: this.playerId,
+                        party: {
+                            leader: leaderId || this.playerId,  // Use playerId if leaderId is undefined
+                            members: members || this.partyMembers  // Use current party members if members are undefined
+                        }
+                    };
+            
+                    console.log("Sending partyCall message to server:", message);
+            
+                    this.ws.send(JSON.stringify(message));
+            
+                    // Notify in chat
+                    this.displayPartyMessage(this.playerId, "Initializing audiocast...", true);
+                } else {
+                    console.error("Only the party leader can initiate a party call.");
+                }
+            };            
+
+            promptPartyCallParticipation = (leaderId) => {
+                console.log(`Received party call request from ${leaderId}. Displaying prompt...`);
+            
+                const callPromptElement = document.createElement('div');
+                callPromptElement.id = 'party-call-prompt';
+                callPromptElement.style.position = 'absolute';
+                callPromptElement.style.top = '50%';
+                callPromptElement.style.left = '50%';
+                callPromptElement.style.transform = 'translate(-50%, -50%)';
+                callPromptElement.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+                callPromptElement.style.color = 'white';
+                callPromptElement.style.padding = '20px';
+                callPromptElement.style.borderRadius = '10px';
+                callPromptElement.style.zIndex = '1000';
+                callPromptElement.innerText = `${this.formatPlayerId(leaderId)} is initiating a party call. Do you want to join?`;
+            
+                const buttonContainer = document.createElement('div');
+                buttonContainer.style.display = 'flex';
+                buttonContainer.style.justifyContent = 'space-between';
+                buttonContainer.style.marginTop = '10px';
+            
+                const acceptButton = document.createElement('button');
+                acceptButton.innerText = 'Join Call';
+                acceptButton.style.flex = '1';
+                acceptButton.style.marginRight = '10px';
+                acceptButton.onclick = () => {
+                    console.log(`Accepting party call from ${leaderId}`);
+                    this.respondToPartyCall('yes', leaderId);
+                    document.body.removeChild(callPromptElement);
+                };
+            
+                const declineButton = document.createElement('button');
+                declineButton.innerText = 'Decline';
+                declineButton.style.flex = '1';
+                declineButton.onclick = () => {
+                    console.log(`Declining party call from ${leaderId}`);
+                    this.respondToPartyCall('no', leaderId);
+                    document.body.removeChild(callPromptElement);
+                };
+            
+                buttonContainer.appendChild(acceptButton);
+                buttonContainer.appendChild(declineButton);
+                callPromptElement.appendChild(buttonContainer);
+            
+                document.body.appendChild(callPromptElement);
+            };            
+            
+            respondToPartyCall = (response, leaderId) => {
+                if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+                    const message = {
+                        type: 'partyCallResponse',
+                        senderId: this.playerId,
+                        leaderId: leaderId,
+                        response: response
+                    };
+
+                    console.log("Sending partyCallResponse:", message);
+                    this.ws.send(JSON.stringify(message));
+                } else {
+                    console.error("WebSocket connection is not open. Cannot send partyCallResponse.");
+                }
+            };
+            
+            handlePartyCallResponse = (senderId, response, leaderId) => {
+                console.log(`Handling partyCallResponse leaderId: ${leaderId}`);
+                const message = response === 'yes'
+                    ? `${this.formatPlayerId(senderId)} joined the party call.`
+                    : `${this.formatPlayerId(senderId)} declined the party call.`;
+            
+                console.log(`Handling partyCallResponse: ${message}`);
+                this.displayPartyMessage(leaderId, message, false);
+            
+                // Start the session if the response is 'yes'
+                // if (response === 'yes' && !document.getElementById('party-call-session')) {
+                //     this.startPartyCallSession(leaderId || this.playerId);  // Ensure leaderId is passed
+                // }
+            };            
+
+            startPartyCallSession = (leaderId) => {
+                console.log(`Starting party call session. Leader: ${leaderId}`);
+            
+                // Check if the session UI already exists
+                if (document.getElementById('party-call-session')) {
+                    console.warn("Party call session UI already exists.");
+                    return;
+                }
+            
+                // Create the call session display
+                const sessionElement = document.createElement('div');
+                sessionElement.id = 'party-call-session';
+                sessionElement.style.cssText = `
+                    position: absolute;
+                    top: 16px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    background: rgba(0, 0, 0, 0.7);
+                    color: #fff;
+                    padding: 5px 10px;
+                    border-radius: 5px;
+                    font-family: 'Orbitron', sans-serif;
+                    font-size: 10px;
+                    z-index: 999;
+                `;
+            
+                // Create a timer display
+                const timerElement = document.createElement('span');
+                timerElement.id = 'call-timer';
+                timerElement.innerText = '00:00';
+                sessionElement.appendChild(timerElement);
+            
+                // Create a terminate call button
+                const endCallButton = document.createElement('button');
+                endCallButton.id = 'end-call-button';
+                endCallButton.innerText = 'End Call';
+                endCallButton.style.cssText = `
+                    margin-left: 10px;
+                    background: #ff4b4b;
+                    color: #fff;
+                    border: none;
+                    padding: 3px 5px;
+                    border-radius: 3px;
+                    cursor: pointer;
+                    font-size: 10px;
+                `;
+                sessionElement.appendChild(endCallButton);
+            
+                // Append the session display to the chat box
+                const chatBox = document.getElementById('party-chat-box');
+                if (chatBox) {
+                    chatBox.parentElement.insertBefore(sessionElement, chatBox);
+                }
+            
+                // Start the timer
+                let callStartTime = Date.now();
+                const updateTimer = () => {
+                    const elapsedTime = Date.now() - callStartTime;
+                    const minutes = String(Math.floor(elapsedTime / 60000)).padStart(2, '0');
+                    const seconds = String(Math.floor((elapsedTime % 60000) / 1000)).padStart(2, '0');
+                    timerElement.innerText = `${minutes}:${seconds}`;
+                };
+
+                this.timerInterval = setInterval(updateTimer, 1000);
+            
+                // Handle the end call button click
+                endCallButton.addEventListener('click', () => {
+                    console.log(`Ending call session for ${this.playerId}`);
+            
+                    // If the party leader ends the call, notify everyone
+                    if (this.isPartyLeader) {
+                        this.ws.send(JSON.stringify({
+                            type: 'endPartyCall',
+                            senderId: this.playerId,
+                            leaderId: this.playerId
+                        }));
+                    } else {
+                        // If a member leaves the call
+                        this.ws.send(JSON.stringify({
+                            type: 'leavePartyCall',
+                            senderId: this.playerId
+                        }));
+                    }
+            
+                    // Cleanup UI and stop the timer
+                    clearInterval(this.timerInterval);
+                    sessionElement.remove();
+                });
+            };            
 
         setupMultiplayer = async (playerId, token, carName, matcaps) => {
             try {
@@ -2626,68 +2855,6 @@ export default class
                     this.createFriendListToggle();
                 });     
                 
-                // const draggableButtons = document.querySelectorAll('.draggable');
-                // const dropSlots = document.querySelectorAll('.drop-slot');
-                // const resetButton = document.getElementById('reset-button');
-            
-                // // Store initial positions of the buttons
-                // const initialButtonPositions = {};
-                // draggableButtons.forEach(button => {
-                //     initialButtonPositions[button.id] = { parent: button.parentElement, index: Array.from(button.parentElement.children).indexOf(button) };
-                // });
-            
-                // // Drag start
-                // draggableButtons.forEach(button => {
-                //     button.addEventListener('dragstart', (e) => {
-                //         e.dataTransfer.setData('text', e.target.id); // Set the ID of the dragged element
-                //         e.target.classList.add('dragging');
-                //         e.target.style.opacity = '0.5'; // Change opacity of the dragged button
-                //     });
-            
-                //     button.addEventListener('dragend', (e) => {
-                //         e.target.classList.remove('dragging');
-                //         e.target.style.opacity = '1'; // Reset opacity when dragging ends
-                //     });
-                // });
-            
-                // // Enable dropping by adding event listeners to the drop slots
-                // dropSlots.forEach(slot => {
-                //     slot.addEventListener('dragover', (e) => {
-                //         e.preventDefault(); // Allow drop
-                //     });
-            
-                //     slot.addEventListener('drop', (e) => {
-                //         e.preventDefault();
-                //         const draggedElementId = e.dataTransfer.getData('text');
-                //         const draggedElement = document.getElementById(draggedElementId);
-            
-                //         // Ensure the dropped element isn't already inside the slot
-                //         if (slot && !slot.contains(draggedElement)) {
-                //             slot.appendChild(draggedElement); // Append the dragged element to the slot
-                //         }
-                //     });
-            
-                //     // Double-click event to remove button
-                //     slot.addEventListener('dblclick', (e) => {
-                //         const button = e.target.querySelector('.draggable');
-                //         if (button) {
-                //             // Move the button back to the original container
-                //             document.getElementById('button-setup').appendChild(button);
-                //             e.target.style.backgroundColor = ''; // Reset background color of the slot
-                //         }
-                //     });
-                // });
-            
-                // // Reset the positions of the buttons to their initial positions
-                // resetButton.addEventListener('click', () => {
-                //     draggableButtons.forEach(button => {
-                //         const initialPosition = initialButtonPositions[button.id];
-                //         const parent = initialPosition.parent;
-                //         const index = initialPosition.index;
-                //         parent.insertBefore(button, parent.children[index]); // Move the button back to its original position
-                //     });
-                // });
-                
                 // Invite a target player to friendship
                 function sendFriendInvite(targetPlayerId, playerId) {
                     if (ws.readyState === WebSocket.OPEN) {
@@ -2739,13 +2906,6 @@ export default class
                     }, 500); // Match the transition duration
                 });
 
-                // Add party call button functionality
-                // if (this.isPartyLeader) {
-                //     document.getElementById('party-call-button').addEventListener('click', () => {
-                //         initiatePartyCall();  // Party leader initiates the call
-                //     });
-                // }
-
                 // Invite target player
                 function sendInvite(targetPlayerId, playerId) {
                     if (typeof window !== 'undefined') {
@@ -2775,86 +2935,6 @@ export default class
                         }, 20000);
                     }
                 }
-
-                // const initiatePartyCall = () => {
-                //     if (this.isPartyLeader && this.ws && this.ws.readyState === WebSocket.OPEN) {
-                //         this.ws.send(JSON.stringify({
-                //             type: 'partyCall',
-                //             senderId: this.playerId,
-                //             party: {
-                //                 leader: this.playerId,
-                //                 members: this.partyMembers
-                //             }
-                //         }));
-                //         displayPartyMessage(this.playerId, "You initiated a party call.", true);  // Notify in the chat
-                //     } else {
-                //         console.error("Only the party leader can initiate a party call.");
-                //     }
-                // };
-
-                // const promptPartyCallParticipation = (senderId) => {
-                //     const callPromptElement = document.createElement('div');
-                //     callPromptElement.id = 'party-call-prompt';
-                //     callPromptElement.style.position = 'absolute';
-                //     callPromptElement.style.top = '50%';
-                //     callPromptElement.style.left = '50%';
-                //     callPromptElement.style.transform = 'translate(-50%, -50%)';
-                //     callPromptElement.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
-                //     callPromptElement.style.color = 'white';
-                //     callPromptElement.style.padding = '20px';
-                //     callPromptElement.style.borderRadius = '10px';
-                //     callPromptElement.style.zIndex = '1000';
-                //     callPromptElement.innerText = `${formatPlayerId(senderId)} is initiating a party call. Do you want to join?`;
-                
-                //     const buttonContainer = document.createElement('div');
-                //     buttonContainer.style.display = 'flex';
-                //     buttonContainer.style.justifyContent = 'space-between';
-                //     buttonContainer.style.marginTop = '10px';
-                
-                //     const acceptButton = document.createElement('button');
-                //     acceptButton.innerText = 'Join Call';
-                //     acceptButton.style.flex = '1';
-                //     acceptButton.style.marginRight = '10px';
-                //     acceptButton.onclick = () => {
-                //         respondToPartyCall('yes', senderId);
-                //         document.body.removeChild(callPromptElement);  // Remove the prompt
-                //     };
-                
-                //     const declineButton = document.createElement('button');
-                //     declineButton.innerText = 'Decline';
-                //     declineButton.style.flex = '1';
-                //     declineButton.onclick = () => {
-                //         respondToPartyCall('no', senderId);
-                //         document.body.removeChild(callPromptElement);  // Remove the prompt
-                //     };
-                
-                //     buttonContainer.appendChild(acceptButton);
-                //     buttonContainer.appendChild(declineButton);
-                //     callPromptElement.appendChild(buttonContainer);
-                
-                //     document.body.appendChild(callPromptElement);
-                // };        
-                
-                // const respondToPartyCall = (response, leaderId) => {
-                //     if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-                //         this.ws.send(JSON.stringify({
-                //             type: 'partyCallResponse',
-                //             senderId: this.playerId,
-                //             leaderId: leaderId,
-                //             response: response
-                //         }));
-                //     }
-                // };    
-                
-                // const handlePartyCallResponse = (senderId, response) => {
-                //     const message = response === 'yes'
-                //         ? `${formatPlayerId(senderId)} joined the party call.`
-                //         : `${formatPlayerId(senderId)} declined the party call.`;
-                //     displayPartyMessage(senderId, message, false);
-                // };
-
-                // Add event listener to existing button (no need to create it dynamically)
-                // document.getElementById('toggle-chat-button').addEventListener('click', toggleChatVisibility);
 
                 // Create the toggle chat visibility button inside the chat box
                 const toggleList = document.getElementById('toggle-contact')
