@@ -1049,7 +1049,7 @@ export default class
 
                         const messenger = document.getElementById('toggle-lobby');
                         if (messenger && this.inParty) {
-                            messenger.style.display = 'flex';
+                            messenger.style.opacity = 1;
                         }
 
                         if (messenger) {
