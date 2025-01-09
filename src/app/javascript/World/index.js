@@ -1109,39 +1109,26 @@ export default class
                     case 'iceCandidate':
                         console.log("Received ICE candidate from:", message.senderId);
 
-                        // ✅ Ensure `peerConnections` is initialized
                         this.peerConnections = this.peerConnections || {};
-
-                        // ✅ Check if a PeerConnection exists for the sender
                         let peerConnection = this.peerConnections[message.senderId];
-                        if (!peerConnection) {
-                            console.warn(`PeerConnection not found for sender: ${message.senderId}. Creating a new one...`);
-                            peerConnection = new RTCPeerConnection();
-                            this.peerConnections[message.senderId] = peerConnection;
 
-                            // ✅ Handle queued ICE candidates
-                            peerConnection.iceCandidateQueue = peerConnection.iceCandidateQueue || [];
-                            peerConnection.iceCandidateQueue.forEach(candidate => {
-                                peerConnection.addIceCandidate(new RTCIceCandidate(candidate))
-                                    .then(() => console.log("Queued ICE candidate added."))
-                                    .catch(error => console.error("Error adding queued ICE candidate:", error));
-                            });
-                            peerConnection.iceCandidateQueue = [];
+                        if (!peerConnection) {
+                            console.error(`PeerConnection not found for sender: ${message.senderId}`);
+                            return;
                         }
 
-                        // ✅ Add the ICE candidate if remote description is already set
                         if (peerConnection.remoteDescription && peerConnection.remoteDescription.type) {
                             peerConnection.addIceCandidate(new RTCIceCandidate(message.candidate))
                                 .then(() => console.log("ICE candidate added."))
                                 .catch(error => console.error("Error adding ICE candidate:", error));
                         } else {
-                            // ✅ Queue the ICE candidate if remote description is not yet set
                             console.warn("Remote description not set. Queuing ICE candidate...");
-                            peerConnection.iceCandidateQueue = peerConnection.iceCandidateQueue || [];
+                            if (!peerConnection.iceCandidateQueue) {
+                                peerConnection.iceCandidateQueue = [];
+                            }
                             peerConnection.iceCandidateQueue.push(message.candidate);
                         }
                         break;
-
                         
                     // case 'partyCallResponse':
                     //     console.log("Handling partyCallResponse message...");
@@ -2760,15 +2747,33 @@ export default class
                             }
                         };
             
-                        // ✅ Handle incoming tracks
+                        // ✅ Handle incoming remote audio track
                         peerConnection.ontrack = event => {
-                            console.log("Received remote audio track from leader:", senderId);
-                            const audioElement = document.createElement('audio');
+                            console.log("Received remote audio track");
+            
+                            // ✅ Create or reuse an audio element for the incoming stream
+                            let audioElement = document.querySelector(`#audio-${senderId}`);
+                            if (!audioElement) {
+                                audioElement = document.createElement('audio');
+                                audioElement.id = `audio-${senderId}`;
+                                audioElement.autoplay = true;
+                                document.body.appendChild(audioElement);
+                            }
+            
+                            // ✅ Attach the remote stream to the audio element
                             audioElement.srcObject = event.streams[0];
-                            audioElement.autoplay = true;
-                            audioElement.controls = false;
-                            document.body.appendChild(audioElement);
+                            console.log(`Audio stream set for ${senderId}`);
                         };
+            
+                        // ✅ Ensure any queued ICE candidates are processed
+                        if (peerConnection.iceCandidateQueue) {
+                            peerConnection.iceCandidateQueue.forEach(candidate => {
+                                peerConnection.addIceCandidate(candidate)
+                                    .then(() => console.log("Queued ICE candidate added."))
+                                    .catch(error => console.error("Error adding queued ICE candidate:", error));
+                            });
+                            delete peerConnection.iceCandidateQueue;
+                        }
                     }
             
                     // ✅ Set the remote description and create an answer
@@ -2803,7 +2808,7 @@ export default class
                         .then(() => console.log("Remote description set for", senderId))
                         .catch(error => console.error("Error setting remote description:", error));
                 }
-            };                    
+            };            
             
             startPartyCallSession = async (leaderId, memberId) => {
                 console.log(`Starting party call session. Leader: ${leaderId}`);
@@ -2945,7 +2950,7 @@ export default class
                     console.log(`Starting audio stream to ${memberId}`);
                     const peerConnection = new RTCPeerConnection();
             
-                    // ✅ Handle ICE candidates
+                    // Handle ICE candidates
                     peerConnection.onicecandidate = event => {
                         if (event.candidate) {
                             console.log(`Sending ICE candidate to: ${memberId}`);
@@ -2958,29 +2963,28 @@ export default class
                         }
                     };
             
-                    // ✅ Add the leader's local audio stream to the connection
+                    // ✅ Add the local audio stream to the connection
                     this.localStream.getTracks().forEach(track => {
+                        console.log(`Adding local track: ${track.kind}`);
                         peerConnection.addTrack(track, this.localStream);
-                        console.log("Added local track to peer connection for:", memberId);
                     });
+                    console.log("Added local track to peer connection");
             
-                    // ✅ Handle the connection state change to detect errors
-                    peerConnection.onconnectionstatechange = () => {
-                        console.log(`PeerConnection state for ${memberId}:`, peerConnection.connectionState);
-                        if (peerConnection.connectionState === "failed") {
-                            console.error("Connection failed. Restarting ICE...");
-                            peerConnection.restartIce();
-                        }
-                    };
-            
-                    // ✅ Handle incoming audio tracks (on the member's side)
+                    // ✅ Handle incoming remote tracks
                     peerConnection.ontrack = event => {
                         console.log(`Received remote audio track from ${memberId}`);
-                        const audioElement = document.createElement('audio');
-                        audioElement.srcObject = event.streams[0];
-                        audioElement.autoplay = true;
-                        audioElement.controls = false;
-                        document.body.appendChild(audioElement);
+                        let audioElement = document.querySelector(`#audio-${memberId}`);
+                        if (!audioElement) {
+                            audioElement = document.createElement('audio');
+                            audioElement.id = `audio-${memberId}`;
+                            audioElement.autoplay = true;
+                            document.body.appendChild(audioElement);
+                        }
+            
+                        if (!audioElement.srcObject) {
+                            audioElement.srcObject = event.streams[0];
+                            console.log(`Audio stream set for ${memberId}`);
+                        }
                     };
             
                     // ✅ Create and send the offer
@@ -3001,7 +3005,7 @@ export default class
                     // ✅ Store the PeerConnection for future use
                     this.peerConnections[memberId] = peerConnection;
                 });
-            };                         
+            };            
 
         setupMultiplayer = async (playerId, token, carName, matcaps) => {
             try {
