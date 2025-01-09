@@ -1123,38 +1123,24 @@ export default class
                                 .catch(error => console.error("Error adding ICE candidate:", error));
                         } else {
                             console.warn("Remote description not set. Queuing ICE candidate...");
-                            if (!peerConnection.iceCandidateQueue) {
-                                peerConnection.iceCandidateQueue = [];
-                            }
+                            peerConnection.iceCandidateQueue = peerConnection.iceCandidateQueue || [];
                             peerConnection.iceCandidateQueue.push(message.candidate);
                         }
                         break;
-                        
-                    // case 'partyCallResponse':
-                    //     console.log("Handling partyCallResponse message...");
-
-                    //     this.handlePartyCallResponse(message.senderId, message.response, message.offer, message.answer, message.leaderId);
-                    //     console.log("Handling partyCallResponse message with leaderId", message.leaderId);
-
-                    //     break;
 
                     case 'partyCallResponse':
                         console.log(`Handling partyCallResponse from ${message.senderId}: ${message.response}`);
 
+                        // Handle offer and answer correctly
                         if (message.response === 'offer') {
                             this.handlePartyCallResponse(message.senderId, 'offer', message.offer);
                         } else if (message.response === 'answer') {
                             this.handlePartyCallResponse(message.senderId, 'answer', null, message.answer);
-
-                            // ✅ Notify that the party call has started after receiving the answer
-                            if (this.isPartyLeader) {
-                                this.ws.send(JSON.stringify({
-                                    type: 'partyCallStarted',
-                                    leaderId: this.playerId,
-                                    memberId: message.senderId
-                                }));
-                                console.log(`Sent partyCallStarted to all members.`);
-                            }
+                        } else if (message.response === 'yes') {
+                            // ✅ Forward the offer as a new call request
+                            this.handlePartyCallResponse(message.senderId, 'offer', message.offer);
+                        } else if (message.response === 'no') {
+                            console.log("Call declined by member.");
                         }
                         break;
                         
@@ -1165,10 +1151,7 @@ export default class
                         // Start the call session
                         this.startPartyCallSession(message.leaderId, message.memberId);
 
-                        // Delegate audio streaming to `streamAudioToPartyMembers`
-                        if (this.isPartyLeader) {
-                            this.streamAudioToPartyMembers();
-                        }
+                        
                         break;
 
                     case 'partyCallDeclined':
@@ -2696,6 +2679,7 @@ export default class
             
                         // ✅ Add local audio stream
                         this.localStream.getTracks().forEach(track => peerConnection.addTrack(track, this.localStream));
+                        console.log("Respond local stream", this.localStream);
             
                         // ✅ Create and send the offer
                         const offer = await peerConnection.createOffer();
@@ -2727,12 +2711,13 @@ export default class
                 }
             };            
 
-            handlePartyCallResponse = (senderId, response, offer = null, answer = null) => {
+            handlePartyCallResponse = async (senderId, response, offer = null, answer = null) => {
                 console.log(`Handling partyCallResponse from ${senderId}, response: ${response}`);
             
+                // Ensure PeerConnection exists
                 this.peerConnections = this.peerConnections || {};
-            
                 let peerConnection = this.peerConnections[senderId];
+            
                 if (!peerConnection) {
                     console.log(`Creating new PeerConnection for ${senderId}`);
                     peerConnection = new RTCPeerConnection();
@@ -2750,7 +2735,7 @@ export default class
                         }
                     };
             
-                    // ✅ Handle incoming remote audio track (MOVE THIS OUTSIDE THE OFFER BLOCK)
+                    // ✅ Handle incoming remote audio track
                     peerConnection.ontrack = event => {
                         console.log("Received remote audio track");
             
@@ -2765,23 +2750,24 @@ export default class
                         audioElement.srcObject = event.streams[0];
                         console.log(`Audio stream set for ${senderId}`);
                     };
-            
-                    // ✅ Process any queued ICE candidates
-                    if (peerConnection.iceCandidateQueue) {
-                        peerConnection.iceCandidateQueue.forEach(candidate => {
-                            peerConnection.addIceCandidate(candidate)
-                                .then(() => console.log("Queued ICE candidate added."))
-                                .catch(error => console.error("Error adding queued ICE candidate:", error));
-                        });
-                        delete peerConnection.iceCandidateQueue;
-                    }
                 }
             
                 // ✅ Handle WebRTC offer
-                if (response === 'offer') {
-                    peerConnection.setRemoteDescription(new RTCSessionDescription(offer))
+                if (response === 'offer' && offer) {
+                    await peerConnection.setRemoteDescription(new RTCSessionDescription(offer))
                         .then(() => {
                             console.log("Remote description set. Creating WebRTC answer...");
+            
+                            // ✅ Process queued ICE candidates after setting the remote description
+                            if (peerConnection.iceCandidateQueue) {
+                                peerConnection.iceCandidateQueue.forEach(candidate => {
+                                    peerConnection.addIceCandidate(candidate)
+                                        .then(() => console.log("Queued ICE candidate added."))
+                                        .catch(error => console.error("Error adding queued ICE candidate:", error));
+                                });
+                                delete peerConnection.iceCandidateQueue;
+                            }
+            
                             return peerConnection.createAnswer();
                         })
                         .then(answer => {
@@ -2799,12 +2785,24 @@ export default class
                 }
             
                 // ✅ Handle WebRTC answer
-                if (response === 'answer') {
-                    peerConnection.setRemoteDescription(new RTCSessionDescription(answer))
-                        .then(() => console.log("Remote description set for", senderId))
+                if (response === 'answer' && answer) {
+                    await peerConnection.setRemoteDescription(new RTCSessionDescription(answer))
+                        .then(() => {
+                            console.log("Remote description set for", senderId);
+            
+                            // ✅ Process queued ICE candidates
+                            if (peerConnection.iceCandidateQueue) {
+                                peerConnection.iceCandidateQueue.forEach(candidate => {
+                                    peerConnection.addIceCandidate(candidate)
+                                        .then(() => console.log("Queued ICE candidate added."))
+                                        .catch(error => console.error("Error adding queued ICE candidate:", error));
+                                });
+                                delete peerConnection.iceCandidateQueue;
+                            }
+                        })
                         .catch(error => console.error("Error setting remote description:", error));
                 }
-            };              
+            };                      
             
             startPartyCallSession = async (leaderId, memberId) => {
                 console.log(`Starting party call session. Leader: ${leaderId}`);
@@ -2831,7 +2829,11 @@ export default class
                 // Create the call session display
                 this.createCallSessionUI(this.isPartyLeader);
             
-                
+                // Delegate audio streaming to `streamAudioToPartyMembers`
+                // if (this.isPartyLeader) {
+                //     this.streamAudioToPartyMembers();
+                // }
+                this.streamAudioToPartyMembers();
             };            
 
             createCallSessionUI = (isPartyLeader) => {
@@ -2921,10 +2923,14 @@ export default class
                 });
             };            
             
-            streamAudioToPartyMembers = () => {
+            streamAudioToPartyMembers = async () => {
                 if (!this.localStream) {
-                    console.error("No local stream to send.");
-                    return;
+                    try {
+                        await this.requestMicrophoneAccess();
+                    } catch (error) {
+                        console.error("Failed to get microphone access:", error);
+                        return;
+                    }
                 }
             
                 this.peerConnections = this.peerConnections || {};
@@ -2943,7 +2949,7 @@ export default class
                     console.log(`Starting audio stream to ${memberId}`);
                     const peerConnection = new RTCPeerConnection();
             
-                    // Handle ICE candidates
+                    // ✅ Handle ICE candidates
                     peerConnection.onicecandidate = event => {
                         if (event.candidate) {
                             console.log(`Sending ICE candidate to: ${memberId}`);
@@ -2956,20 +2962,11 @@ export default class
                         }
                     };
             
-                    // ✅ Add the local audio stream to the connection
-                    // this.localStream.getTracks().forEach(track => {
-                    //     console.log(`Adding local track: ${track.kind}`);
-                    //     peerConnection.addTrack(track, this.localStream);
-                    // });
-                    // console.log("Added local track to peer connection");
-
-                    const audioTracks = this.localStream.getAudioTracks();
-                    if (audioTracks.length > 0) {
-                        console.log("Adding audio track to peer connection.");
-                        peerConnection.addTrack(audioTracks[0], this.localStream);
-                    } else {
-                        console.error("No audio tracks available in local stream.");
-                    }
+                    // ✅ Add the leader's local audio stream to the connection
+                    this.localStream.getTracks().forEach(track => {
+                        console.log(`Adding local track: ${track.kind}`);
+                        peerConnection.addTrack(track, this.localStream);
+                    });
             
                     // ✅ Handle incoming remote tracks
                     peerConnection.ontrack = event => {
@@ -3003,7 +3000,6 @@ export default class
                         })
                         .catch(error => console.error("Error creating offer:", error));
             
-                    // ✅ Store the PeerConnection for future use
                     this.peerConnections[memberId] = peerConnection;
                 });
             };            
