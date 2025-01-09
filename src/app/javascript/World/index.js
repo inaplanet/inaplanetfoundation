@@ -1128,17 +1128,16 @@ export default class
                         }
                         break;
 
-                    case 'partyCallResponse':
+                   case 'partyCallResponse':
                         console.log(`Handling partyCallResponse from ${message.senderId}: ${message.response}`);
 
                         // Handle offer and answer correctly
                         if (message.response === 'offer') {
-                            this.handlePartyCallResponse(message.senderId, 'offer', message.offer);
+                            this.handlePartyCallResponse(message.senderId, 'offer', message.offer, null, message.leaderId);
                         } else if (message.response === 'answer') {
-                            this.handlePartyCallResponse(message.senderId, 'answer', null, message.answer);
+                            this.handlePartyCallResponse(message.senderId, 'answer', null, message.answer, message.leaderId);
                         } else if (message.response === 'yes') {
-                            // ✅ Forward the offer as a new call request
-                            this.handlePartyCallResponse(message.senderId, 'offer', message.offer);
+                            this.handlePartyCallResponse(message.senderId, 'offer', message.offer, null, message.leaderId);
                         } else if (message.response === 'no') {
                             console.log("Call declined by member.");
                         }
@@ -2649,21 +2648,25 @@ export default class
                     if (response === 'yes') {
                         console.log(`Accepting party call from leader: ${leaderId}. Creating WebRTC offer...`);
             
-                        // ✅ Request microphone access if not already granted
                         if (!this.localStream) {
-                            // Request microphone access and ensure the local stream is available
-                        try {
-                            await this.requestMicrophoneAccess();
-                        } catch (error) {
-                            console.error("Failed to get microphone access:", error);
-                            return;
-                        }
+                            try {
+                                await this.requestMicrophoneAccess();
+                            } catch (error) {
+                                console.error("Failed to get microphone access:", error);
+                                return;
+                            }
                         }
             
-                        // ✅ Establish PeerConnection
-                        const peerConnection = new RTCPeerConnection();
+                        // ✅ Ensure peerConnections is initialized
                         this.peerConnections = this.peerConnections || {};
+                        const peerConnection = this.peerConnections[leaderId] || new RTCPeerConnection();
                         this.peerConnections[leaderId] = peerConnection;
+            
+                        // ✅ Add member's local audio track to the existing PeerConnection
+                        this.localStream.getTracks().forEach(track => {
+                            console.log(`Adding local track from member: ${track.kind}`);
+                            peerConnection.addTrack(track, this.localStream);
+                        });
             
                         // ✅ Handle ICE candidates
                         peerConnection.onicecandidate = event => {
@@ -2677,11 +2680,7 @@ export default class
                             }
                         };
             
-                        // ✅ Add local audio stream
-                        this.localStream.getTracks().forEach(track => peerConnection.addTrack(track, this.localStream));
-                        console.log("Respond local stream", this.localStream);
-            
-                        // ✅ Create and send the offer
+                        // ✅ Send WebRTC offer to the leader
                         const offer = await peerConnection.createOffer();
                         await peerConnection.setLocalDescription(offer);
             
@@ -2696,7 +2695,6 @@ export default class
             
                         console.log("Sent WebRTC offer to leader:", leaderId);
                     } else {
-                        // ✅ Handle 'no' response
                         this.ws.send(JSON.stringify({
                             type: 'partyCallResponse',
                             senderId: this.playerId,
@@ -2711,98 +2709,67 @@ export default class
                 }
             };            
 
-            handlePartyCallResponse = async (senderId, response, offer = null, answer = null) => {
+            handlePartyCallResponse = async (senderId, response, offer = null, answer = null, leaderId = null) => {
                 console.log(`Handling partyCallResponse from ${senderId}, response: ${response}`);
-            
-                // Ensure PeerConnection exists
+                
                 this.peerConnections = this.peerConnections || {};
-                let peerConnection = this.peerConnections[senderId];
+                let peerConnection = this.peerConnections[leaderId || senderId];
             
                 if (!peerConnection) {
-                    console.log(`Creating new PeerConnection for ${senderId}`);
+                    console.log(`Creating new PeerConnection for ${leaderId || senderId}`);
                     peerConnection = new RTCPeerConnection();
-                    this.peerConnections[senderId] = peerConnection;
+                    this.peerConnections[leaderId || senderId] = peerConnection;
+                }
             
-                    // ✅ Handle ICE candidates
-                    peerConnection.onicecandidate = event => {
-                        if (event.candidate) {
-                            this.ws.send(JSON.stringify({
-                                type: 'iceCandidate',
-                                senderId: this.playerId,
-                                receiverId: senderId,
-                                candidate: event.candidate
-                            }));
-                        }
-                    };
+                // ✅ Handle incoming remote audio track
+                peerConnection.ontrack = event => {
+                    console.log("Received remote audio track");
             
-                    // ✅ Handle incoming remote audio track
-                    peerConnection.ontrack = event => {
-                        console.log("Received remote audio track");
+                    let audioElement = document.querySelector(`#audio-${leaderId || senderId}`);
+                    if (!audioElement) {
+                        audioElement = document.createElement('audio');
+                        audioElement.id = `audio-${leaderId || senderId}`;
+                        audioElement.autoplay = true;
+                        document.body.appendChild(audioElement);
+                    }
             
-                        let audioElement = document.querySelector(`#audio-${senderId}`);
-                        if (!audioElement) {
-                            audioElement = document.createElement('audio');
-                            audioElement.id = `audio-${senderId}`;
-                            audioElement.autoplay = true;
-                            document.body.appendChild(audioElement);
-                        }
-            
+                    if (!audioElement.srcObject) {
                         audioElement.srcObject = event.streams[0];
-                        console.log(`Audio stream set for ${senderId}`);
-                    };
-                }
+                        console.log(`Audio stream set for ${leaderId || senderId}`);
+                    }
+                };
             
-                // ✅ Handle WebRTC offer
                 if (response === 'offer' && offer) {
-                    await peerConnection.setRemoteDescription(new RTCSessionDescription(offer))
-                        .then(() => {
-                            console.log("Remote description set. Creating WebRTC answer...");
+                    try {
+                        await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
+                        console.log("Remote description set. Creating WebRTC answer...");
             
-                            // ✅ Process queued ICE candidates after setting the remote description
-                            if (peerConnection.iceCandidateQueue) {
-                                peerConnection.iceCandidateQueue.forEach(candidate => {
-                                    peerConnection.addIceCandidate(candidate)
-                                        .then(() => console.log("Queued ICE candidate added."))
-                                        .catch(error => console.error("Error adding queued ICE candidate:", error));
-                                });
-                                delete peerConnection.iceCandidateQueue;
-                            }
+                        const answer = await peerConnection.createAnswer();
+                        await peerConnection.setLocalDescription(answer);
             
-                            return peerConnection.createAnswer();
-                        })
-                        .then(answer => {
-                            peerConnection.setLocalDescription(answer);
-                            this.ws.send(JSON.stringify({
-                                type: 'partyCallResponse',
-                                senderId: this.playerId,
-                                receiverId: senderId,
-                                response: 'answer',
-                                answer: answer
-                            }));
-                            console.log("Sent WebRTC answer to:", senderId);
-                        })
-                        .catch(error => console.error("Error handling offer:", error));
+                        this.ws.send(JSON.stringify({
+                            type: 'partyCallResponse',
+                            senderId: this.playerId,
+                            receiverId: senderId,
+                            response: 'answer',
+                            answer: answer
+                        }));
+                        console.log("Sent WebRTC answer to:", senderId);
+            
+                    } catch (error) {
+                        console.error("Error handling offer:", error);
+                    }
                 }
             
-                // ✅ Handle WebRTC answer
                 if (response === 'answer' && answer) {
-                    await peerConnection.setRemoteDescription(new RTCSessionDescription(answer))
-                        .then(() => {
-                            console.log("Remote description set for", senderId);
-            
-                            // ✅ Process queued ICE candidates
-                            if (peerConnection.iceCandidateQueue) {
-                                peerConnection.iceCandidateQueue.forEach(candidate => {
-                                    peerConnection.addIceCandidate(candidate)
-                                        .then(() => console.log("Queued ICE candidate added."))
-                                        .catch(error => console.error("Error adding queued ICE candidate:", error));
-                                });
-                                delete peerConnection.iceCandidateQueue;
-                            }
-                        })
-                        .catch(error => console.error("Error setting remote description:", error));
+                    try {
+                        await peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
+                        console.log("Remote description set for", leaderId || senderId);
+                    } catch (error) {
+                        console.error("Error setting remote description:", error);
+                    }
                 }
-            };                      
+            };            
             
             startPartyCallSession = async (leaderId, memberId) => {
                 console.log(`Starting party call session. Leader: ${leaderId}`);
@@ -2833,7 +2800,7 @@ export default class
                 // if (this.isPartyLeader) {
                 //     this.streamAudioToPartyMembers();
                 // }
-                this.streamAudioToPartyMembers();
+                // this.streamAudioToPartyMembers();
             };            
 
             createCallSessionUI = (isPartyLeader) => {
@@ -2935,15 +2902,15 @@ export default class
             
                 this.peerConnections = this.peerConnections || {};
             
-                this.partyMembers.forEach(memberId => {
+                for (const memberId of this.partyMembers) {
                     if (memberId === this.playerId) {
                         console.warn("Skipping self-offer to:", memberId);
-                        return;
+                        continue;
                     }
             
                     if (this.peerConnections[memberId]) {
                         console.warn(`PeerConnection already exists for ${memberId}`);
-                        return;
+                        continue;
                     }
             
                     console.log(`Starting audio stream to ${memberId}`);
@@ -2962,13 +2929,13 @@ export default class
                         }
                     };
             
-                    // ✅ Add the leader's local audio stream to the connection
+                    // ✅ Add the leader's local audio stream
                     this.localStream.getTracks().forEach(track => {
                         console.log(`Adding local track: ${track.kind}`);
                         peerConnection.addTrack(track, this.localStream);
                     });
             
-                    // ✅ Handle incoming remote tracks
+                    // ✅ Handle incoming remote tracks (FROM MEMBER TO LEADER)
                     peerConnection.ontrack = event => {
                         console.log(`Received remote audio track from ${memberId}`);
                         let audioElement = document.querySelector(`#audio-${memberId}`);
@@ -2986,23 +2953,26 @@ export default class
                     };
             
                     // ✅ Create and send the offer
-                    peerConnection.createOffer()
-                        .then(offer => peerConnection.setLocalDescription(offer))
-                        .then(() => {
-                            this.ws.send(JSON.stringify({
-                                type: 'partyCallResponse',
-                                senderId: this.playerId,
-                                receiverId: memberId,
-                                response: 'offer',
-                                offer: peerConnection.localDescription
-                            }));
-                            console.log("Sent WebRTC offer to:", memberId);
-                        })
-                        .catch(error => console.error("Error creating offer:", error));
+                    try {
+                        const offer = await peerConnection.createOffer();
+                        await peerConnection.setLocalDescription(offer);
             
-                    this.peerConnections[memberId] = peerConnection;
-                });
-            };            
+                        this.ws.send(JSON.stringify({
+                            type: 'partyCallResponse',
+                            senderId: this.playerId,
+                            receiverId: memberId,
+                            response: 'offer',
+                            offer: peerConnection.localDescription
+                        }));
+                        console.log("Sent WebRTC offer to:", memberId);
+            
+                        this.peerConnections[memberId] = peerConnection;
+            
+                    } catch (error) {
+                        console.error("Error creating offer:", error);
+                    }
+                }
+            };
 
         setupMultiplayer = async (playerId, token, carName, matcaps) => {
             try {
