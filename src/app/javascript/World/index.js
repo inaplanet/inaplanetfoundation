@@ -2762,10 +2762,11 @@ export default class
             
                         // ✅ Handle incoming tracks
                         peerConnection.ontrack = event => {
-                            console.log("Received remote audio track");
+                            console.log("Received remote audio track from leader:", senderId);
                             const audioElement = document.createElement('audio');
                             audioElement.srcObject = event.streams[0];
                             audioElement.autoplay = true;
+                            audioElement.controls = false;
                             document.body.appendChild(audioElement);
                         };
                     }
@@ -2802,7 +2803,7 @@ export default class
                         .then(() => console.log("Remote description set for", senderId))
                         .catch(error => console.error("Error setting remote description:", error));
                 }
-            };            
+            };                    
             
             startPartyCallSession = async (leaderId, memberId) => {
                 console.log(`Starting party call session. Leader: ${leaderId}`);
@@ -2957,18 +2958,30 @@ export default class
                         }
                     };
             
-                    // ✅ Handle incoming tracks
+                    // ✅ Add the leader's local audio stream to the connection
+                    this.localStream.getTracks().forEach(track => {
+                        peerConnection.addTrack(track, this.localStream);
+                        console.log("Added local track to peer connection for:", memberId);
+                    });
+            
+                    // ✅ Handle the connection state change to detect errors
+                    peerConnection.onconnectionstatechange = () => {
+                        console.log(`PeerConnection state for ${memberId}:`, peerConnection.connectionState);
+                        if (peerConnection.connectionState === "failed") {
+                            console.error("Connection failed. Restarting ICE...");
+                            peerConnection.restartIce();
+                        }
+                    };
+            
+                    // ✅ Handle incoming audio tracks (on the member's side)
                     peerConnection.ontrack = event => {
                         console.log(`Received remote audio track from ${memberId}`);
                         const audioElement = document.createElement('audio');
                         audioElement.srcObject = event.streams[0];
                         audioElement.autoplay = true;
+                        audioElement.controls = false;
                         document.body.appendChild(audioElement);
                     };
-            
-                    // ✅ Add the local stream to the connection
-                    this.localStream.getTracks().forEach(track => peerConnection.addTrack(track, this.localStream));
-                    console.log("Added local track to peer connection");
             
                     // ✅ Create and send the offer
                     peerConnection.createOffer()
@@ -2988,7 +3001,7 @@ export default class
                     // ✅ Store the PeerConnection for future use
                     this.peerConnections[memberId] = peerConnection;
                 });
-            };                   
+            };                         
 
         setupMultiplayer = async (playerId, token, carName, matcaps) => {
             try {
