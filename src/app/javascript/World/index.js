@@ -1107,7 +1107,7 @@ export default class
                         break;
 
                     case 'iceCandidate':
-                        console.log("Received ICE candidate from:", message.senderId);
+                        console.log("📨 Received ICE candidate from:", message.senderId);
 
                         this.peerConnections = this.peerConnections || {};
                         let peerConnection = this.peerConnections[message.senderId];
@@ -1122,15 +1122,26 @@ export default class
 
                         if (peerConnection.remoteDescription && peerConnection.remoteDescription.type) {
                             peerConnection.addIceCandidate(new RTCIceCandidate(message.candidate))
-                                .then(() => console.log("ICE candidate added."))
-                                .catch(error => console.error("Error adding ICE candidate:", error));
+                                .then(() => console.log("✅ ICE candidate added."))
+                                .catch(error => console.error("❌ Error adding ICE candidate:", error));
                         } else {
-                            console.warn("Remote description not set. Queuing ICE candidate...");
+                            console.warn("⚠️ Remote description not set. Queuing ICE candidate...");
                             peerConnection.iceCandidateQueue = peerConnection.iceCandidateQueue || [];
                             peerConnection.iceCandidateQueue.push(message.candidate);
                         }
-                        break;
 
+                        // ✅ Forward the ICE candidate to other members
+                        this.partyMembers.forEach(memberId => {
+                            if (memberId !== message.senderId && memberId !== this.playerId) {
+                                this.ws.send(JSON.stringify({
+                                    type: 'iceCandidate',
+                                    senderId: message.senderId,
+                                    receiverId: memberId,
+                                    candidate: message.candidate,
+                                }));
+                            }
+                        });
+                        break;
                    case 'partyCallResponse':
                         console.log(`Handling partyCallResponse from ${message.senderId}: ${message.response}`);
 
@@ -2804,12 +2815,12 @@ export default class
                 } else {
                     console.error("WebSocket connection is not open. Cannot send partyCallResponse.");
                 }
-            };            
+            };
 
             handlePartyCallResponse = async (senderId, response, offer = null, answer = null) => {
                 console.log(`📥 Handling partyCallResponse from ${senderId}, response: ${response}`);
             
-                // Ensure PeerConnection exists
+                // ✅ Ensure PeerConnection exists
                 this.peerConnections = this.peerConnections || {};
                 let peerConnection = this.peerConnections[senderId];
             
@@ -2827,20 +2838,33 @@ export default class
                     // ✅ Handle ICE candidates
                     peerConnection.onicecandidate = (event) => {
                         if (event.candidate) {
-                            console.log("📡 Sending ICE candidate to:", senderId);
+                            console.log(`📡 Sending ICE candidate from ${this.playerId} to ${senderId}`);
                             this.ws.send(JSON.stringify({
                                 type: 'iceCandidate',
                                 senderId: this.playerId,
                                 receiverId: senderId,
                                 candidate: event.candidate,
                             }));
+            
+                            // ✅ Forward the ICE candidate to all other members
+                            this.partyMembers.forEach(memberId => {
+                                if (memberId !== this.playerId && memberId !== senderId) {
+                                    console.log(`📡 Forwarding ICE candidate to ${memberId}`);
+                                    this.ws.send(JSON.stringify({
+                                        type: 'iceCandidate',
+                                        senderId: this.playerId,
+                                        receiverId: memberId,
+                                        candidate: event.candidate,
+                                    }));
+                                }
+                            });
                         }
                     };
                 }
-
+            
                 // ✅ Share the leader's stream with all members
                 if (this.isPartyLeader && this.localStream) {
-                    console.log("Sharing leader's audio stream with all members...");
+                    console.log("🔊 Sharing leader's audio stream with all members...");
                     this.setAudioStreamForAllMembers(this.localStream);
                 }
             
