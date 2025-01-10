@@ -1146,10 +1146,15 @@ export default class
                     case 'partyCallStarted':
                         console.log(`Party call started. Leader: ${message.leaderId}, member ${message.memberId}`);
                         this.displayPartyMessage(message.leaderId, "Audiocast initialized.", false);
-                        this.handlePartyCallResponse(message.leaderId, 'offer', null, null, message.leaderId);
+
                         // Start the call session
                         this.startPartyCallSession(message.leaderId, message.memberId);
 
+                        // ✅ Member handles receiving the leader's audio track
+                        if (!this.isPartyLeader) {
+                            console.log(`Setting up PeerConnection to receive leader's track: ${message.leaderId}`);
+                            this.handlePartyCallResponse(message.leaderId, 'offer');
+                        }
                         
                         break;
 
@@ -2713,6 +2718,7 @@ export default class
             handlePartyCallResponse = async (senderId, response, offer = null, answer = null, leaderId = null) => {
                 console.log(`Handling partyCallResponse from ${senderId}, response: ${response}`);
             
+                // Ensure PeerConnection exists
                 this.peerConnections = this.peerConnections || {};
                 let peerConnection = this.peerConnections[leaderId || senderId];
             
@@ -2721,23 +2727,60 @@ export default class
                     peerConnection = new RTCPeerConnection();
                     this.peerConnections[leaderId || senderId] = peerConnection;
             
+                    // ✅ Handle ICE candidates
+                    peerConnection.onicecandidate = event => {
+                        if (event.candidate) {
+                            this.ws.send(JSON.stringify({
+                                type: 'iceCandidate',
+                                senderId: this.playerId,
+                                receiverId: leaderId || senderId,
+                                candidate: event.candidate
+                            }));
+                        }
+                    };
+
+                    if (this.isPartyLeader) {
+                        if (!this.localStream) {
+                            console.error("Local stream is not available for the leader. Requesting microphone access...");
+                            try {
+                                await this.requestMicrophoneAccess();
+                            } catch (error) {
+                                console.error("Failed to get microphone access:", error);
+                                return;
+                            }
+                        }
+                    
+                        // Add the leader's local audio track if not already added
+                        const audioTrack = this.localStream.getAudioTracks()[0];
+                        if (audioTrack && !peerConnection.getSenders().find(sender => sender.track === audioTrack)) {
+                            console.log("Adding leader's local audio track");
+                            peerConnection.addTrack(audioTrack, this.localStream);
+                        }
+                    }                    
+            
                     // ✅ Handle incoming remote audio track
                     peerConnection.ontrack = event => {
                         console.log("Received remote audio track from leader");
-            
+                    
                         let audioElement = document.querySelector(`#audio-${leaderId || senderId}`);
                         if (!audioElement) {
                             audioElement = document.createElement('audio');
                             audioElement.id = `audio-${leaderId || senderId}`;
                             audioElement.autoplay = true;
+                            audioElement.playsInline = true;
                             document.body.appendChild(audioElement);
                         }
-            
+                    
                         if (!audioElement.srcObject) {
                             audioElement.srcObject = event.streams[0];
                             console.log(`Audio stream set for ${leaderId || senderId}`);
+                            audioElement.onloadedmetadata = () => {
+                                audioElement.play().catch(error => {
+                                    console.error("Error playing audio:", error);
+                                });
+                            };
                         }
-                    };
+                    };                    
                 }
             
                 // ✅ Handle WebRTC offer
@@ -2745,26 +2788,6 @@ export default class
                     try {
                         await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
                         console.log("Remote description set. Creating WebRTC answer...");
-            
-                        // ✅ If the current player is the party leader, add their local audio track
-                        if (this.isPartyLeader) {
-                            if (!this.localStream) {
-                                console.error("Local stream is not available for the leader. Requesting microphone access...");
-                                try {
-                                    await this.requestMicrophoneAccess();
-                                } catch (error) {
-                                    console.error("Failed to get microphone access:", error);
-                                    return;
-                                }
-                            }
-            
-                            // Add leader's local audio track if not already added
-                            const audioTrack = this.localStream.getAudioTracks()[0];
-                            if (audioTrack && !peerConnection.getSenders().find(sender => sender.track === audioTrack)) {
-                                console.log("Adding leader's local audio track");
-                                peerConnection.addTrack(audioTrack, this.localStream);
-                            }
-                        }
             
                         const answer = await peerConnection.createAnswer();
                         await peerConnection.setLocalDescription(answer);
@@ -2788,11 +2811,25 @@ export default class
                     try {
                         await peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
                         console.log("Remote description set for", leaderId || senderId);
+                
+                        // ✅ Process queued ICE candidates
+                        if (peerConnection.iceCandidateQueue) {
+                            peerConnection.iceCandidateQueue.forEach(async candidate => {
+                                try {
+                                    await peerConnection.addIceCandidate(candidate);
+                                    console.log("Queued ICE candidate added.");
+                                } catch (error) {
+                                    console.error("Error adding queued ICE candidate:", error);
+                                }
+                            });
+                            delete peerConnection.iceCandidateQueue;
+                        }
                     } catch (error) {
                         console.error("Error setting remote description:", error);
                     }
-                }
+                }                
             };
+            
             
             startPartyCallSession = async (leaderId, memberId) => {
                 console.log(`Starting party call session. Leader: ${leaderId}`);
