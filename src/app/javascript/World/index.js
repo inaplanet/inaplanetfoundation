@@ -1153,7 +1153,8 @@ export default class
                         // ✅ Member handles receiving the leader's audio track
                         if (!this.isPartyLeader) {
                             console.log(`Setting up PeerConnection to receive leader's track: ${message.leaderId}`);
-                            this.handlePartyCallResponse(message.leaderId, 'offer');
+                            // this.handlePartyCallResponse(message.leaderId, 'offer');
+                            this.broadcastPartyCallToMembers(message.leaderId);
                         }
                         
                         break;
@@ -2737,26 +2738,7 @@ export default class
                                 candidate: event.candidate
                             }));
                         }
-                    };
-
-                    if (this.isPartyLeader) {
-                        if (!this.localStream) {
-                            console.error("Local stream is not available for the leader. Requesting microphone access...");
-                            try {
-                                await this.requestMicrophoneAccess();
-                            } catch (error) {
-                                console.error("Failed to get microphone access:", error);
-                                return;
-                            }
-                        }
-                    
-                        // Add the leader's local audio track if not already added
-                        const audioTrack = this.localStream.getAudioTracks()[0];
-                        if (audioTrack && !peerConnection.getSenders().find(sender => sender.track === audioTrack)) {
-                            console.log("Adding leader's local audio track");
-                            peerConnection.addTrack(audioTrack, this.localStream);
-                        }
-                    }                    
+                    };              
             
                     // ✅ Handle incoming remote audio track
                     peerConnection.ontrack = event => {
@@ -2782,6 +2764,24 @@ export default class
                         }
                     };                    
                 }
+
+                if (this.isPartyLeader) {
+                    console.log("Checking if leader's local audio track is added...");
+                
+                    if (!this.localStream) {
+                        console.error("Local stream is not available for the leader. Requesting microphone access...");
+                        await this.requestMicrophoneAccess();
+                    }
+                
+                    const audioTrack = this.localStream.getAudioTracks()[0];
+                    if (audioTrack && !peerConnection.getSenders().find(sender => sender.track === audioTrack)) {
+                        console.log("✅ Adding leader's local audio track");
+                        peerConnection.addTrack(audioTrack, this.localStream);
+                    } else {
+                        console.warn("⚠️ Leader's audio track is already added or not available.");
+                    }
+                }
+                
             
                 // ✅ Handle WebRTC offer
                 if (response === 'offer' && offer) {
@@ -2803,7 +2803,7 @@ export default class
             
                     } catch (error) {
                         console.error("Error handling offer:", error);
-                    }
+                    }   
                 }
             
                 // ✅ Handle WebRTC answer
@@ -2856,11 +2856,6 @@ export default class
                 // Create the call session display
                 this.createCallSessionUI(this.isPartyLeader);
             
-                // Delegate audio streaming to `streamAudioToPartyMembers`
-                // if (this.isPartyLeader) {
-                //     this.streamAudioToPartyMembers();
-                // }
-                // this.streamAudioToPartyMembers();
             };            
 
             createCallSessionUI = (isPartyLeader) => {
@@ -2949,90 +2944,57 @@ export default class
                     }
                 });
             };            
+
+            broadcastPartyCallToMembers = async (leaderId) => {
+                console.log(`Broadcasting party call to members for leader: ${leaderId}`);
             
-            streamAudioToPartyMembers = async () => {
-                if (!this.localStream) {
-                    try {
-                        await this.requestMicrophoneAccess();
-                    } catch (error) {
-                        console.error("Failed to get microphone access:", error);
-                        return;
-                    }
-                }
-            
+                // Ensure PeerConnection exists
                 this.peerConnections = this.peerConnections || {};
+                let peerConnection = this.peerConnections[leaderId];
             
-                for (const memberId of this.partyMembers) {
-                    if (memberId === this.playerId) {
-                        console.warn("Skipping self-offer to:", memberId);
-                        continue;
-                    }
+                if (!peerConnection) {
+                    console.log(`Creating new PeerConnection for leader: ${leaderId}`);
+                    peerConnection = new RTCPeerConnection();
+                    this.peerConnections[leaderId] = peerConnection;
             
-                    if (this.peerConnections[memberId]) {
-                        console.warn(`PeerConnection already exists for ${memberId}`);
-                        continue;
-                    }
-            
-                    console.log(`Starting audio stream to ${memberId}`);
-                    const peerConnection = new RTCPeerConnection();
-            
-                    // ✅ Handle ICE candidates
-                    peerConnection.onicecandidate = event => {
-                        if (event.candidate) {
-                            console.log(`Sending ICE candidate to: ${memberId}`);
-                            this.ws.send(JSON.stringify({
-                                type: 'iceCandidate',
-                                senderId: this.playerId,
-                                receiverId: memberId,
-                                candidate: event.candidate
-                            }));
-                        }
-                    };
-            
-                    // ✅ Add the leader's local audio stream
-                    this.localStream.getTracks().forEach(track => {
-                        console.log(`Adding local track: ${track.kind}`);
-                        peerConnection.addTrack(track, this.localStream);
-                    });
-            
-                    // ✅ Handle incoming remote tracks (FROM MEMBER TO LEADER)
+                    // ✅ Handle incoming remote audio track
                     peerConnection.ontrack = event => {
-                        console.log(`Received remote audio track from ${memberId}`);
-                        let audioElement = document.querySelector(`#audio-${memberId}`);
+                        console.log("Received remote audio track from leader");
+            
+                        let audioElement = document.querySelector(`#audio-${leaderId}`);
                         if (!audioElement) {
                             audioElement = document.createElement('audio');
-                            audioElement.id = `audio-${memberId}`;
+                            audioElement.id = `audio-${leaderId}`;
                             audioElement.autoplay = true;
+                            audioElement.playsInline = true;
                             document.body.appendChild(audioElement);
                         }
             
                         if (!audioElement.srcObject) {
                             audioElement.srcObject = event.streams[0];
-                            console.log(`Audio stream set for ${memberId}`);
+                            console.log(`Audio stream set for leader ${leaderId}`);
+                            audioElement.onloadedmetadata = () => {
+                                audioElement.play().catch(error => {
+                                    console.error("Error playing audio:", error);
+                                });
+                            };
                         }
                     };
             
-                    // ✅ Create and send the offer
-                    try {
-                        const offer = await peerConnection.createOffer();
-                        await peerConnection.setLocalDescription(offer);
-            
-                        this.ws.send(JSON.stringify({
-                            type: 'partyCallResponse',
-                            senderId: this.playerId,
-                            receiverId: memberId,
-                            response: 'offer',
-                            offer: peerConnection.localDescription
-                        }));
-                        console.log("Sent WebRTC offer to:", memberId);
-            
-                        this.peerConnections[memberId] = peerConnection;
-            
-                    } catch (error) {
-                        console.error("Error creating offer:", error);
-                    }
+                    // ✅ Handle ICE candidates
+                    peerConnection.onicecandidate = event => {
+                        if (event.candidate) {
+                            this.ws.send(JSON.stringify({
+                                type: 'iceCandidate',
+                                senderId: this.playerId,
+                                receiverId: leaderId,
+                                candidate: event.candidate
+                            }));
+                        }
+                    };
                 }
             };
+            
 
         setupMultiplayer = async (playerId, token, carName, matcaps) => {
             try {
