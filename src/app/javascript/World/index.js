@@ -2660,6 +2660,11 @@ export default class
                             peerConnection.ontrack = (event) => {
                                 console.log(`Received remote audio track from ${memberId}`);
                                 this.setAudioStreamForMember(memberId, event.streams[0]);
+                                // ✅ Share the leader's stream with all members
+                                if (this.isPartyLeader && this.localStream) {
+                                    console.log("Sharing leader's audio stream with all members...");
+                                    this.setAudioStreamForAllMembers(this.localStream);
+                                }
                             };
             
                             // ✅ Handle ICE candidates
@@ -2784,6 +2789,11 @@ export default class
                         peerConnection.ontrack = (event) => {
                             console.log(`🎧 Received remote audio track from ${leaderId}`);
                             this.setAudioStreamForMember(leaderId, event.streams[0]);
+                            // ✅ Share the leader's stream with all members
+                            if (this.isPartyLeader && this.localStream) {
+                                console.log("Sharing leader's audio stream with all members...");
+                                this.setAudioStreamForAllMembers(this.localStream);
+                            }
                         };
             
                         // ✅ Add local audio stream
@@ -2835,6 +2845,11 @@ export default class
                     peerConnection.ontrack = (event) => {
                         console.log(`🎧 Received remote audio track from ${senderId}`);
                         this.setAudioStreamForMember(senderId, event.streams[0]);
+                        // ✅ Share the leader's stream with all members
+                        if (this.isPartyLeader && this.localStream) {
+                            console.log("Sharing leader's audio stream with all members...");
+                            this.setAudioStreamForAllMembers(this.localStream);
+                        }
                     };
             
                     // ✅ Handle ICE candidates
