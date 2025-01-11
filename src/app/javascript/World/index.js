@@ -1028,13 +1028,6 @@ export default class
                             // alert('You are already in a party and cannot be invited.');
                             this.showPopup('Target player is already in a party and cannot be invited.');
                         }
-
-                        // ✅ Check if the party already has 2 players
-                        if (this.partyMembers && this.partyMembers.length >= 2) {
-                            console.log('Party is full. Invite cannot be sent.');
-                            this.showPopup('The party is full. You cannot invite more players.');
-                            return;
-                        }
                         break;
 
                     case 'inviteResponse':
@@ -3215,6 +3208,12 @@ export default class
                     
                     if (targetPlayerId) {
                         const playerId = this.car.playerId;
+
+                        // Check if the party is already full (2 players including leader)
+                        if (this.partyMembers && this.partyMembers.length >= 2) {
+                            this.showPopup('The party is full. You cannot invite more players.');
+                            return;
+                        }
 
                         // Check if the targetPlayerId is already in a party
                         if (this.partyMembers && this.partyMembers.includes(targetPlayerId)) {
