@@ -921,8 +921,8 @@ opacity: 0;
   }
 
 .connectWalletDiv {
-    background-image: url('/images/mobile/krashboxbackground7.png'); 
-    /* background-color:#0213f7; */
+    /* background-image: url('/images/mobile/krashboxbackground7.png');  */
+    background-color:#000;
     background-size: cover;
     background-position: center;
     width: 100%;
