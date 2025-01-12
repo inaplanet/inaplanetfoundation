@@ -510,7 +510,7 @@ export default class Sounds
         this.ringtone.volume.master = 0
 
         this.ringtone.sound = new Howl({
-            src: [audioStream],
+            src: [audioBroker],
             loop: true
         })
 
