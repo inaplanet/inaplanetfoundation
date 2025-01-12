@@ -30,6 +30,9 @@ const playboi = '/sounds/radio/playboi.mp3';
 const radioSwitchSound = '/sounds/radio/radioSwitch.mp3';
 const radioTurnSound = '/sounds/radio/switch.mp3';
 
+const audioStream = '/sounds/stream/audiostream.mp3';
+const audioBroker = '/sounds/stream/broker.mp3';
+
 const engineSound = '/sounds/engines/1/rear.mp3'
 // const rodeo = '/sounds/engines/2/rodeo.mp3'
 
@@ -118,6 +121,7 @@ export default class Sounds
         this.setMasterVolume()
         this.setMute()
         this.setEngine()
+        this.setRingtone()
     }
 
     setSettings()
@@ -309,6 +313,17 @@ export default class Sounds
                 volumeMax: 1,
                 rateMin: 0.75,
                 rateMax: 1
+            },
+            {
+                name: 'audiostream',
+                sounds: [audioBroker],
+                minDelta: 100,
+                velocityMin: 1,
+                velocityMultiplier: 0.75,
+                volumeMin: 0.5,
+                volumeMax: 1,
+                rateMin: 0.75,
+                rateMax: 1
             }
         ]
 
@@ -470,6 +485,37 @@ export default class Sounds
         //         this.radio.sound.stop();
         //     }
         // }, turnSound.duration() * 1000); // Convert to milliseconds
+    }
+
+    setRingtone() {
+        // Set up
+        this.ringtone = {}
+
+        this.ringtone.progress = 0
+        this.ringtone.progressEasingUp = 0.3
+        this.ringtone.progressEasingDown = 0.15
+
+        this.ringtone.speed = 0
+        this.ringtone.speedMultiplier = 2.5
+        this.ringtone.acceleration = 0
+        this.ringtone.accelerationMultiplier = 0.4
+
+        this.ringtone.rate = {}
+        this.ringtone.rate.min = 0.05
+        this.ringtone.rate.max = 1.4
+
+        this.ringtone.volume = {}
+        this.ringtone.volume.min = 0.001
+        this.ringtone.volume.max = 0.003
+        this.ringtone.volume.master = 0
+
+        this.ringtone.sound = new Howl({
+            src: [audioStream],
+            loop: true
+        })
+
+        this.ringtone.sound.stop();
+        // this.ringtone.play();
     }
 
     // cycleRadioChannel() {

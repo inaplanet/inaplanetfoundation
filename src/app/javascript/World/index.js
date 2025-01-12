@@ -1603,7 +1603,8 @@ export default class
                 inviteElement.style.display = 'flex';
                 inviteElement.style.alignItems = 'center';
                 inviteElement.style.flexDirection = 'column';
-                inviteElement.style.width = '250px';
+                inviteElement.style.width = '350px';
+                inviteElement.style.animation = 'pulse 2s infinite';
 
                 // Progress bar container
                 const progressBarContainer = document.createElement('div');
@@ -1618,7 +1619,7 @@ export default class
                 const progressBar = document.createElement('div');
                 progressBar.style.width = '100%';
                 progressBar.style.height = '100%';
-                progressBar.style.backgroundColor = '#8CFF80';
+                progressBar.style.backgroundColor = '#18FF00';
                 progressBarContainer.appendChild(progressBar);
 
                 inviteElement.appendChild(progressBarContainer);
@@ -1640,8 +1641,11 @@ export default class
                 yesButton.style.whiteSpace = 'pre';
                 yesButton.style.display = 'flex';
                 yesButton.style.justifyContent = 'center';
-                yesButton.style.backgroundColor = '#8CFF80';
-                yesButton.style.color = '#000';
+                yesButton.style.alignItems = 'center';
+                // yesButton.style.backgroundColor = '#18FF00';
+                yesButton.style.backgroundColor = 'transparent';
+                // yesButton.style.border = '2px solid #18FF00';
+                yesButton.style.color = '#fff';
                 yesButton.style.flex = '1';
                 yesButton.style.fontFamily = 'Orbitron, sans-serif';
                 yesButton.onclick = () => this.respondToInvite('yes', inviterId, playerId, ws);
@@ -1652,10 +1656,11 @@ export default class
                 noButton.id = 'ordinaryButton';
                 noButton.innerHTML = `${feather.icons['x-square'].toSvg({ width: 15, height: 15 })} DENY`;
                 noButton.style.whiteSpace = 'pre';
-                noButton.style.backgroundColor = '#FF5733';
+                // noButton.style.backgroundColor = '#FF5733';
                 noButton.style.display = 'flex';
                 noButton.style.fontFamily = 'Orbitron, sans-serif';
                 noButton.style.justifyContent = 'center';
+                noButton.style.alignItems = 'center';
                 noButton.style.flex = '1';
                 noButton.onclick = () => this.respondToInvite( 'DENY', inviterId, playerId, ws);
                 buttonContainer.appendChild(noButton);
@@ -1671,19 +1676,20 @@ export default class
 
                 // Auto-remove after 20 seconds
                 let timeLeft = 20;
-                const countdownInterval = setInterval(() => {
-                    timeLeft -= 1;
-                    if (timeLeft <= 0) {
-                        clearInterval(countdownInterval);
-                        this.hideInvitePrompt(inviteElement); // Automatically hide the invite prompt after timeout
-                    }
-                }, 1000);
+                // const countdownInterval = setInterval(() => {
+                //     timeLeft -= 1;
+                //     if (timeLeft <= 0) {
+                //         clearInterval(countdownInterval);
+                //         this.hideInvitePrompt(inviteElement); // Automatically hide the invite prompt after timeout
+                //     }
+                // }, 1000);
             }
 
             const messageElement = document.getElementById('invite-message');
-            messageElement.innerText = `${inviterId.slice(0, 6)} invited you to a party. Accept?`;
+            messageElement.innerText = `${inviterId.slice(0, 6)} invited you to a party. Would you like to join?`;
             messageElement.style.textAlign = 'left';
             messageElement.style.marginLeft = '10px';
+            messageElement.style.fontSize = '15px';
             inviteElement.style.display = 'flex';
             inviteElement.style.opacity = '1';
             inviteElement.style.fontSize = '12px';
@@ -1735,7 +1741,8 @@ export default class
                 inviteElement.style.display = 'flex';
                 inviteElement.style.alignItems = 'center';
                 inviteElement.style.flexDirection = 'column';
-                inviteElement.style.width = '250px';
+                inviteElement.style.width = '350px';
+                inviteElement.style.animation = 'pulse 2s infinite';
         
                 // Progress bar container
                 const progressBarContainer = document.createElement('div');
@@ -1750,7 +1757,7 @@ export default class
                 const progressBar = document.createElement('div');
                 progressBar.style.width = '100%';
                 progressBar.style.height = '100%';
-                progressBar.style.backgroundColor = '#8CFF80';
+                progressBar.style.backgroundColor = '#18FF00';
                 progressBarContainer.appendChild(progressBar);
         
                 inviteElement.appendChild(progressBarContainer);
@@ -1775,8 +1782,8 @@ export default class
                 acceptButton.style.whiteSpace = 'pre';
                 acceptButton.style.display = 'flex';
                 acceptButton.style.justifyContent = 'center';
-                acceptButton.style.backgroundColor = '#8CFF80';
-                acceptButton.style.color = '#000';
+                acceptButton.style.color = '#fff';
+                acceptButton.style.alignItems = 'center';
                 acceptButton.style.flex = '1';
                 acceptButton.style.fontFamily = 'Orbitron, sans-serif';
                 acceptButton.onclick = () => this.respondToFriendshipInvite('yes', friendRequestId, targetPlayerId, ws);
@@ -1788,10 +1795,10 @@ export default class
                 denyButton.innerHTML = `${feather.icons['x-square'].toSvg({ width: 15, height: 15 })} DENY`;
                 denyButton.id = 'ordinaryButton';
                 denyButton.style.whiteSpace = 'pre';
-                denyButton.style.backgroundColor = '#FF5733';
                 denyButton.style.display = 'flex';
                 denyButton.style.fontFamily = 'Orbitron, sans-serif';
                 denyButton.style.justifyContent = 'center';
+                denyButton.style.alignItems = 'center';
                 denyButton.style.flex = '1';
                 denyButton.onclick = () => this.respondToFriendshipInvite('no', friendRequestId, targetPlayerId, ws);
                 buttonContainer.appendChild(denyButton);
@@ -1817,9 +1824,10 @@ export default class
             }
         
             const messageElement = document.getElementById('friend-invite-message');
-            messageElement.innerText = `${friendRequestId.slice(0, 6)} wants to add you as a friend. Accept?`;
+            messageElement.innerText = `${friendRequestId.slice(0, 6)} wants to add your wallet address to connect list. Accept?`;
             messageElement.style.textAlign = 'left';
             messageElement.style.marginLeft = '10px';
+            messageElement.style.fontSize = '15px';
             inviteElement.style.display = 'flex';
             inviteElement.style.opacity = '1';
             inviteElement.style.fontSize = '12px';
@@ -2656,50 +2664,138 @@ export default class
 
             promptPartyCallParticipation = (leaderId) => {
                 console.log(`Received party call request from ${leaderId}. Displaying prompt...`);
-            
-                const callPromptElement = document.createElement('div');
-                callPromptElement.id = 'party-call-prompt';
-                callPromptElement.style.position = 'absolute';
-                callPromptElement.style.top = '50%';
-                callPromptElement.style.left = '50%';
-                callPromptElement.style.transform = 'translate(-50%, -50%)';
-                callPromptElement.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
-                callPromptElement.style.color = 'white';
-                callPromptElement.style.padding = '20px';
-                callPromptElement.style.borderRadius = '10px';
-                callPromptElement.style.zIndex = '1000';
-                callPromptElement.innerText = `${this.formatPlayerId(leaderId)} is initiating a party call. Do you want to join?`;
-            
-                const buttonContainer = document.createElement('div');
-                buttonContainer.style.display = 'flex';
-                buttonContainer.style.justifyContent = 'space-between';
-                buttonContainer.style.marginTop = '10px';
-            
-                const acceptButton = document.createElement('button');
-                acceptButton.innerText = 'Join Call';
-                acceptButton.style.flex = '1';
-                acceptButton.style.marginRight = '10px';
-                acceptButton.onclick = () => {
-                    console.log(`Accepting party call from ${leaderId}`);
-                    this.respondToPartyCall('yes', leaderId);
-                    document.body.removeChild(callPromptElement);
+                // Play sound after displaying the prompt
+                if (this.sounds && typeof this.sounds.ringtone.sound.play === 'function') {
+                    this.sounds.ringtone.sound.play();
+                    console.log("Playing", this.sounds);
                 };
+                
+                // Check if the prompt already exists
+                let callPromptElement = document.getElementById('party-call-prompt');
+                if (!callPromptElement) {
+                    // Create the prompt container
+                    callPromptElement = document.createElement('div');
+                    callPromptElement.id = 'party-call-prompt';
+                    callPromptElement.style.position = 'absolute';
+                    callPromptElement.style.top = '50%';
+                    callPromptElement.style.left = '50%';
+                    callPromptElement.style.transform = 'translate(-50%, -50%)';
+                    callPromptElement.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+                    callPromptElement.style.color = 'white';
+                    callPromptElement.style.padding = '20px';
+                    callPromptElement.style.borderRadius = '10px';
+                    callPromptElement.style.zIndex = '1000';
+                    callPromptElement.style.backdropFilter = 'blur(5px)';
+                    callPromptElement.style.display = 'flex';
+                    callPromptElement.style.alignItems = 'center';
+                    callPromptElement.style.flexDirection = 'column';
+                    callPromptElement.style.width = '350px';
+                    callPromptElement.style.animation = 'pulse 2s infinite';
             
-                const declineButton = document.createElement('button');
-                declineButton.innerText = 'Decline';
-                declineButton.style.flex = '1';
-                declineButton.onclick = () => {
-                    console.log(`Declining party call from ${leaderId}`);
-                    this.respondToPartyCall('no', leaderId);
-                    document.body.removeChild(callPromptElement);
-                };
+                    // Progress bar container
+                    const progressBarContainer = document.createElement('div');
+                    progressBarContainer.style.width = '100%';
+                    progressBarContainer.style.height = '10px';
+                    progressBarContainer.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
+                    progressBarContainer.style.borderRadius = '5px';
+                    progressBarContainer.style.overflow = 'hidden';
+                    progressBarContainer.style.marginBottom = '10px';
             
-                buttonContainer.appendChild(acceptButton);
-                buttonContainer.appendChild(declineButton);
-                callPromptElement.appendChild(buttonContainer);
+                    // Progress bar
+                    const progressBar = document.createElement('div');
+                    progressBar.style.width = '100%';
+                    progressBar.style.height = '100%';
+                    progressBar.style.backgroundColor = '#18FF00';
+                    progressBarContainer.appendChild(progressBar);
             
-                document.body.appendChild(callPromptElement);
-            };        
+                    callPromptElement.appendChild(progressBarContainer);
+            
+                    // Message
+                    const messageElement = document.createElement('div');
+                    messageElement.id = 'call-message';
+                    messageElement.innerText = `${this.formatPlayerId(leaderId)} is initiating an audio stream. Accept?`;
+                    messageElement.style.fontFamily = 'Orbitron, sans-serif';
+                    messageElement.style.textAlign = 'left';
+                    messageElement.style.marginLeft = '10px';
+                    messageElement.style.fontSize = '15px';
+                    messageElement.style.marginBottom = '10px';
+                    callPromptElement.appendChild(messageElement);
+            
+                    // Button container
+                    const buttonContainer = document.createElement('div');
+                    buttonContainer.style.display = 'flex';
+                    buttonContainer.style.justifyContent = 'space-between';
+                    buttonContainer.style.width = '100%';
+            
+                    // Accept button
+                    const acceptButton = document.createElement('button');
+                    acceptButton.id = 'ordinaryButton';
+                    acceptButton.innerHTML = `${feather.icons['check-square'].toSvg({ width: 15, height: 15 })} JOIN`;
+                    acceptButton.style.marginRight = '10px';
+                    acceptButton.style.whiteSpace = 'pre';
+                    acceptButton.style.display = 'flex';
+                    acceptButton.style.justifyContent = 'center';
+                    acceptButton.style.alignItems = 'center';
+                    acceptButton.style.color = '#fff';
+                    acceptButton.style.fontSize = '14px';
+                    acceptButton.style.flex = '1';
+                    acceptButton.style.fontFamily = 'Orbitron, sans-serif';
+                    acceptButton.onclick = () => {
+                        console.log(`Accepting party call from ${leaderId}`);
+                        this.respondToPartyCall('yes', leaderId);
+                        if (this.sounds && typeof this.sounds.ringtone.sound.stop === 'function') {
+                            this.sounds.ringtone.sound.stop();
+                        };
+                        document.body.removeChild(callPromptElement);
+                    };
+                    buttonContainer.appendChild(acceptButton);
+                    feather.replace();
+            
+                    // Decline button
+                    const declineButton = document.createElement('button');
+                    declineButton.id = 'ordinaryButton';
+                    declineButton.innerHTML = `${feather.icons['x-square'].toSvg({ width: 15, height: 15 })} DECLINE`;
+                    declineButton.style.whiteSpace = 'pre';
+                    // declineButton.style.backgroundColor = '#FF5733';
+                    declineButton.style.display = 'flex';
+                    declineButton.style.fontFamily = 'Orbitron, sans-serif';
+                    declineButton.style.justifyContent = 'center';
+                    declineButton.style.alignItems = 'center';
+                    declineButton.style.fontSize = '14px';
+                    declineButton.style.flex = '1';
+                    declineButton.onclick = () => {
+                        console.log(`Declining party call from ${leaderId}`);
+                        this.respondToPartyCall('no', leaderId);
+                        if (this.sounds && typeof  this.sounds.ringtone.sound.stop === 'function') {
+                            this.sounds.ringtone.sound.stop();
+                        };
+                        document.body.removeChild(callPromptElement);
+                    };
+                    buttonContainer.appendChild(declineButton);
+            
+                    callPromptElement.appendChild(buttonContainer);
+                    document.body.appendChild(callPromptElement);
+            
+                    // Progress bar animation
+                    setTimeout(() => {
+                        progressBar.style.transition = 'width 20s linear';
+                        progressBar.style.width = '0%';
+                    }, 100);
+            
+                    // Auto-remove after 20 seconds
+                    let timeLeft = 20;
+                    const countdownInterval = setInterval(() => {
+                        timeLeft -= 1;
+                        if (timeLeft <= 0) {
+                            clearInterval(countdownInterval);
+                            document.body.removeChild(callPromptElement);
+                            if (this.sounds && typeof  this.sounds.ringtone.sound.stop === 'function') {
+                                this.sounds.ringtone.sound.stop();
+                            };
+                        }
+                    }, 1000);
+                }
+            };            
 
             respondToPartyCall = async (response, leaderId) => {
                 if (this.ws && this.ws.readyState === WebSocket.OPEN) {
