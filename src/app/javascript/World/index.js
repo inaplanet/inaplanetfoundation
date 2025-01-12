@@ -1189,6 +1189,20 @@ export default class
                             this.handlePartyCallResponse(message.senderId, 'offer', message.offer, null);
                         } else if (message.response === 'no') {
                             console.log("Call declined by member.");
+
+                            // Play sound after displaying the prompt
+                            if (this.sounds && typeof this.sounds.beep.sound.play === 'function') {
+                                this.sounds.beep.sound.play();
+                                console.log("Playing", this.sounds);
+                            };
+
+                            setTimeout(() => {
+                                // Stop sound after displaying the prompt
+                                if (this.sounds && typeof this.sounds.beep.sound.stop === 'function') {
+                                    this.sounds.beep.sound.stop();
+                                    console.log("Stoping", this.sounds);
+                                };
+                            }, 2000);
                         }
                         break;
                         
@@ -1586,6 +1600,21 @@ export default class
 
         // Show invite prompt
         showInvitePrompt(inviterId, playerId, ws) {
+
+            // Play sound after displaying the prompt
+            if (this.sounds && typeof this.sounds.popup.sound.play === 'function') {
+                this.sounds.popup.sound.play();
+                console.log("Playing", this.sounds);
+            };
+
+            setTimeout(() => {
+                // Stop sound after displaying the prompt
+                if (this.sounds && typeof this.sounds.popup.sound.stop === 'function') {
+                    this.sounds.popup.sound.stop();
+                    console.log("Stoping", this.sounds);
+                };
+            }, 2000);
+
             let inviteElement = document.getElementById('invite-prompt');
             if (!inviteElement) {
                 inviteElement = document.createElement('div');
@@ -2234,6 +2263,20 @@ export default class
                 if (this.physics) {
                     this.physics.nonCollidablePlayers.clear();
                 }
+
+                // Play sound after displaying the prompt
+                if (this.sounds && typeof this.sounds.terminatedNotification.sound.play === 'function') {
+                    this.sounds.terminatedNotification.sound.play();
+                    console.log("Playing", this.sounds);
+                };
+
+                setTimeout(() => {
+                    // Stop sound after displaying the prompt
+                    if (this.sounds && typeof this.sounds.terminatedNotification.sound.stop === 'function') {
+                        this.sounds.terminatedNotification.sound.stop();
+                        console.log("Stoping", this.sounds);
+                    };
+                }, 100);
             }
 
             // Function to format playerId
