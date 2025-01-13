@@ -1800,7 +1800,7 @@ export default function GaragePage() {
             return;
         }
 
-        const token = localStorage.getItem('token');
+        const token = sessionStorage.getItem('token');
         const serverAddress = `wss://krashbox.glitch.me?token=${token}`;
         wsRef.current = new WebSocket(serverAddress);
 
@@ -1928,7 +1928,7 @@ export default function GaragePage() {
                     {/* <div className="coin-layer">{loadingAccount ? 'Loading...' : formatBalance(playerAccount)}</div> */}
                     <div className="coin-layer-wrapper">
                         <h2 className="account-title">ACCOUNT FUNDS</h2>
-                        <div className="coin-layer">{loadingAccount ? '...' : formatBalance(playerAccount)} ₭</div>
+                        <div className="coin-layer">{loadingAccount ? '...' : formatBalance(playerAccount)} N₭</div>
                     </div>
 
                     <div

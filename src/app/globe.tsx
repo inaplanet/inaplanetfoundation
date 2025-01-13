@@ -191,10 +191,10 @@ export function addSignalEffect(worldId: string, location: { lat: number; lng: n
 
     const frameGeometry = new THREE.BufferGeometry().setFromPoints(cornerFramePoints);
     const frameMaterial = new THREE.LineBasicMaterial({
-        color: 0x18FF00,          // Neon green color
-        transparent: true,
-        opacity: 0.9,             // Control opacity for a soft glow effect
-        fog: false,
+        color: 0x0213f7,          // Neon green color
+        transparent: false,
+        opacity: 1,             // Control opacity for a soft glow effect
+        fog: true,
     });
     const frame = new THREE.LineSegments(frameGeometry, frameMaterial);
 

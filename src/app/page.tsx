@@ -230,7 +230,8 @@ export default function Home() {
       }
 
       const { token } = await response.json(); // Extract token from response
-      localStorage.setItem('token', token); // Store token in localStorage
+      // localStorage.setItem('token', token); // Store token in localStorage
+      sessionStorage.setItem('token', token); // Store token in localStorage
       setToken(token); // Set token in state
 
       // console.log('Token received and stored:', token);
@@ -268,13 +269,19 @@ export default function Home() {
         return;
     }
 
+    if (!sessionStorage.token) {
+      console.error("Cannot initialize WebSocket: token is missing");
+      return;
+    }
+
     if (wsRef.current) {
       // Avoid reinitializing if already connected
       // console.log("WebSocket already initialized");
       return;
     }
 
-    const token = localStorage.getItem('token');
+    const token = sessionStorage.getItem('token');
+    console.log("Session storage", sessionStorage);
     if (!token) {
       console.error('No token found in localStorage');
       return;
@@ -418,6 +425,8 @@ export default function Home() {
       // setIsWebSocketReady(false);
     };
     // localStorage.removeItem('token');
+    // sessionStorage.removeItem('token');
+    // console.log("Session storage", sessionStorage);
   }, []);
 
   let searchQuery = '';
@@ -659,7 +668,7 @@ const handleWorldSelection = (worldId: string, listItem: HTMLLIElement, worldLis
               width: '480px', textAlign: 'center', color: '#F2F0EF', fontSize: '10px', padding: '10px',
               textShadow: '2px 2px 4px rgba(0, 0, 0, 0.9)', borderRadius: '10px'
             }}>
-              Powered by Nossumus Foundation. Netscuro is a real-time on-chain playground. ©2025
+              Powered by Nossumus Inc. Netrym™ is a real-time on-chain playground. ©2025
             </h2>
           </div>
         </div>
@@ -711,8 +720,8 @@ const handleWorldSelection = (worldId: string, listItem: HTMLLIElement, worldLis
                 </div>
               </div>
               <div id='garage' className='garage'>
-                <button id='garage-button' onClick={handleGarageButtonClick}>NET—ROOM</button>
-                <button id='chatbox-button'>NET—LINK</button>
+                <button id='garage-button' onClick={handleGarageButtonClick}>NETROOM</button>
+                <button id='chatbox-button'>NETLINK</button>
               </div>
             </>
           )}
