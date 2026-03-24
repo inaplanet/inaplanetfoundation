@@ -29,6 +29,7 @@ export default class Controls extends EventEmitter
         this.setActions()
         this.setKeyboard()
         this.setSounds()
+        this.setTouch()
 
     }
 
@@ -233,6 +234,10 @@ export default class Controls extends EventEmitter
     };
 
     updateController() {
+        if (!this.touch) {
+            return;
+        }
+
         // Retrieve saved positions from localStorage
         const savedPositions = JSON.parse(localStorage.getItem('buttonPositions')) || {};
     
@@ -284,6 +289,10 @@ export default class Controls extends EventEmitter
     };    
 
     resetController() {
+        if (!this.touch) {
+            return;
+        }
+
         // Reset buttons to their initial positions based on resetPositions
         Object.keys(this.resetPositions).forEach(slotKey => {
             const { action, bottom, right, left } = this.resetPositions[slotKey];
@@ -309,33 +318,51 @@ export default class Controls extends EventEmitter
     }
 
     updateButtonPositions() {
-
         const userDisplay = document.getElementById('userDisplay');
-        userDisplay.style.display = this.isVerticalDisplay() ? 'unset' : 'unset';
+        if (userDisplay) {
+            userDisplay.style.display = this.isVerticalDisplay() ? 'unset' : 'unset';
+        }
 
         const batteryContainer = document.getElementById('battery-status');
-        batteryContainer.style.top = this.isVerticalDisplay() ? '70px' : '60px';
+        if (batteryContainer) {
+            batteryContainer.style.top = this.isVerticalDisplay() ? '70px' : '60px';
+        }
 
         const scoreContainer = document.getElementById('coin-market');
-        scoreContainer.style.top = this.isVerticalDisplay() ? '85px' : '15px';
+        if (scoreContainer) {
+            scoreContainer.style.top = this.isVerticalDisplay() ? '85px' : '15px';
+        }
 
         const cameraView = document.getElementById('camera-view');
-        cameraView.style.display = this.isVerticalDisplay() ? 'unset' : 'unset';
+        if (cameraView) {
+            cameraView.style.display = this.isVerticalDisplay() ? 'unset' : 'unset';
+        }
 
         const partyInfo = document.getElementById('party-info');
-        userDisplay.style.display = this.isVerticalDisplay() ? 'unset' : 'none';
+        if (userDisplay) {
+            userDisplay.style.display = 'unset';
+        }
 
         const joystickBottom = this.isVerticalDisplay() ? '10px' : '20px';
-        this.touch.joystick.$element.style.bottom = joystickBottom;
+        if (this.touch?.joystick?.$element) {
+            this.touch.joystick.$element.style.bottom = joystickBottom;
+        }
+
+        const joystickSettings = document.getElementById('toggle-settings');
+        if (joystickSettings && batteryContainer) {
+            joystickSettings.style.width = `${batteryContainer.offsetWidth}px`;
+        }
 
         const muteButtonBottom = this.isVerticalDisplay() ? '135px' : '135px';
         const muteButtonLeft = this.isVerticalDisplay() ? '306px' : '306px';
         const muteButtonWidth = this.isVerticalDisplay() ? '60px' : '55px';
         const muteButtonHeight = this.isVerticalDisplay() ? '30px' : '20px';
-        this.touch.mute.$element.style.top = muteButtonBottom;
-        this.touch.mute.$element.style.left = muteButtonLeft;
-        this.touch.mute.$element.style.width = muteButtonWidth;
-        this.touch.mute.$element.style.height = muteButtonHeight;
+        if (this.touch?.mute?.$element) {
+            this.touch.mute.$element.style.top = muteButtonBottom;
+            this.touch.mute.$element.style.left = muteButtonLeft;
+            this.touch.mute.$element.style.width = muteButtonWidth;
+            this.touch.mute.$element.style.height = muteButtonHeight;
+        }
 
         const radioButtonBottom = this.isVerticalDisplay() ? '0px' : 'unset';
         const radioButtonWidth = this.isVerticalDisplay() ? '0px' : 'unset';
@@ -346,13 +373,15 @@ export default class Controls extends EventEmitter
         const radioButtonBorder = this.isVerticalDisplay() ? 'unset' : 'unset';
         const radioButtonOpacity = this.isVerticalDisplay() ? '1' : '0.9';
 
-        this.touch.radio.$element.style.bottom = radioButtonBottom;
-        this.touch.radio.$element.style.top = radioButtonTop;
-        this.touch.radio.$element.style.left = radioButtonLeft;
-        this.touch.radio.$element.style.rotate = radioButtonRotation;
-        this.touch.radio.$border.style.background = radioButtonBackground;
-        this.touch.radio.$border.style.border = radioButtonBorder;
-        this.touch.radio.$border.style.opacity = radioButtonOpacity;
+        if (this.touch?.radio?.$element && this.touch?.radio?.$border) {
+            this.touch.radio.$element.style.bottom = radioButtonBottom;
+            this.touch.radio.$element.style.top = radioButtonTop;
+            this.touch.radio.$element.style.left = radioButtonLeft;
+            this.touch.radio.$element.style.rotate = radioButtonRotation;
+            this.touch.radio.$border.style.background = radioButtonBackground;
+            this.touch.radio.$border.style.border = radioButtonBorder;
+            this.touch.radio.$border.style.opacity = radioButtonOpacity;
+        }
 
         const radioButtonElementTop = this.isVerticalDisplay() ? 'calc(50% - 11.5px)' : 'calc(50% - 11.5px)';
         const radioButtonElementHeight = this.isVerticalDisplay() ? '65px': '65px';
@@ -361,12 +390,14 @@ export default class Controls extends EventEmitter
         const radioButtonIconLeft = this.isVerticalDisplay() ? '15%' : '15%';
         const radioButtonIconRotate = this.isVerticalDisplay() ? '90deg' : '0deg';
 
-        this.touch.radio.$border.style.top = radioButtonElementTop;
-        this.touch.radio.$border.style.height = radioButtonElementHeight;
-        this.touch.radio.$border.style.width = radioButtonElementWidth;
-        this.touch.radio.$icon.style.top = radioButtonIconTop;
-        this.touch.radio.$icon.style.left = radioButtonIconLeft;
-        this.touch.radio.$icon.style.rotate = radioButtonIconRotate;
+        if (this.touch?.radio?.$border && this.touch?.radio?.$icon) {
+            this.touch.radio.$border.style.top = radioButtonElementTop;
+            this.touch.radio.$border.style.height = radioButtonElementHeight;
+            this.touch.radio.$border.style.width = radioButtonElementWidth;
+            this.touch.radio.$icon.style.top = radioButtonIconTop;
+            this.touch.radio.$icon.style.left = radioButtonIconLeft;
+            this.touch.radio.$icon.style.rotate = radioButtonIconRotate;
+        }
 
         // const cameraButtonElementBottom = this.isVerticalDisplay() ? '175px' : '110px';
         // const cameraButtonElementLeft = this.isVerticalDisplay() ? '10px': '165px';
@@ -405,18 +436,18 @@ export default class Controls extends EventEmitter
         const touchNext = document.getElementById('touch-next');
         const switchContainer = document.getElementById('switch-container');
 
-        targetPlayerId.style.display = this.isVerticalDisplay() ? 'unset' : 'none';
-        inviteButton.style.display = this.isVerticalDisplay() ? 'none' : 'none';
-        contacts.style.display = this.isVerticalDisplay() ? 'none' : 'none';
-        party.style.display = this.isVerticalDisplay() ? 'none' : 'none';
-        contactList.style.display = this.isVerticalDisplay() ? 'none' : 'none';
-        settings.style.display = this.isVerticalDisplay() ? 'none' : 'none';
-        touchRadio.style.display = this.isVerticalDisplay() ? 'none' : 'none';
-        touchMute.style.display = this.isVerticalDisplay() ? 'none' : 'none';
-        touchSlider.style.display = this.isVerticalDisplay() ? 'none' : 'none';
-        touchPrevious.style.display = this.isVerticalDisplay() ? 'none' : 'none';
-        touchNext.style.display = this.isVerticalDisplay() ? 'none' : 'none';
-        switchContainer.style.display = this.isVerticalDisplay() ? 'block' : 'none';
+        if (targetPlayerId) targetPlayerId.style.display = this.isVerticalDisplay() ? 'unset' : 'none';
+        if (inviteButton) inviteButton.style.display = 'none';
+        if (contacts) contacts.style.display = 'none';
+        if (party) party.style.display = 'none';
+        if (contactList) contactList.style.display = 'none';
+        if (settings) settings.style.display = 'flex';
+        if (touchRadio) touchRadio.style.display = 'none';
+        if (touchMute) touchMute.style.display = 'none';
+        if (touchSlider) touchSlider.style.display = 'none';
+        if (touchPrevious) touchPrevious.style.display = 'none';
+        if (touchNext) touchNext.style.display = 'none';
+        if (switchContainer) switchContainer.style.display = this.isVerticalDisplay() ? 'block' : 'none';
     }
 
     setTouch()
@@ -429,7 +460,43 @@ export default class Controls extends EventEmitter
         }
 
         const speedometer = document.getElementById('speedometer');
-        speedometer.style.left = '-5px';
+        if (speedometer) {
+            speedometer.style.left = '-5px';
+        }
+
+        const bindDesktopPress = (_element, _handlers = {}) => {
+            if (!_element) return
+
+            let active = false
+
+            const mouseDown = (_event) => {
+                _event.preventDefault()
+                active = true
+                if (_handlers.onPress) {
+                    _handlers.onPress(_event)
+                }
+            }
+
+            const mouseUp = (_event) => {
+                if (!active) {
+                    return
+                }
+
+                active = false
+                if (_handlers.onRelease) {
+                    _handlers.onRelease(_event)
+                }
+            }
+
+            _element.addEventListener('mousedown', mouseDown)
+            _element.addEventListener('click', (_event) => {
+                _event.preventDefault()
+                if (_handlers.onClick) {
+                    _handlers.onClick(_event)
+                }
+            })
+            document.addEventListener('mouseup', mouseUp)
+        }
 
         /**
          * Joystick
@@ -603,6 +670,52 @@ export default class Controls extends EventEmitter
         }
 
         this.touch.joystick.$element.addEventListener('touchstart', this.touch.joystick.events.touchstart, { passive: false })
+        this.touch.joystick.events.mousedown = (_event) =>
+        {
+            _event.preventDefault()
+
+            this.touch.joystick.active = true
+            this.touch.joystick.angle.current.x = _event.clientX
+            this.touch.joystick.angle.current.y = _event.clientY
+            this.touch.joystick.$limit.style.opacity = '0.5'
+
+            document.addEventListener('mousemove', this.touch.joystick.events.mousemove)
+            document.addEventListener('mouseup', this.touch.joystick.events.mouseup)
+
+            this.trigger('joystickStart')
+        }
+
+        this.touch.joystick.events.mousemove = (_event) =>
+        {
+            if(!this.touch.joystick.active)
+            {
+                return
+            }
+
+            this.touch.joystick.angle.current.x = _event.clientX
+            this.touch.joystick.angle.current.y = _event.clientY
+
+            this.trigger('joystickMove')
+        }
+
+        this.touch.joystick.events.mouseup = () =>
+        {
+            if(!this.touch.joystick.active)
+            {
+                return
+            }
+
+            this.touch.joystick.active = false
+            this.touch.joystick.$limit.style.opacity = '0.25'
+            this.touch.joystick.$cursor.style.transform = 'translateX(0px) translateY(0px)'
+
+            document.removeEventListener('mousemove', this.touch.joystick.events.mousemove)
+            document.removeEventListener('mouseup', this.touch.joystick.events.mouseup)
+
+            this.trigger('joystickEnd')
+        }
+
+        this.touch.joystick.$element.addEventListener('mousedown', this.touch.joystick.events.mousedown)
 
         // Function to move the joystick to the right
         function moveJoystickRight() {
@@ -907,58 +1020,47 @@ export default class Controls extends EventEmitter
 
 
         // Toggle function to move the square and toggle visibility of elements
-        switchButton.addEventListener('click', () => {
-            isToggled = !isToggled;
+        if (switchButton && switchToggle) {
+            switchButton.addEventListener('click', () => {
+                isToggled = !isToggled;
 
-            if (isToggled) {
-                switchToggle.style.left = '22px';  // Move square to the right
-                switchButton.style.backgroundColor = 'rgba(0, 0, 0, 0.2);';  // Change background color when toggled
-                switchButton.style.backdropFilter = 'blur(5px)';
+                if (isToggled) {
+                    switchToggle.style.left = '22px';
+                    switchButton.style.backgroundColor = 'rgba(0, 0, 0, 0.2);';
+                    switchButton.style.backdropFilter = 'blur(5px)';
 
-                // Show elements
-                targetPlayerId.style.display = 'block';
-                inviteButton.style.display = 'flex';
-                addContact.style.display = 'flex';
-                touchRadio.style.display = 'block';
-                touchMute.style.display = 'block';
-                touchSlider.style.display = 'block';
-                touchPrevious.style.display = 'block';
-                touchNext.style.display = 'block';
-                contactList.style.display = 'flex';
-                settings.style.display = 'flex';
-                party.style.display = 'flex';
+                    if (targetPlayerId) targetPlayerId.style.display = 'block';
+                    if (inviteButton) inviteButton.style.display = 'none';
+                    if (addContact) addContact.style.display = 'none';
+                    if (touchRadio) touchRadio.style.display = 'none';
+                    if (touchMute) touchMute.style.display = 'none';
+                    if (touchSlider) touchSlider.style.display = 'none';
+                    if (touchPrevious) touchPrevious.style.display = 'none';
+                    if (touchNext) touchNext.style.display = 'none';
+                    if (contactList) contactList.style.display = 'none';
+                    if (settings) settings.style.display = 'flex';
+                    if (party) party.style.display = 'none';
+                    if (partyInfo) partyInfo.style.display = 'none';
+                } else {
+                    switchToggle.style.left = '5px';
+                    switchButton.style.backgroundColor = 'rgba(0, 0, 0, 0.2)';
+                    switchButton.style.backdropFilter = 'blur(5px)';
 
-                // if (touchContacts) {
-                //     touchContacts.style.display = 'flex';
-                // } else {
-                //     touchContacts.style.display = 'none'
-                // }
-
-                if (party) {
-                    party.style.display = 'flex';
+                    if (targetPlayerId) targetPlayerId.style.display = 'none';
+                    if (inviteButton) inviteButton.style.display = 'none';
+                    if (addContact) addContact.style.display = 'none';
+                    if (touchRadio) touchRadio.style.display = 'none';
+                    if (touchMute) touchMute.style.display = 'none';
+                    if (touchSlider) touchSlider.style.display = 'none';
+                    if (touchPrevious) touchPrevious.style.display = 'none';
+                    if (touchNext) touchNext.style.display = 'none';
+                    if (contactList) contactList.style.display = 'none';
+                    if (settings) settings.style.display = 'flex';
+                    if (party) party.style.display = 'none';
+                    if (partyInfo) partyInfo.style.display = 'none';
                 }
-
-            } else {
-                switchToggle.style.left = '5px';   // Move square back to the left
-                switchButton.style.backgroundColor = 'rgba(0, 0, 0, 0.2)';  // Revert background color
-                switchButton.style.backdropFilter = 'blur(5px)';
-
-                // Hide elements
-                targetPlayerId.style.display = 'none';
-                inviteButton.style.display = 'none';
-                addContact.style.display = 'none';
-                touchRadio.style.display = 'none';
-                touchMute.style.display = 'none';
-                touchSlider.style.display = 'none';
-                touchPrevious.style.display = 'none';
-                touchNext.style.display = 'none';
-                contactList.style.display = 'none';
-                settings.style.display = 'none';
-                // touchContacts.style.display = 'none';
-                party.style.display = 'none';
-
-            }
-        });
+            });
+        }
 
         /**
          * Radio with Power On/Off, Vinyl Animation, and Tiny Needle with Top-Side Rotation
@@ -1101,6 +1203,11 @@ export default class Controls extends EventEmitter
         };
 
         this.touch.radio.$element.addEventListener('touchstart', this.touch.radio.events.touchstart);
+        bindDesktopPress(this.touch.radio.$element, {
+            onClick: () => {
+                this.toggleRadioPower();
+            }
+        })
 
 
 
@@ -1202,6 +1309,15 @@ export default class Controls extends EventEmitter
         };
 
         this.touch.reset.$element.addEventListener('touchstart', this.touch.reset.events.touchstart);
+        bindDesktopPress(this.touch.reset.$element, {
+            onPress: () => {
+                this.trigger('action', ['reset']);
+                this.touch.reset.$border.style.opacity = '0.5';
+            },
+            onRelease: () => {
+                this.touch.reset.$border.style.opacity = '0.25';
+            }
+        })
 
         /**
          * Camera
@@ -1307,6 +1423,16 @@ export default class Controls extends EventEmitter
         };
 
         this.touch.camera.$element.addEventListener('touchstart', this.touch.camera.events.touchstart);
+        bindDesktopPress(this.touch.camera.$element, {
+            onPress: () => {
+                if (!this.camera.actionInProgress) {
+                    this.camera.actionInProgress = true;
+                    this.camera.triggerCameraAction(() => {
+                        this.camera.actionInProgress = false;
+                    });
+                }
+            }
+        })
 
         // Function to toggle camera types
         this.cycleCameraType = () => {
@@ -1497,6 +1623,15 @@ export default class Controls extends EventEmitter
         };
 
         this.touch.previous.$element.addEventListener('touchstart', this.touch.previous.events.touchstart);
+        bindDesktopPress(this.touch.previous.$element, {
+            onPress: () => {
+                this.touch.previous.$border.style.opacity = '0.5';
+                this.camera.zoom.targetValue = Math.max(0, this.camera.zoom.targetValue - 0.1);
+            },
+            onRelease: () => {
+                this.touch.previous.$border.style.opacity = '0.5';
+            }
+        })
 
         /**
          * Next
@@ -1578,6 +1713,15 @@ export default class Controls extends EventEmitter
         };
 
         this.touch.next.$element.addEventListener('touchstart', this.touch.next.events.touchstart);
+        bindDesktopPress(this.touch.next.$element, {
+            onPress: () => {
+                this.touch.next.$border.style.opacity = '0.5';
+                this.camera.zoom.targetValue = Math.min(1, this.camera.zoom.targetValue + 0.1);
+            },
+            onRelease: () => {
+                this.touch.next.$border.style.opacity = '0.5';
+            }
+        })
         
         /**
          * Zoom Slider
@@ -1771,6 +1915,11 @@ export default class Controls extends EventEmitter
         };
 
         this.touch.mute.$element.addEventListener('touchstart', this.touch.mute.events.touchstart);
+        bindDesktopPress(this.touch.mute.$element, {
+            onClick: () => {
+                this.sounds.toggleMute();
+            }
+        })
 
         /**
          * Siren
@@ -1882,6 +2031,19 @@ export default class Controls extends EventEmitter
         };
 
         this.touch.siren.$element.addEventListener('touchstart', this.touch.siren.events.touchstart);
+        bindDesktopPress(this.touch.siren.$element, {
+            onPress: () => {
+                this.actions.siren = true;
+                const hornIndices = [12, 13, 14];
+                const randomIndex = hornIndices[Math.floor(Math.random() * hornIndices.length)];
+                this.sounds.play(this.sounds.items[randomIndex].name);
+                this.touch.siren.$border.style.opacity = '0.5';
+            },
+            onRelease: () => {
+                this.actions.siren = false;
+                this.touch.siren.$border.style.opacity = '0.25';
+            }
+        })
 
         /**
          * Boost
@@ -1987,6 +2149,19 @@ export default class Controls extends EventEmitter
         }
 
         this.touch.boost.$element.addEventListener('touchstart', this.touch.boost.events.touchstart)
+        bindDesktopPress(this.touch.boost.$element, {
+            onPress: () => {
+                this.camera.pan.reset()
+                this.actions.up = true
+                this.actions.boost = true
+                this.touch.boost.$border.style.opacity = '0.5'
+            },
+            onRelease: () => {
+                this.actions.up = false
+                this.actions.boost = false
+                this.touch.boost.$border.style.opacity = '0.25'
+            }
+        })
 
         /**
          * Forward
@@ -2090,6 +2265,17 @@ export default class Controls extends EventEmitter
         }
 
         this.touch.forward.$element.addEventListener('touchstart', this.touch.forward.events.touchstart)
+        bindDesktopPress(this.touch.forward.$element, {
+            onPress: () => {
+                this.camera.pan.reset()
+                this.actions.up = true
+                this.touch.forward.$border.style.opacity = '0.5'
+            },
+            onRelease: () => {
+                this.actions.up = false
+                this.touch.forward.$border.style.opacity = '0.25'
+            }
+        })
 
         /**
          * Shoot
@@ -2201,6 +2387,24 @@ export default class Controls extends EventEmitter
         };
 
         this.touch.shoot.$element.addEventListener('touchstart', this.touch.shoot.events.touchstart);
+        bindDesktopPress(this.touch.shoot.$element, {
+            onPress: () => {
+                const mouseEvent = new MouseEvent('mousedown', {
+                    bubbles: true,
+                    cancelable: true,
+                    button: 1,
+                });
+                if (typeof window !== 'undefined') {
+                    window.dispatchEvent(mouseEvent);
+                }
+                this.actions.shoot = true;
+                this.touch.shoot.$border.style.opacity = '0.5';
+            },
+            onRelease: () => {
+                this.actions.shoot = false;
+                this.touch.shoot.$border.style.opacity = '0.25';
+            }
+        })
 
         /**
          * Brake
@@ -2303,6 +2507,17 @@ export default class Controls extends EventEmitter
         }
 
         this.touch.brake.$element.addEventListener('touchstart', this.touch.brake.events.touchstart)
+        bindDesktopPress(this.touch.brake.$element, {
+            onPress: () => {
+                this.camera.pan.reset()
+                this.actions.brake = true
+                this.touch.brake.$border.style.opacity = '0.5'
+            },
+            onRelease: () => {
+                this.actions.brake = false
+                this.touch.brake.$border.style.opacity = '0.25'
+            }
+        })
 
         /**
          * Backward
@@ -2408,6 +2623,17 @@ export default class Controls extends EventEmitter
         }
 
         this.touch.backward.$element.addEventListener('touchstart', this.touch.backward.events.touchstart)
+        bindDesktopPress(this.touch.backward.$element, {
+            onPress: () => {
+                this.camera.pan.reset()
+                this.actions.down = true
+                this.touch.backward.$border.style.opacity = '0.5'
+            },
+            onRelease: () => {
+                this.actions.down = false
+                this.touch.backward.$border.style.opacity = '0.25'
+            }
+        })
 
         // Reveal
         this.touch.reveal = () =>
@@ -2447,27 +2673,21 @@ export default class Controls extends EventEmitter
             const resetLabel = document.getElementById('reset-label');
 
 
-            if (userDisplay || batteryStatus || speedometer || inviteButton || switchContainer || party) {
-                userDisplay.style.opacity = 1;
-                batteryStatus.style.opacity = 1;
-                // signOutButton.style.opacity = 1;
-                speedometer.style.opacity = 1;
-                inviteButton.style.opacity = 1;
-                switchContainer.style.opacity = 1;
-                // partyInfo.style.opacity = 1;
-                party.style.opacity = 1;
-            }
+            if (userDisplay) userDisplay.style.opacity = 1;
+            if (batteryStatus) batteryStatus.style.opacity = 1;
+            if (speedometer) speedometer.style.opacity = 1;
+            if (inviteButton) inviteButton.style.opacity = 0;
+            if (switchContainer) switchContainer.style.opacity = 1;
+            if (party) party.style.opacity = 0;
 
-            if (shootLabel || boostLabel || sirenLabel || forwardLabel || backwardLabel || brakeLabel || cameraLabel || resetLabel) {
-                shootLabel.style.opacity = 1;
-                boostLabel.style.opacity = 1;
-                sirenLabel.style.opacity = 1;
-                forwardLabel.style.opacity = 1;
-                backwardLabel.style.opacity = 1;
-                brakeLabel.style.opacity = 1;
-                cameraLabel.style.opacity = 1;
-                resetLabel.style.opacity = 1;
-            }
+            if (shootLabel) shootLabel.style.opacity = 1;
+            if (boostLabel) boostLabel.style.opacity = 1;
+            if (sirenLabel) sirenLabel.style.opacity = 1;
+            if (forwardLabel) forwardLabel.style.opacity = 1;
+            if (backwardLabel) backwardLabel.style.opacity = 1;
+            if (brakeLabel) brakeLabel.style.opacity = 1;
+            if (cameraLabel) cameraLabel.style.opacity = 1;
+            if (resetLabel) resetLabel.style.opacity = 1;
 
             // if (batteryStatus) {
             //     batteryStatus.style.opacity = 1;

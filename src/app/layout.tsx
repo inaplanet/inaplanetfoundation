@@ -1,11 +1,58 @@
 import type { Metadata } from "next";
 import './globals.css'
+import ConsoleNoiseFilter from './ConsoleNoiseFilter'
 
-import { headers } from 'next/headers';
-import ContextProvider from "../../context";
+const earlyConsoleNoiseFilter = `
+(() => {
+  const noisyPatterns = [
+    'SES Removing unpermitted intrinsics',
+    'Removing intrinsics.%MapPrototype%.getOrInsert',
+    'Removing intrinsics.%MapPrototype%.getOrInsertComputed',
+    'Removing intrinsics.%WeakMapPrototype%.getOrInsert',
+    'Removing intrinsics.%WeakMapPrototype%.getOrInsertComputed',
+    'Removing intrinsics.%DatePrototype%.toTemporalInstant',
+    'lockdown-install.js'
+  ];
+
+  const shouldSuppress = (args) => {
+    const message = args.map((value) => {
+      if (typeof value === 'string') return value;
+      try { return JSON.stringify(value); }
+      catch (_error) { return String(value); }
+    }).join(' ');
+
+    return noisyPatterns.some((pattern) => message.includes(pattern));
+  };
+
+  const originalWarn = console.warn;
+  const originalError = console.error;
+  const originalLog = console.log;
+  const originalInfo = console.info;
+
+  console.warn = (...args) => {
+    if (shouldSuppress(args)) return;
+    originalWarn(...args);
+  };
+
+  console.error = (...args) => {
+    if (shouldSuppress(args)) return;
+    originalError(...args);
+  };
+
+  console.log = (...args) => {
+    if (shouldSuppress(args)) return;
+    originalLog(...args);
+  };
+
+  console.info = (...args) => {
+    if (shouldSuppress(args)) return;
+    originalInfo(...args);
+  };
+})();
+`;
 
 export const metadata: Metadata = {
-  title: 'Netrym | The Velo Playground Onchain.',
+  title: 'LW | My Dream Playground Onchain.',
   description: 'Nossumus Inc. Foundation.'
 };
 
@@ -30,10 +77,11 @@ export default function RootLayout({
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet" />
     <link rel="icon" href="/favicon.ico" sizes="256x256" />
+    <script dangerouslySetInnerHTML={{ __html: earlyConsoleNoiseFilter }} />
     </head>
       <body>
-        {/* Wrap everything in the ContextProvider and pass cookies */}
-        <ContextProvider>{children}</ContextProvider>
+        <ConsoleNoiseFilter />
+        {children}
       </body>
     </html>
   );

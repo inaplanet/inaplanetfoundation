@@ -74,7 +74,7 @@ export default class Physics
                 wheelMaxSuspensionTravel: 0.3,
                 wheelCustomSlidingRotationalSpeed: - 30,
                 wheelMass: 5,
-                controlsSteeringSpeed: 0.0005 * 3,
+                controlsSteeringSpeed: 0.005 * 3,
                 controlsSteeringMax: Math.PI * 0.17,
                 controlsSteeringQuad: false,
                 controlsAcceleratinMaxSpeed: 0.055 * 3 / 17,
@@ -9195,32 +9195,38 @@ export default class Physics
     constrainBodyToWorldBounds(body) {
         if (!body || !body.position || !body.velocity) return;
 
-        const limit = this.worldHalfExtent - 2;
+        const limit = this.worldHalfExtent - 8;
         const minZ = 0;
-        const maxZ = this.worldRoofZ - 1;
+        const maxZ = this.worldRoofZ - 2;
 
         if (body.position.x > limit) {
             body.position.x = limit;
-            if (body.velocity.x > 0) body.velocity.x = 0;
+            if (body.velocity.x > 0) body.velocity.x = Math.min(body.velocity.x, 0);
+            body.force.x = 0;
         } else if (body.position.x < -limit) {
             body.position.x = -limit;
-            if (body.velocity.x < 0) body.velocity.x = 0;
+            if (body.velocity.x < 0) body.velocity.x = Math.max(body.velocity.x, 0);
+            body.force.x = 0;
         }
 
         if (body.position.y > limit) {
             body.position.y = limit;
-            if (body.velocity.y > 0) body.velocity.y = 0;
+            if (body.velocity.y > 0) body.velocity.y = Math.min(body.velocity.y, 0);
+            body.force.y = 0;
         } else if (body.position.y < -limit) {
             body.position.y = -limit;
-            if (body.velocity.y < 0) body.velocity.y = 0;
+            if (body.velocity.y < 0) body.velocity.y = Math.max(body.velocity.y, 0);
+            body.force.y = 0;
         }
 
         if (body.position.z > maxZ) {
             body.position.z = maxZ;
-            if (body.velocity.z > 0) body.velocity.z = 0;
+            if (body.velocity.z > 0) body.velocity.z = Math.min(body.velocity.z, 0);
+            body.force.z = 0;
         } else if (body.position.z < minZ) {
             body.position.z = minZ;
-            if (body.velocity.z < 0) body.velocity.z = 0;
+            if (body.velocity.z < 0) body.velocity.z = Math.max(body.velocity.z, 0);
+            body.force.z = 0;
         }
     }
 
@@ -9392,6 +9398,10 @@ export default class Physics
 
         // Center
         collision.center = new CANNON.Vec3(0, 0, 0)
+        collision.bounds = {
+            min: new CANNON.Vec3(Infinity, Infinity, Infinity),
+            max: new CANNON.Vec3(-Infinity, -Infinity, -Infinity)
+        }
 
         // Shapes
         const shapes = []
@@ -9449,6 +9459,20 @@ export default class Physics
 
                 // Position
                 const shapePosition = new CANNON.Vec3(mesh.position.x, mesh.position.y, mesh.position.z)
+                const shapeExtents = new CANNON.Vec3()
+
+                if(shape === 'cylinder')
+                {
+                    shapeExtents.set(mesh.scale.x, mesh.scale.x, mesh.scale.z * 0.5)
+                }
+                else if(shape === 'box')
+                {
+                    shapeExtents.set(mesh.scale.x * 0.5, mesh.scale.y * 0.5, mesh.scale.z * 0.5)
+                }
+                else if(shape === 'sphere')
+                {
+                    shapeExtents.set(mesh.scale.x, mesh.scale.x, mesh.scale.x)
+                }
 
                 // Quaternion
                 const shapeQuaternion = new CANNON.Quaternion(mesh.quaternion.x, mesh.quaternion.y, mesh.quaternion.z, mesh.quaternion.w)
@@ -9459,7 +9483,7 @@ export default class Physics
                 }
 
                 // Save
-                shapes.push({ shapeGeometry, shapePosition, shapeQuaternion })
+                shapes.push({ shapeGeometry, shapePosition, shapeQuaternion, shapeExtents })
 
                 // Create model object
                 let modelGeometry = null
@@ -9503,6 +9527,13 @@ export default class Physics
             _shape.shapePosition.x -= collision.center.x
             _shape.shapePosition.y -= collision.center.y
             _shape.shapePosition.z -= collision.center.z
+
+            collision.bounds.min.x = Math.min(collision.bounds.min.x, _shape.shapePosition.x - _shape.shapeExtents.x)
+            collision.bounds.min.y = Math.min(collision.bounds.min.y, _shape.shapePosition.y - _shape.shapeExtents.y)
+            collision.bounds.min.z = Math.min(collision.bounds.min.z, _shape.shapePosition.z - _shape.shapeExtents.z)
+            collision.bounds.max.x = Math.max(collision.bounds.max.x, _shape.shapePosition.x + _shape.shapeExtents.x)
+            collision.bounds.max.y = Math.max(collision.bounds.max.y, _shape.shapePosition.y + _shape.shapeExtents.y)
+            collision.bounds.max.z = Math.max(collision.bounds.max.z, _shape.shapePosition.z + _shape.shapeExtents.z)
 
             collision.body.addShape(_shape.shapeGeometry, _shape.shapePosition, _shape.shapeQuaternion)
         }

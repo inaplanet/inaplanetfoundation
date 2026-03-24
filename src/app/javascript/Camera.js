@@ -391,7 +391,8 @@ export default class Camera
         this.zoom = {};
         this.zoom.easing = 0.1;
         this.zoom.minDistance = 7;
-        this.zoom.amplitude = 150;
+        this.zoom.amplitude = 105;
+        this.zoom.maxValue = 0.72;
         this.zoom.value = this.config.cyberTruck ? 0.3 : 0.5;
         this.zoom.targetValue = this.zoom.value;
         this.zoom.distance = this.zoom.minDistance + this.zoom.amplitude * this.zoom.value;
@@ -402,7 +403,7 @@ export default class Camera
             (_event) => {
                 if (!this.isNewCameraActive) { // Prevent zoom in new camera mode
                     this.zoom.targetValue += _event.deltaY * 0.001;
-                    this.zoom.targetValue = Math.min(Math.max(this.zoom.targetValue, 0), 1);
+                    this.zoom.targetValue = Math.min(Math.max(this.zoom.targetValue, 0), this.zoom.maxValue);
                 }
             },
             { passive: true }
@@ -434,7 +435,7 @@ export default class Camera
                 const ratio = distance / this.zoom.touch.startDistance;
     
                 this.zoom.targetValue = this.zoom.touch.startValue - (ratio - 1);
-                this.zoom.targetValue = Math.min(Math.max(this.zoom.targetValue, 0), 1);
+                this.zoom.targetValue = Math.min(Math.max(this.zoom.targetValue, 0), this.zoom.maxValue);
             }
         });
     

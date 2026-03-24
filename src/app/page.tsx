@@ -4,13 +4,10 @@ import dynamic from 'next/dynamic';
 import React from 'react';
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAccount } from 'wagmi';
-import Image from 'next/image';
-import { useModal } from '../../context/index';
-import { useWebSocket } from './context/WebSocketContext';
 import { initGlobe, addSignalEffect, removeSignalEffect } from './globe'; // Adjust path as necessary
 import { FaRedo } from 'react-icons/fa';
-import { FaEthereum } from 'react-icons/fa';
+import { getOrCreatePlayerIdentity } from './javascript/Utils/playerIdentity.js';
+import { createRandomStarterLoadout } from './javascript/Utils/playerLoadout.js';
 
 // Dynamically import the Application component and disable SSR
 const Application = dynamic(() => import('./javascript/Application'), {
@@ -19,51 +16,42 @@ const Application = dynamic(() => import('./javascript/Application'), {
 
 export default function Home() {
   const wsRef = useRef<WebSocket | null>(null);
-  // const { initializeWebSocket, wsRef, isWebSocketReady } = useWebSocket();
-  const modal = useModal();
-  const { address, isConnected, isDisconnected } = useAccount();
-  const [isEverythingReady, setIsEverythingReady] = useState(false);
   const [playerId, setPlayerId] = useState<string | null>(null);
   const [isCanvasInitialized, setIsCanvasInitialized] = useState(false); // State for canvas initialization
   const [application, setApplication] = useState(false); // State for canvas initialization
-  const [showLoadingLayer, setShowLoadingLayer] = useState(false); // State for loading layer
   const [hasAppInitialized, setHasAppInitialized] = useState(false); // Ensure Application is only initialized once
-  const [showWalletButton, setShowWalletButton] = useState(false); 
   const [isMounted, setIsMounted] = useState(false); // Track when the component is mounted
-  const [currentTime, setCurrentTime] = useState(new Date());
   const [selectedWorldId, setSelectedWorldId] = useState<string | null>(null); // New state for selected world ID
-  const [isWorldSelected, setIsWorldSelected] = useState(false);
   const [token, setToken] = useState<string | null>(null); // State to store the token
   const [carName, setCarName] = useState<string | null>(() => {
     if (typeof window === 'undefined') return null;
     return localStorage.getItem('selectedCarName');
   });
-  // const [popupGarage, setPopupGarage] = useState(false);
-  const [playerCount, setPlayerCount] = useState(0);
-
   // Websocket
-  const [ws, setWs] = useState<WebSocket | null>(null);
-  const [isWebSocketReady, setIsWebSocketReady] = useState(false);
-  const [retryCount, setRetryCount] = useState(0);
-  const [playerAccount, setPlayerAccount] = useState(0);
   const [matcaps, setMatcaps] = useState({});
 
   const router = useRouter();
-  const maxRetries = 5;  // Limit retries to avoid infinite reconnect loop
-  const retryDelay = 2000; // Delay between retries (ms)
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080';
   const WS_BASE_URL = process.env.NEXT_PUBLIC_WS_BASE_URL || 'ws://localhost:8080';
 
   const worldPlayerCounts = new Map<string, number>(); // To track player counts per worldId
-  const activeSignals = new Map<string, THREE.Object3D>(); // To track active signals
+  const applyStarterLoadout = useCallback((playerId: string) => {
+    const starterLoadout = createRandomStarterLoadout();
 
-  const handleModal = async () => {
-    try {
-      await modal.open();
-    } catch (error) {
-      console.error('Error opening WalletConnect modal:', error);
-    }
-  };
+    setCarName(starterLoadout.carName);
+    setMatcaps(starterLoadout.matcaps);
+    localStorage.setItem('selectedCarName', starterLoadout.carName);
+    localStorage.setItem('matcaps', JSON.stringify(starterLoadout.matcaps));
+
+    wsRef.current?.send(
+      JSON.stringify({
+        type: 'setSelectedCar',
+        playerId,
+        carName: starterLoadout.carName,
+        matcaps: starterLoadout.matcaps,
+      })
+    );
+  }, []);
 
   const handleReload = () => {
     window.location.reload(); // Reload the page
@@ -295,29 +283,16 @@ export default function Home() {
     const serverAddress = `${WS_BASE_URL}?token=${encodeURIComponent(token)}`;
     wsRef.current = new WebSocket(serverAddress);
 
-    setWs(wsRef.current); 
-
     wsRef.current.onopen = () => {
       console.log('WebSocket connected');
-      setIsWebSocketReady(true);
-      setRetryCount(0);
       updateWorldList(currentCounts);
 
       if (playerId) {
-          // console.log('Requesting selected car for playerId:', playerId);
-          wsRef.current?.send(
-              JSON.stringify({
-                  type: 'getSelectedCar',
-                  playerId,
-              })
-          );
+          applyStarterLoadout(playerId);
       } else {
           console.error('Player ID is missing or invalid');
       }
     };
-
-    // Initialize a flag to prevent repeated updates
-    let hasReceivedWorldCounts = false;
 
     wsRef.current.onmessage = (event) => {
 
@@ -358,9 +333,10 @@ export default function Home() {
                   setMatcaps({});
               }
           } else {
-              console.warn('No selected car found. Defaulting to kybertruck.');
-              setCarName('kybertruck');
-              setMatcaps({});
+              console.warn('No selected car found. Applying starter loadout.');
+              if (playerId) {
+                applyStarterLoadout(playerId);
+              }
           }
       }  
 
@@ -405,8 +381,6 @@ export default function Home() {
                 }
             });            
 
-              hasReceivedWorldCounts = true;
-
           } else {
               // console.log("World has already been selected, not updating list.");
           }
@@ -420,11 +394,21 @@ export default function Home() {
   
 
     wsRef.current.onerror = (error) => {
-      console.error('WebSocket error:', error);
+      console.error('WebSocket error:', error, {
+        wsBaseUrl: WS_BASE_URL,
+        apiBaseUrl: API_BASE_URL,
+        hasToken: Boolean(token),
+      });
     };
 
      wsRef.current.onclose = (event) => {
-      console.log('WebSocket closed', event);
+      console.log('WebSocket closed', {
+        code: event.code,
+        reason: event.reason,
+        wasClean: event.wasClean,
+        wsBaseUrl: WS_BASE_URL,
+        apiBaseUrl: API_BASE_URL,
+      });
       // if (event.code !== 1000) {
       //   console.error('WebSocket closed unexpectedly with code:', event.code);
       //   console.error('Reason:', event.reason);
@@ -435,7 +419,7 @@ export default function Home() {
     // localStorage.removeItem('token');
     // sessionStorage.removeItem('token');
     // console.log("Session storage", sessionStorage);
-  }, []);
+  }, [applyStarterLoadout]);
 
   let searchQuery = '';
 
@@ -537,7 +521,6 @@ const updateWorldList = (counts: Record<string, number>) => {
 const handleWorldSelection = (worldId: string, listItem: HTMLLIElement, worldList: HTMLElement) => {
   if (!selectedWorldId) {
     setSelectedWorldId(worldId);
-    setIsWorldSelected(true); // Mark as selected by user
     setIsCanvasInitialized(false);
     setApplication(false);
     setTimeout(() => setApplication(true), 500);
@@ -561,81 +544,50 @@ const handleWorldSelection = (worldId: string, listItem: HTMLLIElement, worldLis
   }
 };
 
-    // Initialize the application only when the wallet connects
     useEffect(() => {
       setIsMounted(true);
-      setShowLoadingLayer(true);
-
-      // If the wallet is disconnected, trigger page reload
-      if (isDisconnected) {
-        // console.log('Wallet disconnected. Reloading the page...');
-        window.location.reload();
+      const identity = getOrCreatePlayerIdentity();
+      if (!identity?.playerId) {
+        return;
       }
 
-      if (isConnected && address && !hasAppInitialized) {
-        // Step 1: Fetch the token first
-        getToken(address)
-        .then(() => {
-          // Step 2: Initialize WebSocket after token is fetched
-          initializeWebSocket(address);
+      setPlayerId(identity.playerId);
+      if (hasAppInitialized) {
+        return;
+      }
 
-          // Initialize Globe with Retry Logic
-          let retryCount = 0;
+      getToken(identity.playerId)
+        .then(() => {
+          initializeWebSocket(identity.playerId);
+
+          let localRetryCount = 0;
           const interval = setInterval(() => {
             const container = document.getElementById('loading-layer');
             if (container) {
-              // console.log('Initializing Globe...');
               initGlobe('loading-layer');
-              clearInterval(interval); // Stop retrying
-            } else if (retryCount >= 5) {
+              clearInterval(interval);
+            } else if (localRetryCount >= 5) {
               console.warn('Failed to find #loading-layer after 5 retries.');
-              clearInterval(interval); // Stop retrying
+              clearInterval(interval);
             }
-            retryCount++;
+            localRetryCount++;
           }, 500);
 
           setHasAppInitialized(true);
-          setPlayerId(address);
-
-          // localStorage.setItem('playerId', address);
-          console.log('Wallet connected:', address);
           localStorage.removeItem('playerId');
           localStorage.removeItem('worldId');
-
         })
         .catch((error) => {
           console.error('Error fetching token:', error);
         });
-
-        // Track when everything is ready
-        setIsEverythingReady(true);
-
-        // Switch off the loading layer when everything is ready
-        if (isEverythingReady) {
-          setShowLoadingLayer(false);
-        }
-      }
       
-    }, [isConnected, address, hasAppInitialized, isEverythingReady]);
-    
-    // Flag to check WS connection
-    if (!showLoadingLayer && !isWebSocketReady) {
-      return (
-        <div className="pulse">
-      </div>
-      );
-    }
+    }, [hasAppInitialized, initializeWebSocket]);
 
   if (!isMounted) {
     // Return null on the server (or before the component is mounted on the client)
     return null;
   }
 
-  // Toggle the wallet button visibility when userDisplay is clicked
-  const handleUserDisplayClick = () => {
-    setShowWalletButton(prevState => !prevState);  // Toggle visibility
-  };
-  
   const handleGarageButtonClick = () => {
       if (playerId) {
         router.push(`/garage?playerId=${encodeURIComponent(playerId)}`);
@@ -650,47 +602,15 @@ const handleWorldSelection = (worldId: string, listItem: HTMLLIElement, worldLis
     }
   };
 
-  // Utility function to format playerId
-  function formatPlayerId(address: string): string {
-    if (!address) return '';
-    const firstPart = address.substring(0, 6);
-    const lastPart = address.substring(address.length - 6);
-    return `${firstPart}...${lastPart}`;
-  }
-
   return (
     <main className="overflow-hidden flex flex-col items-center" style={{ backgroundColor: '#000', fontFamily: "'Orbitron', sans-serif" }}>
       <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
 
-      {/* Show the connectWalletDiv initially if wallet is not connected */}
-      {!isConnected && (
-        <div className="connectWalletDiv flex flex-col justify-between items-center h-screen p-4">
-          <div className="flex-grow flex justify-center items-center">
-            <button className="connectWalletButton flex flex-col justify-center items-center" onClick={handleModal}>
-              <span></span><span></span><span></span><span></span>
-              CONNECT WALLET
-            </button>
-          </div>
-          <div className="w-full flex justify-center pb-10">
-            <h2 style={{
-              width: '480px', textAlign: 'center', color: '#F2F0EF', fontSize: '10px', padding: '10px',
-              textShadow: '2px 2px 4px rgba(0, 0, 0, 0.9)', borderRadius: '10px'
-            }}>
-              Powered by Nossumus Inc. Netrym is a real-time onchain playground. ©2025
-            </h2>
-          </div>
-        </div>
-      )}
-
-      {/* Show the loading layer if wallet is connected but the canvas isn't initialized */}
-      {isConnected && !isCanvasInitialized && (
+      {!isCanvasInitialized && (
         <div id="loading-container">
           <div id="loading-layer" className="loading-layer overflow-hidden"></div>
           <div id="w3m-layer" className='w3m-layer flex-container'>
-            <button className='my-wallet' onClick={handleModal}>
-              <FaEthereum size={15} style={{ color: '#fff' }} />
-               {playerId ? formatPlayerId(playerId) : 'Connect Wallet'} 
-               </button>
+            <button type="button" className='my-wallet' onClick={handleGarageButtonClick}>GARAGE</button>
             <div className="user-count-wrapper">
               <span id="userCountDisplay" className="user-count-display">0</span>
             </div>
@@ -706,7 +626,7 @@ const handleWorldSelection = (worldId: string, listItem: HTMLLIElement, worldLis
                   onInput={(event) => filterWorlds(event)}
                 />
                 <button
-                  onClick={() => window.location.reload()} // Reload the page
+                  onClick={handleReload}
                   style={{
                     display: 'flex',
                     justifyContent: 'center',
@@ -726,24 +646,17 @@ const handleWorldSelection = (worldId: string, listItem: HTMLLIElement, worldLis
                 <ul id="world-list"></ul>
               </div>
             </div>
-            <div id='garage' className='garage'>
-              <button id='garage-button' onClick={handleGarageButtonClick}>NETROOM</button>
-              <button id='chatbox-button'>NETLINK</button>
-            </div>
           </>
         </div>
       )}
 
-      {/* Conditionally render the Application once the wallet is connected, playerId and world selected */}
-      {isConnected && playerId && selectedWorldId && token && application && (
+      {playerId && selectedWorldId && token && application && (
         <Application playerId={playerId} selectedWorldId={selectedWorldId} token={token} carName={carName} matcaps={matcaps} />
       )}
 
-      {/* Once connected, display the game UI */}
-      {isConnected && (
+      {playerId && selectedWorldId && token && application && (
         <div className="grid bg-transparent overflow-hidden shadow-sm">
           <div className="flex justify-center items-center p-4">
-            {/* <div id="userDisplay" onClick={handleUserDisplayClick} className="cursor-pointer z-50"></div> */}
             <div id="userDisplay" className="cursor-pointer z-50"></div>
             <div id="playerCountDisplay"></div>
 
@@ -755,7 +668,7 @@ const handleWorldSelection = (worldId: string, listItem: HTMLLIElement, worldLis
 
             {/*Friend List */}
             <div id="contact-list-container">
-                <button id="toggle-contact-list" className='toggle-contact-list'></button>
+                <button id="toggle-contact-list" className='toggle-contact-list' style={{ display: 'none', opacity: 0 }}></button>
                 <div id="contact-list">
                   <h1 style={{textAlign: 'center', paddingBottom: '10px'}}>CONNECTED LINKS</h1>
                   <button id='toggle-contact' className='toggle-contact'></button>
@@ -897,7 +810,7 @@ const handleWorldSelection = (worldId: string, listItem: HTMLLIElement, worldLis
             <div id="score-status" className="player-score"></div>
 
             {/* Party Chat */}
-            <button id="toggle-party-list"></button>
+            <button id="toggle-party-list" style={{ display: 'none', opacity: 0 }}></button>
             <button id="party-call-button" style={{display: 'none'}}>VOICE</button>
             <button id="toggle-lobby">INBOX</button>
             <div id="party-chat-container" className="chat-box" style={{ display: 'none' }}>
@@ -914,10 +827,10 @@ const handleWorldSelection = (worldId: string, listItem: HTMLLIElement, worldLis
       )}
 
       {/* Other Hidden UI Elements */}
-      <div id="coin-market"></div>
+      <div id="coin-market" style={{ display: 'none', opacity: 0 }}></div>
       <div id="target-player-id"></div>
-      <button id="invite-button" style={{ opacity: 0 }}></button>
-      <button id="friend-invite-button" style={{ opacity: 0 }}></button>
+      <button id="invite-button" style={{ display: 'none', opacity: 0 }}></button>
+      <button id="friend-invite-button" style={{ display: 'none', opacity: 0 }}></button>
       <div id="touch-radio" style={{ opacity: 0 }}></div>
       <div id="touch-previous" style={{ opacity: 0 }}></div>
       <div id="touch-next" style={{ opacity: 0 }}></div>
@@ -934,17 +847,11 @@ const handleWorldSelection = (worldId: string, listItem: HTMLLIElement, worldLis
 
       {/* Switch Container */}
       <div id="switch-container">
-        <div id="switch">
+        {/* <div id="switch">
           <div id="switch-toggle"></div>
-        </div>
+        </div> */}
       </div>
 
-      {/* Conditionally render the w3m-button at the top-left corner */}
-      {showWalletButton && (
-        <div className="fixed inset-0 z-50000 flex items-center justify-center">
-          <w3m-button />
-        </div>
-      )}
     </main>
   );
 };

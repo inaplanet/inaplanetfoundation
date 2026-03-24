@@ -28,6 +28,8 @@ import Car19 from './Car19.js'
 import Areas from './Areas.js'
 import Tiles from './Tiles.js'
 import Walls from './Walls.js'
+import { getPlayerDisplayName } from '../Utils/playerIdentity.js'
+import { createRandomStarterMatcaps } from '../Utils/playerLoadout.js'
 import IntroSection from './Sections/IntroSection.js'
 import IntroPartSection from './Sections/IntroPartSection.js'
 import CrossroadsSection from './Sections/CrossroadsSection.js'
@@ -36,8 +38,6 @@ import PlaygroundSection from './Sections/PlaygroundSection.js'
 import Controls from './Controls.js'
 import Controls1 from './Controls1.js'
 import Sounds from './Sounds.js'
-const videoAdsSource = 'images/videos/video.mp4';
-const videoAdSource = 'images/videos/kyberscrolling.mp4';
 import feather from 'feather-icons'
 import LazyLoad from 'react-lazy-load';
 import interact from 'interactjs'
@@ -205,19 +205,8 @@ export default class
         });
     };
 
-    applyRandomMatcapsIfMissing = () => {
-        const hasMatcaps = this.matcaps && typeof this.matcaps === 'object' && Object.keys(this.matcaps).length > 0;
-        if (hasMatcaps) return;
-
-        const pool = ['black', 'metal', 'blueGlass', 'volcano', 'amazon', 'blacksea', 'elevator'];
-        const pick = () => pool[Math.floor(Math.random() * pool.length)];
-        this.matcaps = {
-            chassis: pick(),
-            chassisbottom: pick(),
-            wheels: pick(),
-            window: pick(),
-            spoiler: pick()
-        };
+    applyRandomMatcaps = () => {
+        this.matcaps = createRandomStarterMatcaps();
 
         if (typeof window !== 'undefined') {
             localStorage.setItem('matcaps', JSON.stringify(this.matcaps));
@@ -426,38 +415,41 @@ export default class
 
         // Function to format playerId
         function formatPlayerId(targetPlayerId) {
-            const firstPart = targetPlayerId.substring(0, 4);
-            const lastPart = targetPlayerId.substring(targetPlayerId.length - 4);
-            return `${firstPart}...${lastPart}`;
+            return getPlayerDisplayName(targetPlayerId);
         }
     
         // Update the content and show the element
         targetElement.innerText = '' + formatPlayerId(targetPlayerId) + '';
         targetElement.style.display = 'block';
         targetElement.style.opacity = '1';
+        this.updateTargetPlayerDisplay();
     }
 
     // Function to dynamically update the display style based on orientation
     updateTargetPlayerDisplay() {
-        const isHorizontal = window.innerWidth > window.innerHeight;
-        
-        if (isHorizontal) {
-            // Display for horizontal (desktop/landscape mode)
-            targetElement.style.display = 'block';
-            targetElement.style.position = 'absolute';
-            targetElement.style.textAlign = 'center';
-            targetElement.style.fontFamily = 'Orbitron, sans-serif'
-            targetElement.style.fontSize = '10px';
-            targetElement.style.top = '48px';
-            targetElement.style.left = '269px';
-            targetElement.style.background = 'rgba(0, 0, 0, 0.5);';
-            targetElement.style.color = '#fff';
-            targetElement.style.padding = '10px 10px';
-            targetElement.style.borderRadius = '5px';
-            targetElement.style.zIndex = '10px';
-            targetElement.style.opacity = '0';
-            targetElement.style.rotate = '90deg';
-        }
+        const targetElement = document.getElementById('target-player-id');
+        const miniMap = document.getElementById('mini-map');
+        if (!targetElement || !miniMap) return;
+
+        const miniMapRect = miniMap.getBoundingClientRect();
+        targetElement.style.display = 'block';
+        targetElement.style.position = 'absolute';
+        targetElement.style.textAlign = 'center';
+        targetElement.style.fontFamily = 'Orbitron, sans-serif';
+        targetElement.style.fontSize = '10px';
+        targetElement.style.top = `${miniMapRect.top}px`;
+        targetElement.style.left = `${miniMapRect.right + 12}px`;
+        targetElement.style.width = '42px';
+        targetElement.style.minHeight = `${miniMapRect.height}px`;
+        targetElement.style.background = 'rgba(0, 0, 0, 0.5)';
+        targetElement.style.color = '#fff';
+        targetElement.style.padding = '10px 6px';
+        targetElement.style.borderRadius = '5px';
+        targetElement.style.zIndex = '10';
+        targetElement.style.backdropFilter = 'blur(10px)';
+        targetElement.style.writingMode = 'vertical-rl';
+        targetElement.style.textOrientation = 'mixed';
+        targetElement.style.transform = 'rotate(180deg)';
     }
     
     hideTargetPlayerId() {
@@ -465,6 +457,7 @@ export default class
         if (targetElement) {
             // targetElement.innerText = '⫷⫸'
             targetElement.innerText = 'TARGET'
+            this.updateTargetPlayerDisplay();
         }
     }
 
@@ -477,8 +470,6 @@ export default class
             }, 2000);
         }
 
-        this.setAds();
-        this.setCityTour();
         this.setMaterials();
         this.setShadows();
         this.setZones();
@@ -527,80 +518,11 @@ export default class
         console.log("This car car name", this.car.carName)
       }
 
-      setAds() {
-        const video = document.createElement('video');
-        video.src = videoAdsSource;
-        video.id = 'video';
-        video.crossOrigin = 'anonymous';
-        video.playsInline = true;
-        video.width = 500; 
-        video.height = 500; 
-        video.autoplay = true;
-        video.muted = true;
-        video.loop = true;
-        video.style = 'display: none';
-
-        // Event listeners to prevent unwanted behavior
-        const preventDefaultHandler = (event) => event.preventDefault();
-        ['click', 'contextmenu', 'mousedown', 'mouseup', 'touchstart', 'touchend'].forEach(event => 
-            video.addEventListener(event, preventDefaultHandler)
-        );
-    
-        document.body.appendChild(video);
-    
-        const videoTexture = new THREE.VideoTexture(video);
-    
-        // Create a video texture from the video element
-        videoTexture.minFilter = THREE.LinearFilter;
-        videoTexture.magFilter = THREE.LinearFilter;
-        videoTexture.format = THREE.RGBFormat;
-    
-        // Create a plane with video texture
-        const planeGeometry = new THREE.PlaneGeometry(2, 2); // Adjust the aspect ratio as needed
-        const planeMaterial = new THREE.MeshBasicMaterial({ map: videoTexture, side: THREE.DoubleSide, toneMapped: false });
-        const videoPlane = new THREE.Mesh(planeGeometry, planeMaterial);
-    
-        // Position the plane
-        videoPlane.position.set(-25.0363, -30.8, 1.2); // Adjust the position as needed
-        videoPlane.rotation.x = Math.PI / 2; // Rotate 45 degrees; adjust as needed
-    
-        // Add the plane to the scene
-        this.container.add(videoPlane);
-    
-        // Ensure the texture updates
-        this.time.on('tick', () => {
-            if (videoTexture && video.readyState >= video.HAVE_CURRENT_DATA) {
-                videoTexture.needsUpdate = true;
-            }
-        });
-    }
-
     setCityTour() {
-        // Create a video element
-        const video = document.createElement('video');
-        video.src = videoAdSource; // Replace with your video source
-        video.id = 'video-ad';
-        video.crossOrigin = 'anonymous';
-        video.playsInline = true;
-        video.autoplay = true;
-        video.muted = true;
-        video.loop = true;
-        video.style = 'display: none'; // Hide the video element itself
-    
-        // Append the video to the DOM
-        document.body.appendChild(video);
-    
-        // Create a VideoTexture from the video element
-        const videoTexture = new THREE.VideoTexture(video);
-        videoTexture.minFilter = THREE.LinearFilter;
-        videoTexture.magFilter = THREE.LinearFilter;
-        videoTexture.format = THREE.RGBFormat;
-    
         // Plane dimensions
         const planeWidth = 1190; // Covers the world size
         const planeHeight = 180;
         const borderCenterZ = 48;
-        const roofZ = 84;
     
         // Create the plane geometry
         const planeGeometry = new THREE.PlaneGeometry(planeWidth, planeHeight);
@@ -610,9 +532,11 @@ export default class
     
         // Top and Bottom Panels
         const topBottomMaterial = new THREE.MeshBasicMaterial({
-            map: videoTexture,
             side: THREE.DoubleSide,
             toneMapped: false,
+            color: 0x060606,
+            transparent: true,
+            opacity: 0.92,
         });
     
         // Bottom border
@@ -633,42 +557,24 @@ export default class
     
         // Material for the left and right panels
         const sideMaterial = new THREE.MeshBasicMaterial({
-            map: videoTexture,
             side: THREE.DoubleSide,
             toneMapped: false,
+            color: 0x080808,
+            transparent: true,
+            opacity: 0.88,
         });
     
         // Left border
         const leftPlane = new THREE.Mesh(sidePlaneGeometry, sideMaterial.clone());
-        leftPlane.material.map = videoTexture.clone(); // Clone the texture for independent transformation
-        leftPlane.material.map.center.set(0.5, 0.5); // Set the pivot point for rotation
-        leftPlane.material.map.rotation = Math.PI / 2; // Rotate the texture to align correctly
         leftPlane.position.set(-595, 0, borderCenterZ);
         leftPlane.rotation.y = Math.PI / 2; // Align the plane geometry
         planes.push(leftPlane);
     
         // Right border
         const rightPlane = new THREE.Mesh(sidePlaneGeometry, sideMaterial.clone());
-        rightPlane.material.map = videoTexture.clone(); // Clone the texture for independent transformation
-        rightPlane.material.map.center.set(0.5, 0.5); // Set the pivot point for rotation
-        rightPlane.material.map.rotation = -Math.PI / 2; // Rotate the texture to align correctly
         rightPlane.position.set(595, 0, borderCenterZ);
         rightPlane.rotation.y = -Math.PI / 2; // Align the plane geometry
         planes.push(rightPlane);
-
-        // Roof panel to visually close the arena from the top
-        const roofPlane = new THREE.Mesh(
-            new THREE.PlaneGeometry(planeWidth, planeWidth),
-            new THREE.MeshBasicMaterial({
-                map: videoTexture,
-                side: THREE.DoubleSide,
-                toneMapped: false,
-                transparent: true,
-                opacity: 0.55
-            })
-        );
-        roofPlane.position.set(0, 0, roofZ);
-        planes.push(roofPlane);
 
         // Corner panels so there are no visible gaps at border intersections
         const cornerGeometry = new THREE.PlaneGeometry(planeHeight, planeHeight);
@@ -680,7 +586,6 @@ export default class
         ];
         cornerConfigs.forEach((corner) => {
             const cornerPlane = new THREE.Mesh(cornerGeometry, sideMaterial.clone());
-            cornerPlane.material.map = videoTexture.clone();
             cornerPlane.position.set(corner.x, corner.y, borderCenterZ);
             cornerPlane.rotation.y = corner.ry;
             planes.push(cornerPlane);
@@ -688,13 +593,6 @@ export default class
     
         // Add planes to the scene
         planes.forEach(plane => this.container.add(plane));
-    
-        // Ensure the video textures update on each frame
-        this.time.on('tick', () => {
-            if (videoTexture && video.readyState >= video.HAVE_CURRENT_DATA) {
-                videoTexture.needsUpdate = true;
-            }
-        });
     }
 
         requestPlayerScore(playerId) {
@@ -1181,7 +1079,7 @@ export default class
                     case 'friendshipResponse':
                             if (message.response === 'yes') {
                                 console.log(`${message.playerId} accepted friendship invite from ${message.friendRequestId}`);
-                                this.showPopup(`You are now connected with ${message.friendRequestId.slice(0, 6)}`);
+                                this.showPopup(`You are now connected with ${this.formatPlayerId(message.friendRequestId)}`);
                             } else {
                                 console.log(`${message.playerId} denied friendship invite from ${message.friendRequestId}`);
                                 this.showPopup(`Connection invite denied.`);
@@ -1322,8 +1220,8 @@ export default class
 
                         const partyInfo = document.getElementById('party-info');
                         if (partyInfo) {
-                            partyInfo.style.opacity = 1;
-                            partyInfo.style.display = 'flex';
+                            partyInfo.style.opacity = 0;
+                            partyInfo.style.display = 'none';
                         }
 
                         const messenger = document.getElementById('toggle-lobby');
@@ -1782,11 +1680,7 @@ export default class
                     });
             
                     // Format playerId for display
-                    const formatPlayerId = (playerId) => {
-                        const firstPart = playerId.substring(0, 4);
-                        const lastPart = playerId.substring(playerId.length - 4);
-                        return `${firstPart}...${lastPart}`;
-                    };
+                    const formatPlayerId = (playerId) => getPlayerDisplayName(playerId);
             
                     // Create or update playerId text separately, positioned above the battery
                     let playerIdText = car.playerIdText; // Use car.playerIdText for storing the text mesh
@@ -1858,6 +1752,39 @@ export default class
                 car.controls.actions.shoot = data.controls.shoot;
                 car.controls.actions.siren = data.controls.siren;
 
+                if (car.headLights?.material) {
+                    car.headLights.material.transparent = true;
+                    car.headLights.material.opacity = data.controls.up ? 1 : 0.1;
+                }
+
+                if (car.headLights?.object) {
+                    car.headLights.object.traverse((child) => {
+                        if (child instanceof THREE.Mesh) {
+                            child.visible = true;
+                            if (Array.isArray(child.material)) {
+                                child.material.forEach((material) => {
+                                    if (!material) return;
+                                    material.transparent = true;
+                                    material.opacity = data.controls.up ? 1 : 0.1;
+                                });
+                            } else if (child.material) {
+                                child.material.transparent = true;
+                                child.material.opacity = data.controls.up ? 1 : 0.1;
+                            }
+                        }
+                    });
+                }
+
+                if (car.backLightsReverse?.material) {
+                    car.backLightsReverse.material.transparent = true;
+                    car.backLightsReverse.material.opacity = data.controls.down ? 1 : 0.5;
+                }
+
+                if (car.backLightsBrake?.material) {
+                    car.backLightsBrake.material.transparent = true;
+                    car.backLightsBrake.material.opacity = data.controls.brake ? 1 : 0.5;
+                }
+
                 const carSteeringValue = data.controls.steering;
                 const shouldApplyRemoteForces = false;
                 if (shouldApplyRemoteForces) {
@@ -1880,7 +1807,6 @@ export default class
                     } else if (data.controls.down) {
                         car.physics[carKey].vehicle.applyEngineForce(-car.physics[carKey].options.controlsAcceleratingSpeed, 2);
                         car.physics[carKey].vehicle.applyEngineForce(-car.physics[carKey].options.controlsAcceleratingSpeed, 3);
-                        car.backLightsReverse.material.opacity = data.controls.down ? 1 : 0.5;
                     } else {
                         car.physics[carKey].vehicle.applyEngineForce(0, 2);
                         car.physics[carKey].vehicle.applyEngineForce(0, 3);
@@ -1891,8 +1817,6 @@ export default class
                         car.physics[carKey].vehicle.setBrake(car.physics[carKey].options.controlsBrakeStrength, 1);
                         car.physics[carKey].vehicle.setBrake(car.physics[carKey].options.controlsBrakeStrength, 2);
                         car.physics[carKey].vehicle.setBrake(car.physics[carKey].options.controlsBrakeStrength, 3);
-
-                        car.backLightsBrake.material.opacity = data.controls.brake ? 1 : 0.5;
 
                     } else {
                         car.physics[carKey].vehicle.setBrake(0, 0);
@@ -2111,7 +2035,7 @@ export default class
             }
 
             const messageElement = document.getElementById('invite-message');
-            messageElement.innerText = `${inviterId.slice(0, 6)} invited you to a party. Would you like to join?`;
+            messageElement.innerText = `${this.formatPlayerId(inviterId)} invited you to a party. Would you like to join?`;
             messageElement.style.textAlign = 'left';
             messageElement.style.marginLeft = '10px';
             messageElement.style.fontSize = '15px';
@@ -2249,7 +2173,7 @@ export default class
             }
         
             const messageElement = document.getElementById('friend-invite-message');
-            messageElement.innerText = `${friendRequestId.slice(0, 6)} wants to add your wallet address to connect list. Accept?`;
+            messageElement.innerText = `${this.formatPlayerId(friendRequestId)} wants to link up. Accept?`;
             messageElement.style.textAlign = 'left';
             messageElement.style.marginLeft = '10px';
             messageElement.style.fontSize = '15px';
@@ -2330,10 +2254,10 @@ export default class
             const inviteButton = document.getElementById('invite-button');
             if (!inviteButton) return;
 
-            const canInvite = !this.inParty || this.isPartyLeader;
-            inviteButton.style.opacity = canInvite ? '1' : '0.35';
-            inviteButton.style.pointerEvents = canInvite ? 'auto' : 'none';
-            inviteButton.title = canInvite ? '' : 'Only party leader can invite';
+            inviteButton.style.opacity = '0';
+            inviteButton.style.display = 'none';
+            inviteButton.style.pointerEvents = 'none';
+            inviteButton.title = '';
         };
 
         getPartyMemberBattery = (memberId) => {
@@ -2396,6 +2320,8 @@ export default class
                     backdrop-filter: blur(5px);
                     transition: all 0.5s ease-in-out;
                     align-items: center;
+                    display: none;
+                    opacity: 0;
                 `;
                 document.body.appendChild(partyElement);
             }
@@ -2555,9 +2481,7 @@ export default class
             };
 
             formatPlayerId(id) {
-                const firstPart = id.substring(0, 4);
-                const lastPart = id.substring(id.length - 4);
-                return `${firstPart}...${lastPart}`;
+                return getPlayerDisplayName(id);
             }
 
             // Function to send a message to party members
@@ -2721,10 +2645,8 @@ export default class
                     console.error("Invalid playerId:", playerId);
                     return "Unknown";
                 }
-            
-                const firstPart = playerId.substring(0, 4);
-                const lastPart = playerId.substring(playerId.length - 4);
-                return `${firstPart}...${lastPart}`;
+
+                return getPlayerDisplayName(playerId);
             }
         
             // Function to show a notification badge on the toggle button
@@ -3686,7 +3608,9 @@ export default class
                         }
                     }
                 }
-                this.applyRandomMatcapsIfMissing();
+                if (!this.matcaps || Object.keys(this.matcaps).length === 0) {
+                    this.applyRandomMatcaps();
+                }
 
                 this.cars = {};
                 this.otherPlayers = {};
@@ -3802,7 +3726,8 @@ export default class
                     }
                 };
 
-                document.getElementById('friend-invite-button').addEventListener('click', () => {
+                const friendInviteButton = document.getElementById('friend-invite-button');
+                if (friendInviteButton) friendInviteButton.addEventListener('click', () => {
                     const targetPlayerId = this.detectNearestTarget();
                     if (targetPlayerId) {
                         const playerId = this.car.playerId;
@@ -3841,7 +3766,8 @@ export default class
                 }                            
 
                 // Add the invite button event listener
-                document.getElementById('invite-button').addEventListener('click', () => {
+                const inviteButton = document.getElementById('invite-button');
+                if (inviteButton) inviteButton.addEventListener('click', () => {
                     if (this.inParty && !this.isPartyLeader) {
                         this.showPopup('Only party leader can invite players.');
                         return;
@@ -3919,17 +3845,27 @@ export default class
 
                 // Create the toggle chat visibility button inside the chat box
                 const toggleList = document.getElementById('toggle-contact')
-                toggleList.innerHTML = `${feather.icons['x'].toSvg({ width: 15, height: 15 })}`;
+                if (toggleList) {
+                    toggleList.innerHTML = `${feather.icons['x'].toSvg({ width: 15, height: 15 })}`;
+                    toggleList.addEventListener('click', this.toggleFriendList);
+                }
 
-                document.getElementById('toggle-contact-list').addEventListener('click', this.toggleFriendList);
-                toggleList.addEventListener('click', this.toggleFriendList);
+                const toggleContactListButton = document.getElementById('toggle-contact-list');
+                if (toggleContactListButton) {
+                    toggleContactListButton.addEventListener('click', this.toggleFriendList);
+                }
 
                 // Create the toggle chat visibility button inside the chat box
                 const toggleSettingsWindow = document.getElementById('toggle-settings-window')
-                toggleSettingsWindow.innerHTML = `${feather.icons['x'].toSvg({ width: 15, height: 15 })}`;
+                if (toggleSettingsWindow) {
+                    toggleSettingsWindow.innerHTML = `${feather.icons['x'].toSvg({ width: 15, height: 15 })}`;
+                    toggleSettingsWindow.addEventListener('click', this.toggleSettings);
+                }
 
-                document.getElementById('toggle-settings').addEventListener('click', this.toggleSettings);
-                toggleSettingsWindow.addEventListener('click', this.toggleSettings);
+                const toggleSettingsButton = document.getElementById('toggle-settings');
+                if (toggleSettingsButton) {
+                    toggleSettingsButton.addEventListener('click', this.toggleSettings);
+                }
             
                 // Event listener for sending a message
                 document.getElementById('send-message-button').addEventListener('click', () => {
@@ -4157,6 +4093,13 @@ export default class
 
         this.miniMap = miniMap;
         this.miniMapElements = {}; // Store references to mini-map elements
+        this.updateTargetPlayerDisplay();
+
+        if (typeof window !== 'undefined') {
+            window.addEventListener('resize', () => {
+                this.updateTargetPlayerDisplay();
+            });
+        }
     }
 
     // Update the mini-map with player positions and coin position
@@ -4477,7 +4420,7 @@ export default class
     // Function to update battery status in HTML
     updateScoreStatus(score) {
         const scoreElement= document.getElementById('coin-market');
-        if (score !== undefined && score !== null ) {
+        if (scoreElement && score !== undefined && score !== null ) {
             scoreElement.textContent = `₭ ${score}`;
             this.car.score = score;
         }
@@ -4510,11 +4453,7 @@ export default class
             }
         
             // Format playerId for display
-            const formatPlayerId = (playerId) => {
-                const firstPart = playerId.substring(0, 4);
-                const lastPart = playerId.substring(playerId.length - 4);
-                return `${firstPart}...${lastPart}`;
-            };
+            const formatPlayerId = (playerId) => getPlayerDisplayName(playerId);
     
             // Update UI with player information
             const userDisplay = document.getElementById('userDisplay');
@@ -4526,20 +4465,40 @@ export default class
             const contactList = document.getElementById('toggle-contact-list');
             const settings = document.getElementById('toggle-settings');
 
-            inviteButton.innerText = 'TEAM UP';
-            inviteFriend.innerText = 'LINK UP';
-            contactList.innerText = 'LINK BOX';
-            settings.innerText = 'JOYSTICK';
+            if (settings) {
+                settings.innerText = 'JOYSTICK';
+                if (batteryStatus) {
+                    settings.style.width = `${batteryStatus.offsetWidth}px`;
+                }
+            }
             
             if (userDisplay) {
                 userDisplay.innerHTML = formatPlayerId(playerId);
-                batteryStatus.style.opacity = 1;
-                scoreElement.style.opacity = 1;
-                coinMarket.style.opacity = 1;
-                inviteButton.style.opacity = 1;
-                inviteFriend.style.opacity = 1;
-                contactList.style.opacity = 1;
-                settings.style.opacity = 1;
+                if (batteryStatus) batteryStatus.style.opacity = 1;
+                if (scoreElement) scoreElement.style.opacity = 0;
+                if (coinMarket) {
+                    coinMarket.style.opacity = 0;
+                    coinMarket.style.display = 'none';
+                }
+                if (inviteButton) {
+                    inviteButton.innerText = '';
+                    inviteButton.style.opacity = 0;
+                    inviteButton.style.display = 'none';
+                }
+                if (inviteFriend) {
+                    inviteFriend.innerText = '';
+                    inviteFriend.style.opacity = 0;
+                    inviteFriend.style.display = 'none';
+                }
+                if (contactList) {
+                    contactList.innerText = '';
+                    contactList.style.opacity = 0;
+                    contactList.style.display = 'none';
+                }
+                if (settings) {
+                    settings.style.opacity = 1;
+                    settings.style.display = 'flex';
+                }
             }
             this.updateInviteButtonState();
     
@@ -4657,6 +4616,7 @@ export default class
     setStartingScreen()
     {
         this.startingScreen = {}
+        this.startingScreen.hasStarted = false
 
         // Area
         this.startingScreen.area = this.areas.add({
@@ -4668,6 +4628,58 @@ export default class
         })
 
         this.startingScreen.area.floorBorder.material.uniforms.uAlpha.value = 0
+
+        this.startingScreen.finish = () => {
+            if(this.startingScreen.hasStarted)
+            {
+                return
+            }
+
+            this.startingScreen.hasStarted = true
+
+            const loadingLayer = document.getElementById('loading-layer');
+            const w3mLayer = document.getElementById('w3m-layer');
+            const worldLayer = document.getElementById('world-layer');
+            const garageLayer = document.getElementById('garage');
+            const worldClock = document.getElementById('worldclock');
+
+            if (loadingLayer) {
+                loadingLayer.style.display = 'none';
+            }
+
+            if (w3mLayer) {
+                w3mLayer.style.display = 'none';
+            }
+
+            if (worldLayer) {
+                worldLayer.style.display = 'none';
+            }
+
+            if (garageLayer) {
+                garageLayer.style.display = 'none';
+            }
+
+            if (worldClock) {
+                worldClock.style.display = 'none';
+            }
+
+            this.startingScreen.area.deactivate()
+            this.startingScreen.loadingLine.mesh.visible = false
+            this.startingScreen.percentageLabel.style.display = 'none'
+
+            if(this.startingScreen.startLabel?.material)
+            {
+                gsap.to(this.startingScreen.startLabel.material, 0.2, { opacity: 0 })
+            }
+
+            this.start()
+
+            if (typeof window !== 'undefined') {
+                window.setTimeout(() => {
+                    this.reveal.go()
+                }, 250)
+            }
+        }
 
         // Loading line
         this.startingScreen.loadingLine = {}
@@ -4719,61 +4731,16 @@ export default class
             if (typeof window !== 'undefined') {
 
                 window.requestAnimationFrame(() => {
-                    this.startingScreen.area.activate()
-
                     gsap.to(this.startingScreen.loadingLine.material, 0.3, { opacity: 0 })
                     this.startingScreen.loadingLine.mesh.visible = false
-                    gsap.to(this.startingScreen.startLabel.material, 0.3, { opacity: 1, delay: 0.3 })
-                    
-                    // Hide percentage label
-                    this.startingScreen.percentageLabel.style.display = 'none'
+                    this.startingScreen.finish()
                 })
             }
         })
 
         // On interact, reveal
         this.startingScreen.area.on('interact', () => {
-
-            const loadingLayer = document.getElementById('loading-layer');
-            const w3mLayer = document.getElementById('w3m-layer');
-            const worldLayer = document.getElementById('world-layer');
-            const garageLayer = document.getElementById('garage');
-            const worldClock = document.getElementById('worldclock');
-
-            if (loadingLayer) {
-                loadingLayer.style.display = 'none';
-            }
-
-            if (w3mLayer) {
-                w3mLayer.style.display = 'none';
-            }
-
-            if (worldLayer) {
-                worldLayer.style.display = 'none';
-            }
-
-            if (garageLayer) {
-                garageLayer.style.display = 'none';
-            }
-
-            if (worldClock) {
-                worldClock.style.display = 'none';
-            }
-
-            this.startingScreen.area.deactivate()
-            
-            // Hide the loading line
-            this.startingScreen.loadingLine.mesh.visible = false
-
-            gsap.to(this.startingScreen.startLabel.material, 0.3, { opacity: 0, delay: 0.4 })
-
-            this.start()
-
-            if (typeof window !== 'undefined') {
-                window.setTimeout(() => {
-                    this.reveal.go()
-                }, 600)
-            }
+            this.startingScreen.finish()
         })
     }
 

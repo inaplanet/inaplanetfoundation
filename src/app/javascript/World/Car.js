@@ -3,6 +3,34 @@ import CANNON from 'cannon'
 
 import { TransformControls } from 'three/examples/jsm/controls/TransformControls.js'
 
+function normalizeStoredMatcapName(matcapName)
+{
+    if(typeof matcapName !== 'string' || matcapName.length === 0)
+    {
+        return matcapName
+    }
+
+    if(matcapName.startsWith('shade') && matcapName.length > 5)
+    {
+        const normalizedName = matcapName.slice(5)
+        return `${normalizedName.substring(0, 1).toLowerCase()}${normalizedName.substring(1)}`
+    }
+
+    return matcapName
+}
+
+function normalizeStoredMatcaps(matcaps = {})
+{
+    const normalizedMatcaps = {}
+
+    for(const [partName, matcapName] of Object.entries(matcaps))
+    {
+        normalizedMatcaps[partName] = normalizeStoredMatcapName(matcapName)
+    }
+
+    return normalizedMatcaps
+}
+
 export default class Car
 {
     constructor(_options)
@@ -25,7 +53,7 @@ export default class Car
         this.worldId = _options.worldId
         this.ws = _options.ws
         this.carName = _options.carName
-        this.matcaps = _options.matcaps
+        this.matcaps = normalizeStoredMatcaps(_options.matcaps)
         this.isRemotePlayer = Boolean(_options.isRemotePlayer)
 
         // Set up
@@ -2341,16 +2369,24 @@ export default class Car
         this.headLights.material.opacity = 0.1
 
         this.backLightsBrake.object = this.objects.getConvertedMesh(this.models.backLightsBrake.scene.children)
-        for(const _child of this.backLightsBrake.object.children)
+        this.backLightsBrake.object.traverse((_child) =>
         {
-            _child.material = this.backLightsBrake.material
-        }
+            if(_child instanceof THREE.Mesh)
+            {
+                _child.material = this.backLightsBrake.material
+                _child.visible = true
+            }
+        })
 
         this.headLights.object = this.objects.getConvertedMesh(this.models.headLights.scene.children)
-        for(const _child of this.headLights.object.children)
+        this.headLights.object.traverse((_child) =>
         {
-            _child.material = this.headLights.material
-        }
+            if(_child instanceof THREE.Mesh)
+            {
+                _child.material = this.headLights.material
+                _child.visible = true
+            }
+        })
 
         this.chassis.object.add(this.backLightsBrake.object)
         this.chassis.object.add(this.headLights.object)
@@ -2363,10 +2399,14 @@ export default class Car
         this.backLightsReverse.material.opacity = 0.5
 
         this.backLightsReverse.object = this.objects.getConvertedMesh(this.models.backLightsReverse.scene.children)
-        for(const _child of this.backLightsReverse.object.children)
+        this.backLightsReverse.object.traverse((_child) =>
         {
-            _child.material = this.backLightsReverse.material
-        }
+            if(_child instanceof THREE.Mesh)
+            {
+                _child.material = this.backLightsReverse.material
+                _child.visible = true
+            }
+        })
 
         this.chassis.object.add(this.backLightsReverse.object)
 

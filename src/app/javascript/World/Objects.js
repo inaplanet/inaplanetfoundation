@@ -346,6 +346,16 @@ export default class Objects
                 _child.position.sub(object.collision.center)
             }
 
+            if(_options.alignToFloor)
+            {
+                const floorClearance = typeof _options.floorClearance === 'number' ? _options.floorClearance : 0
+                const lift = - object.collision.bounds.min.z + floorClearance
+
+                object.collision.body.position.z += lift
+                object.collision.origin.position.z += lift
+                object.container.position.z += lift
+            }
+
         } else {
             console.warn('Collision object is missing or undefined');
         }

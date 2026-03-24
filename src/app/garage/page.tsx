@@ -21,25 +21,20 @@ import gsap from 'gsap';
 export default function GaragePage() {
     const router = useRouter();
     const WS_BASE_URL = process.env.NEXT_PUBLIC_WS_BASE_URL || 'ws://localhost:8080';
-    const [isLoading, setIsLoading] = useState(true);
-    const [isClient, setIsClient] = useState(false);
+    const [, setIsLoading] = useState(true);
     const [navigateToPage, setNavigateToPage] = useState<string | null>(null);
     const searchParams = useSearchParams();
     const playerId = searchParams.get('playerId');
-    const [playerAccount, setPlayerAccount] = useState<number>(0);
-    const [isWebSocketReady, setIsWebSocketReady] = useState(false);
     const wsRef = useRef<WebSocket | null>(null);
-    const [loadingAccount, setLoadingAccount] = useState<boolean>(true); // Initially loading
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const carGroupRef = useRef<THREE.Group>(new THREE.Group());
     const rocketGroupRef = useRef<THREE.Group>(new THREE.Group());
     const showroomGroupRef = useRef<THREE.Group>(new THREE.Group());
-    const backgroundGroupRef = useRef<THREE.Group>(new THREE.Group());
     const [currentCarIndex, setCurrentCarIndex] = useState(0);
     const [isOrbitEnabled, setIsOrbitEnabled] = useState(false);
     const [showCustomizationMenu, setShowCustomizationMenu] = useState(false);
     const [view, setView] = useState<'menu' | 'car' | 'rocket' | 'showroom' | 'customize'>('menu');
-    const [showMatcapMenu, setShowMatcapMenu] = useState(false);
+    const [, setShowMatcapMenu] = useState(false);
     const [selectedPart, setSelectedPart] = useState<string | null>(null);
     const [selectedCar, setSelectedCar] = useState<string>('Kybertruck');
     const [matcaps, setMatcaps] = useState({});
@@ -48,13 +43,24 @@ export default function GaragePage() {
     const [isBlinking, setIsBlinking] = useState(false);
     const [isButtonActive, setIsButtonActive] = useState(false); // State for button activity
     const [isNitroActive, setIsNitroActive] = useState(false); // State for button activity
-    const [isCarLoading, setIsCarLoading] = useState(false); // State for button activity
+    const [, setIsCarLoading] = useState(false); // State for button activity
 
     const showroomLoaded = useRef(false);
 
-    const cameraRef = useRef<THREE.PerspectiveCamera | null>(null); // Reference for camera
-    const coinCanvasRef = useRef<HTMLCanvasElement | null>(null);  
+    const normalizeMatcapTextureKey = (matcapName: string) => {
+        if (!matcapName) {
+            return matcapName;
+        }
 
+        if (matcapName.startsWith('shade') && matcapName.length > 5) {
+            const normalizedName = matcapName.slice(5);
+            return `${normalizedName.charAt(0).toLowerCase()}${normalizedName.slice(1)}`;
+        }
+
+        return matcapName;
+    };
+
+    const cameraRef = useRef<THREE.PerspectiveCamera | null>(null); // Reference for camera
     type Car = {
         name: string;
         price: number;
@@ -447,11 +453,6 @@ export default function GaragePage() {
         setView('showroom');
     };    
 
-    const formatBalance = (account: number) => {
-        if (!account || isNaN(account)) return '0'; // Handle invalid account values
-        return account.toLocaleString('en-US').replace(/,/g, ' '); // Replace commas with spaces
-    };
-
     const kybertruck: Car[] = [
         {
             name: 'Kybertruck',
@@ -642,73 +643,7 @@ export default function GaragePage() {
         backgroundScene.add(backgroundDirectionalLight);
         backgroundScene.background = new THREE.Color('#000'); // Updated background color
 
-        // Create an AbortController to manage fetch cancellation
-        const controller = new AbortController();
-        const signal = controller.signal;
-
-        // Load the video and apply it as a texture
-        const video = document.createElement('video');
-        video.crossOrigin = 'anonymous';
-        video.loop = true;
-        video.autoplay = true;
-        video.muted = true;
-        video.playsInline = true;
-
-        
-         // Fetch the video source
-         fetch('/images/videos/video.mp4', { signal })
-         .then(response => {
-             if (!response.ok) {
-             throw new Error('Failed to fetch video');
-             }
-             return response.blob(); // Get the video as a Blob
-         })
-         .then(blob => {
-             const videoURL = URL.createObjectURL(blob); // Create a URL for the video blob
-             video.src = videoURL; // Set the video source
- 
-             // Wait for the video to be ready and then play
-             video.oncanplaythrough = () => {
-             video.play(); // Play the video once it's ready
-             };
-         })
-         .catch(error => {
-             if (error.name === 'AbortError') {
-            //  console.log('Video fetch aborted');
-             } else {
-             console.error('Error fetching video:', error);
-             }
-         }); 
-
-        // Prevent video interaction
-        video.controls = false; // Disable video controls
-        video.style.display = 'none'; // Hide the video element
-
-        // Prevent unwanted interactions
-        const preventDefaultHandler = (event: Event): void => event.preventDefault();
-        ['click', 'contextmenu', 'mousedown', 'mouseup', 'touchstart', 'touchend', 'dragstart'].forEach((event) =>
-            video.addEventListener(event, preventDefaultHandler)
-        );
-
-        // Additionally, prevent right-click menu on the video element
-        video.addEventListener('contextmenu', (event: MouseEvent) => event.preventDefault());
-
-        const videoTexture = new THREE.VideoTexture(video);
-        videoTexture.minFilter = THREE.LinearFilter;
-        videoTexture.magFilter = THREE.LinearFilter;
-        videoTexture.format = THREE.RGBAFormat;
-
-        // Calculate dimensions for 1920x1080
-        const targetWidth = 1920 / 4.15; // Adjust the divisor based on the desired scaling
-        const targetHeight = 1080 / 3.75; // Adjust the divisor based on the desired scaling
-
-        const videoMaterial = new THREE.MeshBasicMaterial({ map: videoTexture });
-        const videoPlaneGeometry = new THREE.PlaneGeometry(targetWidth, targetHeight);
-        const videoPlane = new THREE.Mesh(videoPlaneGeometry, videoMaterial);
-        // Positioning: Adjust based on the 1920x1080 reference
-        videoPlane.position.set(-171, -152, -700); // Offset values are also calculated relative to 1920x1080
-        backgroundScene.add(videoPlane);
-
+        // Keep the showroom border static instead of using a looping video texture.
         // const textureLoader = new THREE.TextureLoader();
         // textureLoader.load(
         //     '/garage/skybackground.jpg', // Replace with the actual path to your background image
@@ -888,19 +823,13 @@ export default function GaragePage() {
             window.removeEventListener('resize', handleResize);
             window.removeEventListener('click', handleMouseClick);
             renderer.dispose();
-            video.pause();
-            // video.src = '';
         };
 
     }, [currentCarIndex]);
 
-    useEffect(() => {
-        // Set the isClient flag to true when the component has mounted (client-side)
-        setIsClient(true);
-      }, []);
-
     const applyMatcap = (part: THREE.Object3D, matcapName: string) => {
-        const texture = matcapTextures.current[matcapName]; // Retrieve the texture from matcapTextures
+        const normalizedMatcapName = normalizeMatcapTextureKey(matcapName);
+        const texture = matcapTextures.current[normalizedMatcapName]; // Retrieve the texture from matcapTextures
         if (texture) {
             part.traverse((child) => {
                 if (child instanceof THREE.Mesh) {
@@ -1840,19 +1769,6 @@ export default function GaragePage() {
 
         wsRef.current.onopen = () => {
             console.log('WebSocket connected');
-            setIsWebSocketReady(true);
-
-            // Request player score after WebSocket connects
-            if (playerId) {
-                wsRef.current?.send(
-                    JSON.stringify({
-                        type: 'getScore',
-                        playerId,
-                    })
-                );
-            } else {
-                console.error('Player ID not found in localStorage');
-            }
 
             if (playerId) {
                 wsRef.current?.send(
@@ -1877,18 +1793,6 @@ export default function GaragePage() {
 
             // console.log('Received WebSocket message:', message);
 
-            // Handle player score message
-            if (message.type === 'playerScore') {
-                if (typeof message.score === 'number') {
-                    // console.log(`Player score received: ${message.score}`);
-                    setPlayerAccount(message.score);
-                    setLoadingAccount(false);
-                } else {
-                    console.error('Invalid score received:', message.score);
-                    setLoadingAccount(false);
-                }
-            }
-
             // Handle selectedCar message
             if (message.type === 'selectedCar') {
                 const selectedCar = message.selectedCar || 'Kybertruck'; // Default to Kybertruck
@@ -1912,13 +1816,22 @@ export default function GaragePage() {
         };
 
         wsRef.current.onerror = (error) => {
-            console.error('WebSocket error:', error);
-            setLoadingAccount(false);
+            console.error('WebSocket error:', error, {
+                wsBaseUrl: WS_BASE_URL,
+                hasToken: Boolean(token),
+            });
         };
 
-        wsRef.current.onclose = () => {
-            console.log('WebSocket closed');
+        wsRef.current.onclose = (event) => {
+            console.log('WebSocket closed', {
+                code: event.code,
+                reason: event.reason,
+                wasClean: event.wasClean,
+                wsBaseUrl: WS_BASE_URL,
+            });
+            wsRef.current = null;
         };
+
     }, []);
 
     // Initialize WebSocket when component mounts
@@ -1927,17 +1840,11 @@ export default function GaragePage() {
     }, [initializeWebSocket]);
 
     return (
-        <div >
-            {isLoading && (
-            <div className='pulse-container'>
-                <div className="pulse">
-                </div>
-            </div>
-            )}
+        <div>
             <canvas ref={canvasRef} style={{ width: '100%', height: '100%' }} />
             
             <div className="coin-element">
-                <div className="coin-container">
+                <div>
                     <div
                         className="button-element"
                         style={{
@@ -1958,11 +1865,6 @@ export default function GaragePage() {
                     </div>
                     <div className="coin-icon" style={{ fontSize: "25px", animation: "rotateClockwise 5s linear infinite" }}>
                     
-                    </div>
-                    {/* <div className="coin-layer">{loadingAccount ? 'Loading...' : formatBalance(playerAccount)}</div> */}
-                    <div className="coin-layer-wrapper">
-                        <h2 className="account-title">ACCOUNT FUNDS</h2>
-                        <div className="coin-layer">{loadingAccount ? '...' : formatBalance(playerAccount)} N₭</div>
                     </div>
 
                     <div

@@ -197,10 +197,11 @@ export default class PlaygroundSection
             offset: new THREE.Vector3(this.bowling.x - 5, this.bowling.y, 0),
             rotation: new THREE.Euler(Math.PI * 0.5, 0, 0),
             duplicated: true,
+            alignToFloor: true,
             shadow: { sizeX: 1.5, sizeY: 1.5, offsetZ: - 0.15, alpha: 0.35 },
             mass: 10,
-            soundName: 'bowlingBall'
-            // sleep: false
+            soundName: 'bowlingBall',
+            sleep: false
         })
 
         // // Reset

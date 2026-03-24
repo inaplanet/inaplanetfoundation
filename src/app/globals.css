@@ -153,39 +153,29 @@ body {
 
 #target-player-id {
   position: absolute;
-  width: 100px;
+  width: 42px;
+  min-height: 100px;
   text-align: center;
   font-family: 'Orbitron', sans-serif;
   font-size: 10px;
-  top: 48px;
-  left: 269px;
+  top: 15px;
+  left: 303px;
   background: rgba(0, 0, 0, 0.5);
   color: white;
-  padding: 10px 10px;
+  padding: 10px 6px;
   border-radius: 5px;
   z-index: 10;
   opacity: 0;
-  rotate: 90deg;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  transform: rotate(180deg);
   backdrop-filter: blur(10px);
 }
 
 @media (max-width: 767px) {
   #target-player-id {
-    position: absolute;
-    width: 110px;
-    text-align: center;
-    font-family: 'Orbitron', sans-serif;
-    font-size: 10px;
-    top: 125px;
-    left: 181px;
-    background: rgba(0, 0, 0, 0.5);
-    color: white;
-    padding: 10px 10px;
-    border-radius: 5px;
-    z-index: 10;
-    opacity: 0;
-    rotate: unset;
-    backdrop-filter: blur(10px);
+    top: 15px;
+    left: 303px;
   }
 }
 
@@ -445,17 +435,17 @@ opacity: 0;
   #toggle-settings {
     position: absolute;
     border: unset;
-    width: 70px;
+    width: 150px;
     height: 10px !important;
     text-align: center;
     font-family: 'Orbitron', sans-serif;
     font-weight: 600;
     font-size: 8px;
-    top: 151px;
+    top: 95px;
     align-items: center;
     justify-content: center;
     display: flex;
-    left: 100px;
+    left: 20px;
     background: rgba(0, 0, 0, 0.5);
     color: white;
     padding: 10px 10px;
@@ -747,17 +737,17 @@ opacity: 0;
   #toggle-settings {
     position: absolute;
     border: unset;
-    width: 65px;
+    width: 150px;
     height: 10px !important;
     text-align: center;
     font-family: 'Orbitron', sans-serif;
     font-weight: 600;
     font-size: 8px;
-    top: 218px;
+    top: 95px;
     align-items: center;
     justify-content: center;
     display: flex;
-    left: 306px;
+    left: 20px;
     background: rgba(0, 0, 0, 0.5);
     color: white;
     padding: 10px 10px;
@@ -1990,7 +1980,7 @@ opacity: 0;
     padding: 10px 10px;
     border-radius: 5px;
     z-index: 10;
-    opacity: 0;
+    opacity: 1;
     backdrop-filter: blur(10px);
     user-select: none;
   }
@@ -2845,6 +2835,7 @@ opacity: 0;
   width: 300px;
   height: 50px;
   background:rgba(255, 255, 255, 0.01);
+  color: #fff;
   text-transform: uppercase;
   font-family: 'Orbitron', sans-serif;
   font-weight: 500;
@@ -2865,6 +2856,8 @@ opacity: 0;
   justify-content: center;
   align-items: center;
   gap: 5px;
+  border: none;
+  cursor: pointer;
 }
 
 @media (max-width: 767px) {
@@ -2872,6 +2865,7 @@ opacity: 0;
     width: 300px;
     height: 50px;
     /* background: rgba(0, 0, 0, 0.5); */
+    color: #fff;
     text-transform: uppercase;
     font-family: 'Orbitron', sans-serif;
     font-weight: 500;
@@ -2894,6 +2888,8 @@ opacity: 0;
     justify-content: center;
     align-items: center;
     gap: 5px;
+    border: none;
+    cursor: pointer;
   }
 }
 

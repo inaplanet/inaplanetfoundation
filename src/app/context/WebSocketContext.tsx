@@ -41,6 +41,11 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     console.log(`Removing signal for ${worldId}`);
   };
 
+  const getStoredToken = () => {
+    if (typeof window === 'undefined') return null;
+    return sessionStorage.getItem('token') || localStorage.getItem('token');
+  };
+
   const initializeWebSocket = useCallback((playerId: string) => {
     console.log('Initializing WebSocket...');
     if (!playerId) {
@@ -53,7 +58,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       return;
     }
 
-    const token = localStorage.getItem('token');
+    const token = getStoredToken();
     console.log('Token:', token);
 
     const serverAddress = `${WS_BASE_URL}?token=${encodeURIComponent(token || '')}`;
@@ -173,11 +178,20 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     };
 
     wsRef.current.onerror = (error) => {
-      console.error('WebSocket error:', error);
+      console.error('WebSocket error:', error, {
+        wsBaseUrl: WS_BASE_URL,
+        hasToken: Boolean(token),
+      });
     };
 
-    wsRef.current.onclose = () => {
-      console.log('WebSocket closed');
+    wsRef.current.onclose = (event) => {
+      console.log('WebSocket closed', {
+        code: event.code,
+        reason: event.reason,
+        wasClean: event.wasClean,
+      });
+      wsRef.current = null;
+      setIsWebSocketReady(false);
     };
   }, [selectedWorldId]);
 
