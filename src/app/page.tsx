@@ -16,7 +16,6 @@ import {
   FaRedo,
   FaRobot,
   FaServer,
-  FaShoppingCart,
   FaStore,
   FaTelegramPlane,
   FaUserShield,
@@ -26,7 +25,7 @@ import {
   FaWindowMaximize,
 } from 'react-icons/fa';
 import { BiLogoTypescript } from 'react-icons/bi';
-import { MdMailOutline } from 'react-icons/md';
+import { MdLocalMall, MdMailOutline } from 'react-icons/md';
 import { RiNextjsFill, RiTailwindCssFill } from 'react-icons/ri';
 import { SiCss3, SiExpress, SiExpo, SiFlutter, SiJavascript, SiSolidity, SiWebrtc } from 'react-icons/si';
 import { TbBrandReactNative, TbBrandSocketIo } from 'react-icons/tb';
@@ -44,26 +43,328 @@ const GREETING_ITEMS = [
   'Privet',
   'Hello',
   'Ciao',
-  'Konnichiwa',
-  'Annyeonghaseyo',
   'Ni Hao',
   'Hola',
   'Bonjour',
-  'Marhaban',
   'Namaste',
   'Xin Chao',
-  'Vanakkam',
   'Neih Hou',
-  'Sannu',
   'Jambo',
-  'Sawatdee',
   'Pryvit',
   'How You Dey',
   'Oi',
 ];
 
+const LANGUAGE_OPTIONS = [
+  { code: 'az', label: 'AZ' },
+  { code: 'ru', label: 'RU' },
+  { code: 'en', label: 'ENG' },
+] as const;
+
+const MODAL_COPY = {
+  en: {
+    languageSwitcherLabel: 'Select modal language',
+    enterButton: 'ENTER THE PLANET',
+    heroTitle: 'Designs & ships digital products that move from brief to revenue.',
+    heroCopy: 'Web apps, mobile apps, admin panels, real-time systems, AI workflows, payment flows, and product delivery built around a clear technical task.',
+    chips: {
+      web: 'Web Apps',
+      mobile: 'Mobile Apps',
+      backendDesktop: 'Backend Systems',
+      backendMobile: 'Backend',
+    },
+    heroKicker: 'Operational Focus',
+    heroMetrics: [
+      'Strategy to architecture',
+      'Execution across the stack',
+      'Launch-ready product delivery',
+    ],
+    heroNote: 'We build products that are meant to be used, scaled, and remembered, not just presented.',
+    highlights: [
+      { title: 'Scope', copy: 'We turn rough briefs into a clear build plan.' },
+      { title: 'Execution', copy: 'Frontend, backend, integrations, and tooling move as one system.' },
+      { title: 'Launch', copy: 'Production readiness matters more than demo polish.' },
+    ],
+    coreStackTitle: 'Core Stack',
+    clientsTitle: 'What Clients Usually Bring',
+    clientsCopy: 'A rough brief, a technical task, a Figma file, a half-built product, or an operational bottleneck. We translate that into architecture, implementation, deadline planning, delivery structure, deployment, and iteration. That usually means clarifying priorities, defining what needs to be shipped first, and turning an unclear starting point into a practical path to launch.',
+    deliveryTitle: 'Delivery Model',
+    deliverySteps: [
+      { title: '1. Discovery', copy: 'Clarify goals, constraints, and scope.' },
+      { title: '2. Build', copy: 'Implement product, infrastructure, and integrations.' },
+      { title: '3. Launch', copy: 'Ship with monitoring, polish, and a path to scale.' },
+    ],
+    expertiseTitle: 'Our Expertise',
+    expertiseIntro: 'Product work usually spans multiple layers. We build the business-facing surface, the operational system behind it, and the infrastructure needed to run it. We mainly focus on writing native code for both frontend and backend to bring high-quality products to life.',
+    expertiseItems: [
+      {
+        title: 'Company page',
+        description: 'Clear corporate websites that present the business well, explain the offer, and convert interest into contact.',
+      },
+      {
+        title: 'Landing page',
+        description: 'Focused campaign pages built around one conversion goal, fast load time, and strong message hierarchy.',
+      },
+      {
+        title: 'E-commerce',
+        description: 'Storefronts, catalog systems, carts, checkout, and admin flows built for sales and repeat use.',
+      },
+      {
+        title: 'Marketplace',
+        description: 'Multi-vendor platforms with listings, role separation, moderation, payout logic, and operational tooling.',
+      },
+      {
+        title: 'Social networks',
+        description: 'Profiles, feeds, messaging, communities, and social loops designed for retention and interaction.',
+      },
+      {
+        title: 'Multiplayer games',
+        description: 'Shared interactive environments with synchronized state, session logic, and real-time player experience.',
+      },
+      {
+        title: 'Backend systems',
+        description: 'APIs, databases, queues, admin tooling, and service orchestration designed for stable product operations.',
+      },
+      {
+        title: 'Real-time operations',
+        description: 'Live dashboards, socket-driven updates, presence, notifications, and coordination systems that react instantly.',
+      },
+      {
+        title: 'Auth / Payment flow',
+        description: 'Identity, access control, subscriptions, payments, and recovery flows built to reduce friction and failure.',
+      },
+      {
+        title: 'VPC servers',
+        subtitle: 'private/public subnets',
+        description: 'Infrastructure layouts with secure network boundaries, isolated services, and deployable cloud environments.',
+      },
+      {
+        title: 'Smart contracts',
+        subtitle: 'Tokenomics',
+        description: 'Solidity-based token mechanics, treasury logic, claims, and onchain product rules tied to real user flows.',
+      },
+      {
+        title: 'AI workflows',
+        description: 'Task automation, assistants, internal copilots, and AI-powered flows integrated into real product operations.',
+      },
+    ],
+    worldTitle: 'The Inaplanet World',
+    worldParagraphs: [
+      'Inaplanet is our playable digital world: part arcade, part social space, part live product showcase. We built it to turn a static portfolio into something people can drive through, explore, and feel.',
+      'Visitors jump between cities, move through interactive spaces, and experience the project as a living environment instead of a flat page. The goal is to make discovery memorable and give people a world they can enjoy while they explore what we build.',
+      'The world is multiplayer, so you can connect with your friends, enter the same city, and enjoy the experience together. To enter the world, use the [ ENTER THE PLANET ] button at the top of the page.',
+    ],
+    contactTitle: "Have a project in mind? Let's discuss with us.",
+    contactCopy: "Reach out directly and we'll turn the brief into scope, architecture, and a build plan.",
+    greetingStripAria: 'Greetings in multiple languages',
+    greetingLabel: 'Text',
+    contactLabels: ['Whatsapp', 'Telegram', 'Mail'],
+    footer: 'Inaplanet Foundation. © 2026 | All rights reserved.',
+  },
+  az: {
+    languageSwitcherLabel: 'Modal dilini seçin',
+    enterButton: 'PLANETƏ DAXİL OL',
+    heroTitle: 'Briefdən gəlirə gedən rəqəmsal məhsulları dizayn edir və təhvil verir.',
+    heroCopy: 'Veb tətbiqlər, mobil tətbiqlər, admin panellər, real-time sistemlər, AI iş axınları, ödəniş axınları və aydın texniki tapşırıq ətrafında qurulan məhsul təhvili.',
+    chips: {
+      web: 'Veb tətbiqlər',
+      mobile: 'Mobil tətbiqlər',
+      backendDesktop: 'Backend sistemləri',
+      backendMobile: 'Backend',
+    },
+    heroKicker: 'Əməliyyat fokusu',
+    heroMetrics: [
+      'Strategiyadan arxitekturaya',
+      'Bütün stack üzrə icra',
+      'Buraxılışa hazır məhsul təhvili',
+    ],
+    heroNote: 'Biz sadəcə təqdim olunan deyil, istifadə olunan, miqyaslanan və yadda qalan məhsullar qururuq.',
+    highlights: [
+      { title: 'Əhatə dairəsi', copy: 'Qeyri-müəyyən briefi aydın build planına çeviririk.' },
+      { title: 'İcra', copy: 'Frontend, backend, inteqrasiyalar və alətlər bir sistem kimi işləyir.' },
+      { title: 'Buraxılış', copy: 'Demo görünüşündən çox production hazırlığı vacibdir.' },
+    ],
+    coreStackTitle: 'Əsas texnologiyalar',
+    clientsTitle: 'Müştərilər adətən nə ilə gəlir',
+    clientsCopy: 'Qeyri-dəqiq brief, texniki tapşırıq, Figma faylı, yarımçıq məhsul və ya əməliyyat bottleneck-i ilə. Biz bunu arxitektura, implementasiya, deadline planlaması, təhvil strukturu, deploy və iterasiyaya çeviririk. Bu da adətən prioritetləri aydınlaşdırmaq, əvvəl nəyin çatdırılacağını müəyyən etmək və qeyri-müəyyən başlanğıcı praktik launch yoluna çevirmək deməkdir.',
+    deliveryTitle: 'Təhvil modeli',
+    deliverySteps: [
+      { title: '1. Kəşf', copy: 'Məqsədləri, məhdudiyyətləri və scope-u dəqiqləşdiririk.' },
+      { title: '2. Quruluş', copy: 'Məhsulu, infrastrukturu və inteqrasiyaları həyata keçiririk.' },
+      { title: '3. Buraxılış', copy: 'Monitorinq, son cilalar və miqyaslanma yolu ilə məhsulu təqdim edirik.' },
+    ],
+    expertiseTitle: 'Ekspertizamız',
+    expertiseIntro: 'Məhsul işi adətən bir neçə laydan ibarət olur. Biz biznesə görünən səthi, arxadakı əməliyyat sistemini və onu işlədən infrastrukturu qururuq. Əsas fokusumuz yüksək keyfiyyətli məhsulları həyata keçirmək üçün həm frontend, həm də backend üçün native code yazmaqdır.',
+    expertiseItems: [
+      {
+        title: 'Şirkət saytı',
+        description: 'Biznesi düzgün təqdim edən, təklifi izah edən və marağı əlaqəyə çevirən korporativ saytlar.',
+      },
+      {
+        title: 'Landing page',
+        description: 'Bir konversiya məqsədi ətrafında qurulan, sürətli yüklənən və güclü mesaj iyerarxiyası olan səhifələr.',
+      },
+      {
+        title: 'E-commerce',
+        description: 'Satış və təkrar istifadə üçün qurulan vitrinlər, kataloq sistemləri, səbət, checkout və admin axınları.',
+      },
+      {
+        title: 'Marketplace',
+        description: 'Elanlar, rol ayrımı, moderasiya, payout məntiqi və əməliyyat alətləri olan multi-vendor platformalar.',
+      },
+      {
+        title: 'Sosial şəbəkələr',
+        description: 'Retention və interaction üçün qurulan profillər, feed-lər, mesajlaşma, icmalar və sosial dövrlər.',
+      },
+      {
+        title: 'Multiplayer oyunlar',
+        description: 'Sinxron vəziyyət, sessiya məntiqi və real-time oyunçu təcrübəsi olan paylaşılmış interaktiv mühitlər.',
+      },
+      {
+        title: 'Backend sistemləri',
+        description: 'Stabil məhsul əməliyyatları üçün qurulan API-lər, databazalar, queue-lar, admin alətləri və servis orkestrasyonu.',
+      },
+      {
+        title: 'Real-time əməliyyatlar',
+        description: 'Ani reaksiya verən canlı dashboard-lar, socket əsaslı yenilənmələr, presence, bildirişlər və koordinasiya sistemləri.',
+      },
+      {
+        title: 'Auth / Ödəniş axını',
+        description: 'Sürtünmə və uğursuzluqları azaltmaq üçün qurulan identity, access control, subscription, payment və recovery axınları.',
+      },
+      {
+        title: 'VPC serverlər',
+        subtitle: 'private/public subnetlər',
+        description: 'Təhlükəsiz şəbəkə sərhədləri, izolə olunmuş servislər və deploy edilə bilən cloud mühitləri ilə infrastruktur quruluşu.',
+      },
+      {
+        title: 'Ağıllı müqavilələr',
+        subtitle: 'Tokenomics',
+        description: 'Real istifadəçi axınlarına bağlı token mexanikası, treasury məntiqi, claim-lər və onchain məhsul qaydaları.',
+      },
+      {
+        title: 'AI iş axınları',
+        description: 'Real məhsul əməliyyatlarına inteqrasiya olunan task automation, assistant-lar, daxili copilots və AI əsaslı axınlar.',
+      },
+    ],
+    worldTitle: 'Inaplanet Dünyası',
+    worldParagraphs: [
+      'Inaplanet bizim oynanıla bilən rəqəmsal dünyamızdır: bir hissəsi arcade, bir hissəsi social space, bir hissəsi isə canlı product showcase-dir. Biz bunu statik portfolionu insanların içində sürə, araşdıra və hiss edə biləcəyi bir təcrübəyə çevirmək üçün qurduq.',
+      'Ziyarətçilər şəhərlər arasında keçir, interaktiv məkanlardan keçir və layihəni düz səhifə kimi deyil, yaşayan mühit kimi təcrübədən keçirirlər. Məqsəd kəşfi yadda qalan etmək və insanlara qurduqlarımızı araşdırarkən zövq ala biləcəkləri bir dünya təqdim etməkdir.',
+      'Dünya multiplayer-dir, buna görə dostlarınızla qoşula, eyni şəhərə daxil ola və təcrübəni birlikdə yaşaya bilərsiniz. Daxil olmaq üçün səhifənin yuxarısındakı [ PLANETƏ DAXİL OL ] düyməsindən istifadə edin.',
+    ],
+    contactTitle: 'Layihə ideyanız var? Gəlin müzakirə edək.',
+    contactCopy: 'Birbaşa yazın və biz briefi scope-a, arxitekturaya və build planına çevirək.',
+    greetingStripAria: 'Müxtəlif dillərdə salamlar',
+    greetingLabel: 'De',
+    contactLabels: ['Whatsapp', 'Telegram', 'E-poçt'],
+    footer: 'Inaplanet Foundation. © 2026 | Bütün hüquqlar qorunur.',
+  },
+  ru: {
+    languageSwitcherLabel: 'Выберите язык модального окна',
+    enterButton: 'ВОЙТИ В ПЛАНЕТУ',
+    heroTitle: 'Проектирует и запускает цифровые продукты, которые ведут от брифа к выручке.',
+    heroCopy: 'Веб-приложения, мобильные приложения, админ-панели, real-time системы, AI-процессы, платежные сценарии и продуктовая поставка вокруг четкой технической задачи.',
+    chips: {
+      web: 'Веб-приложения',
+      mobile: 'Мобильные приложения',
+      backendDesktop: 'Бэкенд-системы',
+      backendMobile: 'Бэкенд',
+    },
+    heroKicker: 'Операционный фокус',
+    heroMetrics: [
+      'От стратегии к архитектуре',
+      'Исполнение по всему стеку',
+      'Поставка продукта, готового к запуску',
+    ],
+    heroNote: 'Мы создаем продукты, которыми пользуются, которые масштабируются и запоминаются, а не просто показываются.',
+    highlights: [
+      { title: 'Scope', copy: 'Мы превращаем сырой бриф в понятный build plan.' },
+      { title: 'Исполнение', copy: 'Frontend, backend, интеграции и инструменты движутся как одна система.' },
+      { title: 'Запуск', copy: 'Готовность к production важнее, чем просто эффектный демо-вид.' },
+    ],
+    coreStackTitle: 'Основной стек',
+    clientsTitle: 'С чем обычно приходят клиенты',
+    clientsCopy: 'С сырым брифом, техническим заданием, файлом Figma, наполовину собранным продуктом или операционным bottleneck. Мы переводим это в архитектуру, реализацию, планирование сроков, структуру поставки, деплой и итерации. Обычно это означает прояснить приоритеты, определить, что нужно выпустить в первую очередь, и превратить неясную стартовую точку в практический путь к запуску.',
+    deliveryTitle: 'Модель поставки',
+    deliverySteps: [
+      { title: '1. Discovery', copy: 'Уточняем цели, ограничения и scope.' },
+      { title: '2. Build', copy: 'Реализуем продукт, инфраструктуру и интеграции.' },
+      { title: '3. Launch', copy: 'Выпускаем продукт с мониторингом, полировкой и путем к масштабированию.' },
+    ],
+    expertiseTitle: 'Наша экспертиза',
+    expertiseIntro: 'Работа над продуктом обычно охватывает несколько слоев. Мы строим пользовательскую поверхность, операционную систему за ней и инфраструктуру, которая все это поддерживает. Наш основной фокус — писать native code и для frontend, и для backend, чтобы запускать продукты максимального качества.',
+    expertiseItems: [
+      {
+        title: 'Сайт компании',
+        description: 'Понятные корпоративные сайты, которые хорошо представляют бизнес, объясняют предложение и превращают интерес в контакт.',
+      },
+      {
+        title: 'Landing page',
+        description: 'Фокусные страницы под одну конверсионную цель, с быстрой загрузкой и сильной иерархией сообщений.',
+      },
+      {
+        title: 'E-commerce',
+        description: 'Витрины, каталоги, корзины, checkout и admin-потоки, построенные для продаж и повторного использования.',
+      },
+      {
+        title: 'Marketplace',
+        description: 'Multi-vendor платформы с листингами, разделением ролей, модерацией, payout-логикой и операционными инструментами.',
+      },
+      {
+        title: 'Социальные сети',
+        description: 'Профили, ленты, сообщения, сообщества и социальные циклы, спроектированные для retention и interaction.',
+      },
+      {
+        title: 'Мультиплеерные игры',
+        description: 'Общие интерактивные среды с синхронизацией состояния, логикой сессий и real-time опытом игроков.',
+      },
+      {
+        title: 'Бэкенд-системы',
+        description: 'API, базы данных, очереди, admin-инструменты и оркестрация сервисов для стабильной работы продукта.',
+      },
+      {
+        title: 'Real-time операции',
+        description: 'Живые dashboards, обновления через socket, presence, уведомления и системы координации, которые реагируют мгновенно.',
+      },
+      {
+        title: 'Auth / Payment flow',
+        description: 'Identity, access control, подписки, платежи и recovery-потоки, построенные так, чтобы снижать трение и сбои.',
+      },
+      {
+        title: 'VPC серверы',
+        subtitle: 'private/public subnets',
+        description: 'Инфраструктурные схемы с безопасными сетевыми границами, изолированными сервисами и разворачиваемыми cloud-окружениями.',
+      },
+      {
+        title: 'Смарт-контракты',
+        subtitle: 'Tokenomics',
+        description: 'Solidity-механика токенов, treasury-логика, claims и onchain-правила продукта, связанные с реальными пользовательскими сценариями.',
+      },
+      {
+        title: 'AI workflows',
+        description: 'Автоматизация задач, ассистенты, внутренние copilots и AI-потоки, встроенные в реальные продуктовые операции.',
+      },
+    ],
+    worldTitle: 'Мир Inaplanet',
+    worldParagraphs: [
+      'Inaplanet — это наш игровой цифровой мир: немного arcade, немного social space и немного живой product showcase. Мы построили его, чтобы превратить статичное портфолио в пространство, по которому можно ездить, исследовать и чувствовать.',
+      'Посетители перемещаются между городами, проходят через интерактивные пространства и воспринимают проект как живую среду, а не как плоскую страницу. Цель — сделать знакомство запоминающимся и дать людям мир, которым можно наслаждаться, пока они изучают то, что мы создаем.',
+      'Этот мир мультиплеерный, поэтому вы можете подключиться с друзьями, войти в один и тот же город и пройти этот опыт вместе. Чтобы войти, используйте кнопку [ ВОЙТИ В ПЛАНЕТУ ] вверху страницы.',
+    ],
+    contactTitle: 'Есть проект в голове? Давайте обсудим.',
+    contactCopy: 'Напишите напрямую, и мы превратим бриф в scope, архитектуру и build plan.',
+    greetingStripAria: 'Приветствия на разных языках',
+    greetingLabel: 'Скажи',
+    contactLabels: ['Whatsapp', 'Telegram', 'Почта'],
+    footer: 'Inaplanet Foundation. © 2026 | Все права защищены.',
+  },
+} as const;
+
+type ModalLanguage = keyof typeof MODAL_COPY;
+
 export default function Home() {
-  const MAX_PLAYERS_PER_WORLD = 5;
+  const MAX_PLAYERS_PER_WORLD = 7;
   const wsRef = useRef<WebSocket | null>(null);
   const landingShowcaseRef = useRef<HTMLDivElement | null>(null);
   const coreStackItems = [
@@ -100,7 +401,7 @@ export default function Home() {
     },
     {
       title: 'E-commerce',
-      icon: <FaShoppingCart aria-hidden="true" />,
+      icon: <MdLocalMall aria-hidden="true" />,
       description: 'Storefronts, catalog systems, carts, checkout, and admin flows built for sales and repeat use.',
     },
     {
@@ -176,6 +477,7 @@ export default function Home() {
   const [selectedWorldId, setSelectedWorldId] = useState<string | null>(null); // New state for selected world ID
   const [token, setToken] = useState<string | null>(null); // State to store the token
   const [showLandingPage, setShowLandingPage] = useState(true);
+  const [language, setLanguage] = useState<ModalLanguage>('en');
   const [activeGreetingIndex, setActiveGreetingIndex] = useState(0);
   const [animatedGreeting, setAnimatedGreeting] = useState('');
   const [isDeletingGreeting, setIsDeletingGreeting] = useState(false);
@@ -185,6 +487,13 @@ export default function Home() {
   });
   // Websocket
   const [matcaps, setMatcaps] = useState({});
+  const modalCopy = MODAL_COPY[language];
+  const localizedExpertiseItems = modalCopy.expertiseItems.map((item, index) => ({
+    icon: expertiseItems[index].icon,
+    title: item.title,
+    subtitle: 'subtitle' in item ? item.subtitle : undefined,
+    description: item.description,
+  }));
 
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080';
   const WS_BASE_URL = process.env.NEXT_PUBLIC_WS_BASE_URL || 'ws://localhost:8080';
@@ -806,7 +1115,7 @@ const handleWorldSelection = (worldId: string, listItem: HTMLLIElement, worldLis
   }
 
   return (
-    <main className="overflow-hidden flex flex-col items-center" style={{ backgroundColor: '#000', fontFamily: "'Orbitron', sans-serif" }}>
+    <main className="overflow-hidden flex flex-col items-center" style={{ backgroundColor: '#000', fontFamily: "'Exo 2', sans-serif" }}>
       <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
 
       {!isCanvasInitialized && (
@@ -863,65 +1172,60 @@ const handleWorldSelection = (worldId: string, listItem: HTMLLIElement, worldLis
                     className="landing-showcase__back-button"
                     onClick={closeLandingPage}
                   >
-                    <span className="landing-showcase__back-icon" aria-hidden="true">↵</span>
-                    <span>ENTER THE WORLD</span>
+                    <span className="landing-showcase__back-label">{modalCopy.enterButton}</span>
                   </button>
                 </div>
                 <div ref={landingShowcaseRef} className="landing-showcase__content">
+                <div className="landing-showcase__language-switch" role="group" aria-label={modalCopy.languageSwitcherLabel}>
+                  {LANGUAGE_OPTIONS.map((option) => (
+                    <button
+                      key={option.code}
+                      type="button"
+                      className={`landing-showcase__language-button ${language === option.code ? 'landing-showcase__language-button-active' : ''}`}
+                      onClick={() => setLanguage(option.code)}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
                 <div className="landing-showcase__body">
                   <div className="landing-showcase__hero">
                     <div className="landing-showcase__hero-copy">
                       <p className="landing-showcase__eyebrow">INAPLANET.COM</p>
-                      <h1 className="landing-showcase__title">We Design & ship digital products that move from brief to revenue.</h1>
-                      <p className="landing-showcase__copy">
-                        Web apps, mobile apps, admin panels, real-time systems, AI workflows, payment flows, and product delivery built around a clear technical task.
-                      </p>
+                      <h1 className="landing-showcase__title">{modalCopy.heroTitle}</h1>
+                      <p className="landing-showcase__copy">{modalCopy.heroCopy}</p>
                       <div className="landing-showcase__chips">
-                        <span>Web Apps</span>
-                        <span>Mobile Apps</span>
-                        <span className="landing-showcase__chip-responsive" data-desktop="Backend Systems" data-mobile="Backend"></span>
+                        <span>{modalCopy.chips.web}</span>
+                        <span>{modalCopy.chips.mobile}</span>
+                        <span className="landing-showcase__chip-responsive" data-desktop={modalCopy.chips.backendDesktop} data-mobile={modalCopy.chips.backendMobile}></span>
                       </div>
                     </div>
                     <aside className="landing-showcase__hero-panel">
                       <div className="landing-showcase__hero-panel-glow" aria-hidden="true"></div>
-                      <span className="landing-showcase__hero-kicker">Operational Focus</span>
+                      <span className="landing-showcase__hero-kicker">{modalCopy.heroKicker}</span>
                       <div className="landing-showcase__hero-metrics">
-                        <div>
-                          <strong>01</strong>
-                          <span>Strategy to architecture</span>
-                        </div>
-                        <div>
-                          <strong>02</strong>
-                          <span>Execution across the stack</span>
-                        </div>
-                        <div>
-                          <strong>03</strong>
-                          <span>Launch-ready product delivery</span>
-                        </div>
+                        {modalCopy.heroMetrics.map((metric, index) => (
+                          <div key={metric}>
+                            <strong>{`0${index + 1}`}</strong>
+                            <span>{metric}</span>
+                          </div>
+                        ))}
                       </div>
-                      <p className="landing-showcase__hero-note">
-                        We build products that are meant to be used, scaled, and remembered, not just presented.
-                      </p>
+                      <p className="landing-showcase__hero-note">{modalCopy.heroNote}</p>
                     </aside>
                   </div>
                   <div className="landing-showcase__highlights">
-                    <article className="landing-showcase__card">
-                      <h2>Scope</h2>
-                      <p>We turn rough briefs into a clear build plan.</p>
-                    </article>
-                    <article className="landing-showcase__card">
-                      <h2>Execution</h2>
-                      <p>Frontend, backend, integrations, and tooling move as one system.</p>
-                    </article>
-                    <article className="landing-showcase__card">
-                      <h2>Launch</h2>
-                      <p>Production readiness matters more than demo polish.</p>
-                    </article>
+                    {modalCopy.highlights.map((item) => (
+                      <article key={item.title} className="landing-showcase__card">
+                        <h2>{item.title}</h2>
+                        <p>{item.copy}</p>
+                      </article>
+                    ))}
                   </div>
                   <div className="landing-showcase__divider" aria-hidden="true"></div>
                   <div className="landing-showcase__sections">
                     <section className="landing-showcase__section landing-showcase__section--wide">
-                    <h2>Core Stack</h2>
+                    <h2>{modalCopy.coreStackTitle}</h2>
                     <div className="landing-showcase__ticker">
                       <div className="landing-showcase__ticker-track">
                         {[...coreStackItems, ...coreStackItems].map((item, index) => (
@@ -935,36 +1239,26 @@ const handleWorldSelection = (worldId: string, listItem: HTMLLIElement, worldLis
                   </section>
                   <div className="landing-showcase__divider" aria-hidden="true"></div>
                   <section className="landing-showcase__section">
-                    <h2>What Clients Usually Bring</h2>
-                    <p>
-                      A rough brief, a technical task, a Figma file, a half-built product, or an operational bottleneck. We translate that into architecture, implementation, deadline planning, delivery structure, deployment, and iteration. That usually means clarifying priorities, defining what needs to be shipped first, and turning an unclear starting point into a practical path to launch.
-                    </p>
+                    <h2>{modalCopy.clientsTitle}</h2>
+                    <p>{modalCopy.clientsCopy}</p>
                   </section>
                   <section className="landing-showcase__section">
-                    <h2>Delivery Model</h2>
+                    <h2>{modalCopy.deliveryTitle}</h2>
                     <div className="landing-showcase__timeline">
-                      <div>
-                        <strong>1. Discovery</strong>
-                        <p>Clarify goals, constraints, and scope.</p>
-                      </div>
-                      <div>
-                        <strong>2. Build</strong>
-                        <p>Implement product, infrastructure, and integrations.</p>
-                      </div>
-                      <div>
-                        <strong>3. Launch</strong>
-                        <p>Ship with monitoring, polish, and a path to scale.</p>
-                      </div>
+                      {modalCopy.deliverySteps.map((step) => (
+                        <div key={step.title}>
+                          <strong>{step.title}</strong>
+                          <p>{step.copy}</p>
+                        </div>
+                      ))}
                     </div>
                   </section>
                   <div className="landing-showcase__divider" aria-hidden="true"></div>
                   <section className="landing-showcase__section landing-showcase__section--wide landing-showcase__section--expertise">
-                    <h2>Our Expertise</h2>
-                    <p>
-                      Product work usually spans multiple layers. We build the business-facing surface, the operational system behind it, and the infrastructure needed to run it. We mainly focus on writing native code for both frontend and backend to bring high-quality products to life.
-                    </p>
+                    <h2>{modalCopy.expertiseTitle}</h2>
+                    <p>{modalCopy.expertiseIntro}</p>
                     <div className="landing-showcase__expertise-grid">
-                      {expertiseItems.map((item) => (
+                      {localizedExpertiseItems.map((item) => (
                         <article key={item.title} className="landing-showcase__expertise-card">
                           <div className="landing-showcase__expertise-head">
                             <span className="landing-showcase__expertise-icon">{item.icon}</span>
@@ -980,31 +1274,23 @@ const handleWorldSelection = (worldId: string, listItem: HTMLLIElement, worldLis
                   </section>
                   <div className="landing-showcase__divider" aria-hidden="true"></div>
                   <section className="landing-showcase__section landing-showcase__section--story">
-                    <h2>The Inaplanet World</h2>
-                    <p>
-                      Inaplanet is our playable digital world: part arcade, part social space, part live product showcase. We built it to turn a static portfolio into something people can drive through, explore, and feel.
-                    </p>
-                    <p className="landing-showcase__story-copy">
-                      Visitors jump between cities, move through interactive spaces, and experience the project as a living environment instead of a flat page. The goal is to make discovery memorable and give people a world they can enjoy while they explore what we build.
-                    </p>
-                    <p className="landing-showcase__story-copy">
-                      The world is multiplayer, so you can connect with your friends, enter the same city, and enjoy the experience together. To enter the world, use the [ ENTER THE WORLD ] button at the top of the page.
-                    </p>
+                    <h2>{modalCopy.worldTitle}</h2>
+                    <p>{modalCopy.worldParagraphs[0]}</p>
+                    <p className="landing-showcase__story-copy">{modalCopy.worldParagraphs[1]}</p>
+                    <p className="landing-showcase__story-copy">{modalCopy.worldParagraphs[2]}</p>
                   </section>
                   <section className="landing-showcase__section landing-showcase__section--contact">
-                    <h2>Have a project in mind? Let&apos;s discuss with us.</h2>
-                    <p>
-                      Reach out directly and we&apos;ll turn the brief into scope, architecture, and a build plan.
-                    </p>
-                    <div className="landing-showcase__greeting-strip" aria-label="Greetings in multiple languages">
-                      <span className="landing-showcase__greeting-label">Say</span>
+                    <h2>{modalCopy.contactTitle}</h2>
+                    <p>{modalCopy.contactCopy}</p>
+                    <div className="landing-showcase__greeting-strip" aria-label={modalCopy.greetingStripAria}>
+                      <span className="landing-showcase__greeting-label">{modalCopy.greetingLabel}</span>
                       <div className="landing-showcase__greeting-typewriter" aria-live="polite">
                         <span>{animatedGreeting}</span>
                         <span className="landing-showcase__greeting-caret" aria-hidden="true"></span>
                       </div>
                     </div>
                     <div className="landing-showcase__contact-actions">
-                      {contactItems.map((item) => (
+                      {contactItems.map((item, index) => (
                         <a
                           key={item.label}
                           className="landing-showcase__back-button landing-showcase__section-button landing-showcase__contact-button"
@@ -1013,14 +1299,14 @@ const handleWorldSelection = (worldId: string, listItem: HTMLLIElement, worldLis
                           rel={item.href.startsWith('http') ? 'noreferrer' : undefined}
                         >
                           <span className="landing-showcase__contact-icon">{item.icon}</span>
-                          <span>{item.label}</span>
+                          <span>{modalCopy.contactLabels[index]}</span>
                         </a>
                       ))}
                     </div>
                   </section>
                 </div>
                 <p className="landing-showcase__footer-note">
-                  Inaplanet Foundation. &copy; 2026 | All rights reserved.
+                  {modalCopy.footer}
                 </p>
                 </div>
                 </div>

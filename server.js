@@ -12,7 +12,7 @@ app.use(express.json());
 
 const PORT = Number(process.env.PORT || 8080);
 const JWT_SECRET = process.env.JWT_SECRET || "dev-secret-change-me";
-const MAX_PLAYERS_PER_WORLD = Number(process.env.MAX_PLAYERS_PER_WORLD || 5);
+const MAX_PLAYERS_PER_WORLD = Number(process.env.MAX_PLAYERS_PER_WORLD || 7);
 const MAX_PARTY_SIZE = Number(process.env.MAX_PARTY_SIZE || 8);
 const TOKEN_EXPIRES_IN = process.env.TOKEN_EXPIRES_IN || "7d";
 const IS_PRODUCTION = process.env.NODE_ENV === "production";
