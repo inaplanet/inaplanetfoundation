@@ -337,16 +337,10 @@ const Application = ({ playerId, selectedWorldId, token, carName, matcaps }) => 
                     this.camera.zoom.distance = this.camera.zoom.minDistance + this.camera.zoom.amplitude * this.camera.zoom.value;
         
                 } else {
-                    // Old camera logic (behind and above the car)
-                    const offset = new THREE.Vector3(0, 5, -10);
-                    const carPosition = chassisObject.position.clone().add(offset);
-        
-                    // Smooth movement of the old camera position
-                    this.camera.instance.position.lerp(carPosition, 0.1);
+                    // Default camera is driven by Camera.js so zoom remains active.
                     this.camera.target.x = chassisObject.position.x;
                     this.camera.target.y = chassisObject.position.y;
                     this.camera.target.z = chassisObject.position.z;
-                    this.camera.instance.lookAt(chassisObject.position);
                 }
             }
         });

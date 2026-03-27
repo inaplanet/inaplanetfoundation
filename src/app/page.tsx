@@ -1334,8 +1334,15 @@ const handleWorldSelection = (worldId: string, listItem: HTMLLIElement, worldLis
       {playerId && selectedWorldId && token && application && (
         <div className="grid bg-transparent overflow-hidden shadow-sm">
           <div className="flex justify-center items-center p-4">
-            <button type="button" className="game-exit-button" id="game-exit-button" onClick={handleExitWorld} style={{ opacity: 0, display: 'none' }} aria-label="Exit game world">
-              &times;
+            <button
+              type="button"
+              className="game-exit-button"
+              id="game-exit-button"
+              onClick={handleExitWorld}
+              style={{ opacity: 0, display: 'none' }}
+              aria-label="Exit game world"
+            >
+              EXIT
             </button>
             <div id="userDisplay" className="cursor-pointer z-50" style={{ opacity: 0, display: 'none' }}></div>
             <div id="playerCountDisplay"></div>

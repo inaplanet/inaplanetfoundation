@@ -182,6 +182,11 @@ export default class Camera
             }
         }
         this.target = new THREE.Vector3(0, 0, 0)
+        if (this.zoom) {
+            this.zoom.targetValue = this.zoom.maxValue;
+            this.zoom.value = this.zoom.maxValue;
+            this.zoom.distance = this.zoom.minDistance + this.zoom.amplitude * this.zoom.value;
+        }
         // this.targetEased = new THREE.Vector3(0, 0, 0)
         // this.easing = 1
     }
@@ -393,7 +398,7 @@ export default class Camera
         this.zoom.minDistance = 7;
         this.zoom.amplitude = 105;
         this.zoom.maxValue = 0.72;
-        this.zoom.value = this.config.cyberTruck ? 0.3 : 0.5;
+        this.zoom.value = this.zoom.maxValue;
         this.zoom.targetValue = this.zoom.value;
         this.zoom.distance = this.zoom.minDistance + this.zoom.amplitude * this.zoom.value;
     

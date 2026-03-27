@@ -1563,7 +1563,7 @@ export default class
         };
 
         ensureRemotePlayerIdText = (car, playerId) => {
-            if (!car?.backLightsBattery?.object || !car?.chassis?.object) {
+            if (!car?.chassis?.object) {
                 return;
             }
 
@@ -1627,6 +1627,7 @@ export default class
                     });
 
                     playerIdText = new THREE.Sprite(material);
+                    playerIdText.center.set(0.5, 0);
                     playerIdText.renderOrder = 1000;
                     car.playerIdText = playerIdText;
                     car.chassis.object.add(playerIdText);
@@ -1644,8 +1645,7 @@ export default class
                 car.playerIdTextValue = displayName;
             }
 
-            const batteryPosition = car.backLightsBattery.object.position;
-            playerIdText.position.set(batteryPosition.x, batteryPosition.y - 0.45, batteryPosition.z + 0.42);
+            playerIdText.position.set(0, 0, 1.48);
             playerIdText.visible = true;
         };
 

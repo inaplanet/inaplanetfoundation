@@ -8532,12 +8532,26 @@ export default class Physics
 
             // Check if brake is pressed and car is in flight mode
             if (this.car.flightMode && this.controls.actions.brake) {
+                const currentForward = new CANNON.Vec3(1, 0, 0);
+                const worldForward = new CANNON.Vec3();
+                this.car.chassis.body.vectorToWorldFrame(currentForward, worldForward);
+
+                const headingVector = new CANNON.Vec3(worldForward.x, worldForward.y, 0);
+                if (headingVector.lengthSquared() < 0.0001) {
+                    headingVector.set(1, 0, 0);
+                } else {
+                    headingVector.normalize();
+                }
+
+                const preservedYaw = Math.atan2(headingVector.y, headingVector.x);
+                const uprightQuaternion = new CANNON.Quaternion();
+                uprightQuaternion.setFromAxisAngle(new CANNON.Vec3(0, 0, 1), preservedYaw);
+
                 // Exit flight mode
                 this.car.flightMode = false;
 
-                // Reset angular velocity to stop spinning or rotating in flight
-                this.car.chassis.body.angularVelocity.set(0, 0, this.car.chassis.body.angularVelocity.z);  // Stop rotation completely
-                console.log('Car physics chassis', this.car.chassis.body);
+                // Stop airborne flipping/spinning without changing the current facing direction.
+                this.car.chassis.body.angularVelocity.set(0, 0, 0);
                 // Optionally, reset any angular damping or other flight-specific physics
                 this.car.chassis.body.angularDamping = 0.1;  // Adjust if necessary for normal driving
 
@@ -8547,10 +8561,8 @@ export default class Physics
                     wheelBody.type = CANNON.Body.KINEMATIC;  // Make sure the wheels return to dynamic mode
                 }
 
-                // Lock the car’s orientation to prevent unwanted rotation (keep the car upright)
-                // Set quaternion to identity (no rotation), ensuring the car is grounded and upright
-                const groundedQuaternion = new CANNON.Quaternion(this.car.chassis.body.quaternion.x, this.car.chassis.body.quaternion.y, this.car.chassis.body.quaternion.z, 1); // This quaternion represents no rotation (identity)
-                this.car.chassis.body.quaternion.copy(groundedQuaternion);  // Lock the car's orientation
+                // Keep the same heading while making the car upright again.
+                this.car.chassis.body.quaternion.copy(uprightQuaternion);
             }
 
             // // Check if brake is pressed and car is in flight mode
@@ -8899,8 +8911,35 @@ export default class Physics
             this.triggerCarDestroyed(car, 'bullet', bullet.body.shooterId);
         }
     
-        const twitchForce = new CANNON.Vec3(Math.random() * 10 - 5, Math.random() * 10 - 5, Math.random() * 10 - 5);
-        carBody.applyImpulse(twitchForce, carBody.position);
+        const impactDirection = new CANNON.Vec3();
+        if (bullet?.body?.velocity && bullet.body.velocity.lengthSquared() > 0.0001) {
+            impactDirection.copy(bullet.body.velocity);
+        } else {
+            impactDirection.set(
+                carBody.position.x - bullet.body.position.x,
+                carBody.position.y - bullet.body.position.y,
+                Math.max(carBody.position.z - bullet.body.position.z, 0.12)
+            );
+        }
+
+        if (impactDirection.lengthSquared() <= 0.0001) {
+            impactDirection.set(1, 0, 0.12);
+        }
+
+        impactDirection.normalize();
+
+        const bulletSpeed = bullet?.body?.velocity?.length?.() || 0;
+        const impactStrength = Math.min(Math.max(bulletSpeed * 1.8, 18), 42);
+        const impactImpulse = impactDirection.scale(impactStrength, new CANNON.Vec3());
+        impactImpulse.z = Math.max(impactImpulse.z, 2.5);
+
+        const localImpactOffset = new CANNON.Vec3(
+            impactDirection.x * 0.4,
+            impactDirection.y * 0.28,
+            0.24
+        );
+        const worldImpactPoint = carBody.pointToWorldFrame(localImpactOffset, new CANNON.Vec3());
+        carBody.applyImpulse(impactImpulse, worldImpactPoint);
     
         this.updateBatteryStatus(car.battery);
         
@@ -8917,6 +8956,132 @@ export default class Physics
             }));
         }
     }    
+
+    createCarImpactEffect(playerCar, otherPlayerCar, impactDirection, impactStrength) {
+        const hostContainer =
+            playerCar?.container?.parent ||
+            otherPlayerCar?.container?.parent ||
+            playerCar?.container ||
+            otherPlayerCar?.container;
+
+        if (!hostContainer || !playerCar?.chassis?.object || !otherPlayerCar?.chassis?.object) {
+            return;
+        }
+
+        const origin = new THREE.Vector3()
+            .copy(playerCar.chassis.object.position)
+            .add(otherPlayerCar.chassis.object.position)
+            .multiplyScalar(0.5);
+        origin.z += 0.45;
+
+        const direction = impactDirection.clone();
+        if (direction.lengthSq() < 0.0001) {
+            direction.set(1, 0, 0.15);
+        }
+        direction.normalize();
+
+        const tangent = new THREE.Vector3(-direction.y, direction.x, 0);
+        if (tangent.lengthSq() < 0.0001) {
+            tangent.set(0, 1, 0);
+        } else {
+            tangent.normalize();
+        }
+
+        const particleCount = Math.min(24 + Math.round(impactStrength * 0.35), 56);
+        const geometry = new THREE.BufferGeometry();
+        const positions = new Float32Array(particleCount * 3);
+        const colors = new Float32Array(particleCount * 3);
+        const velocities = [];
+
+        for (let i = 0; i < particleCount; i++) {
+            const spread = (Math.random() - 0.5) * 0.85;
+            const lift = 0.2 + Math.random() * 0.45;
+            const speed = 0.12 + Math.random() * 0.24 + impactStrength * 0.002;
+            const velocity = direction
+                .clone()
+                .multiplyScalar(speed)
+                .add(tangent.clone().multiplyScalar(spread * 0.12));
+            velocity.z += lift * 0.08;
+            velocities.push(velocity);
+
+            positions[i * 3 + 0] = 0;
+            positions[i * 3 + 1] = 0;
+            positions[i * 3 + 2] = 0;
+
+            const heat = Math.random();
+            if (heat < 0.18) {
+                colors.set([1, 1, 1], i * 3);
+            } else if (heat < 0.62) {
+                colors.set([1, 0.84, 0.32], i * 3);
+            } else {
+                colors.set([1, 0.45, 0.08], i * 3);
+            }
+        }
+
+        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+        const material = new THREE.PointsMaterial({
+            size: 0.45,
+            vertexColors: true,
+            transparent: true,
+            opacity: 0.95,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false
+        });
+
+        const sparks = new THREE.Points(geometry, material);
+        sparks.position.copy(origin);
+        hostContainer.add(sparks);
+
+        const flashMaterial = new THREE.MeshBasicMaterial({
+            color: 0xffd27a,
+            transparent: true,
+            opacity: 0.32,
+            side: THREE.DoubleSide,
+            depthWrite: false
+        });
+        const flash = new THREE.Mesh(new THREE.CircleGeometry(0.42, 24), flashMaterial);
+        flash.position.copy(origin);
+        flash.lookAt(origin.clone().add(new THREE.Vector3(0, 0, 1)));
+        hostContainer.add(flash);
+
+        const startedAt = performance.now();
+        const duration = 220;
+
+        const animate = () => {
+            const elapsed = performance.now() - startedAt;
+            const progress = elapsed / duration;
+
+            if (progress >= 1) {
+                hostContainer.remove(sparks);
+                hostContainer.remove(flash);
+                geometry.dispose();
+                material.dispose();
+                flash.geometry.dispose();
+                flashMaterial.dispose();
+                return;
+            }
+
+            for (let i = 0; i < particleCount; i++) {
+                const velocity = velocities[i];
+                positions[i * 3 + 0] += velocity.x;
+                positions[i * 3 + 1] += velocity.y;
+                positions[i * 3 + 2] += velocity.z;
+                velocity.multiplyScalar(0.93);
+                velocity.z -= 0.01;
+            }
+
+            geometry.attributes.position.needsUpdate = true;
+            material.opacity = 1 - progress;
+            flash.scale.setScalar(1 + progress * 1.8);
+            flashMaterial.opacity = 0.32 * (1 - progress);
+
+            requestAnimationFrame(animate);
+        };
+
+        animate();
+    }
     
     handleCarCollision(playerCar, otherPlayerCar) {
         
@@ -8953,7 +9118,6 @@ export default class Physics
                 if (this.isCarInvulnerable(hitCar)) {
                     return;
                 }
-                const randomBatteryPercent = Math.floor(Math.random() * 10); // Random number between 1 and 10
                 hitCar.battery -= 1;
     
                 if (hitCar.battery <= 0) {
@@ -8964,12 +9128,6 @@ export default class Physics
                     }
                     this.destroyCar(hitCar);
                     hitCar.battery = 100;
-                }
-    
-                const twitchForce = new CANNON.Vec3(Math.random() * 10 - 5, Math.random() * 10 - 5, Math.random() * 10 - 5);
-                const hitCarBody = this.getCarBody(hitCar);
-                if (hitCarBody) {
-                    hitCarBody.applyImpulse(twitchForce, hitCarBody.position);
                 }
     
                 this.updateBatteryStatus(hitCar.battery);
@@ -8994,24 +9152,45 @@ export default class Physics
 
     applyCollisionEffects(playerCarBody, otherCarBody, playerCar, otherPlayerCar) {
         const relativeVelocity = playerCarBody.velocity.vsub(otherCarBody.velocity);
-        const collisionImpulse = new CANNON.Vec3(relativeVelocity.x / 2, relativeVelocity.y / 2, relativeVelocity.z / 2);
-    
-        let direction = collisionImpulse.vsub(playerCarBody.position);
-        direction.normalize();
-    
-        playerCarBody.applyImpulse(direction, playerCarBody.position);
-        otherCarBody.applyImpulse(direction.negate(), otherCarBody.position);
-    
-        const overlap = 0.1;
-        const moveApart = direction.scale(overlap);
+        const impactDirection = new CANNON.Vec3(
+            playerCarBody.position.x - otherCarBody.position.x,
+            playerCarBody.position.y - otherCarBody.position.y,
+            0
+        );
+
+        if (impactDirection.lengthSquared() < 0.0001) {
+            impactDirection.set(relativeVelocity.x, relativeVelocity.y, 0);
+        }
+
+        if (impactDirection.lengthSquared() < 0.0001) {
+            impactDirection.set(1, 0, 0);
+        }
+
+        impactDirection.normalize();
+
+        const impactSpeed = relativeVelocity.length();
+        const impulseStrength = Math.min(Math.max(impactSpeed * 2.4, 1.8), 12);
+        const collisionImpulse = impactDirection.scale(impulseStrength, new CANNON.Vec3());
+
+        playerCarBody.applyImpulse(collisionImpulse, playerCarBody.position);
+        otherCarBody.applyImpulse(collisionImpulse.scale(-1, new CANNON.Vec3()), otherCarBody.position);
+
+        const overlap = 0.14;
+        const moveApart = impactDirection.scale(overlap, new CANNON.Vec3());
         playerCarBody.position.vadd(moveApart, playerCarBody.position);
         otherCarBody.position.vsub(moveApart, otherCarBody.position);
+
+        this.createCarImpactEffect(
+            playerCar,
+            otherPlayerCar,
+            new THREE.Vector3(impactDirection.x, impactDirection.y, 0.18),
+            impactSpeed
+        );
     
         playerCar.lastHitBy = otherPlayerCar.playerId;
         otherPlayerCar.lastHitBy = playerCar.playerId;
     
         if (playerCar.playerId !== otherPlayerCar.playerId) {
-            const randomBatteryPercent = Math.floor(Math.random() * 10); // Random number between 1 and 10
             playerCar.battery -= 1;
             otherPlayerCar.battery -= 1;
         }
@@ -9330,11 +9509,6 @@ export default class Physics
 
                 if (this.detectCollision(playerCarBody, otherCarBody)) {
                     this.handleCarCollision(playerCar, otherPlayerCar);
-                    
-                    // Check if playerCar or otherPlayerCar is non-collidable before creating sparks
-                    if (!this.nonCollidableCars.has(playerCar) && !this.nonCollidableCars.has(otherPlayerCar)) {
-                        otherPlayerCar.createSparkEffect();
-                    }
                 }
             }
         }

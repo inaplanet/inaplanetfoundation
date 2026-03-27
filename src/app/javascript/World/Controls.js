@@ -1745,7 +1745,7 @@ export default class Controls extends EventEmitter
             if (touch) {
                 this.touch.next.touchIdentifier = touch.identifier;
 
-                this.camera.zoom.targetValue = Math.min(1, this.camera.zoom.targetValue + 0.1);
+                this.camera.zoom.targetValue = Math.min(this.camera.zoom.maxValue, this.camera.zoom.targetValue + 0.1);
 
                 this.touch.next.$border.style.opacity = '0.5';
 
@@ -1768,7 +1768,7 @@ export default class Controls extends EventEmitter
         bindDesktopPress(this.touch.next.$element, {
             onPress: () => {
                 this.touch.next.$border.style.opacity = '0.5';
-                this.camera.zoom.targetValue = Math.min(1, this.camera.zoom.targetValue + 0.1);
+                this.camera.zoom.targetValue = Math.min(this.camera.zoom.maxValue, this.camera.zoom.targetValue + 0.1);
             },
             onRelease: () => {
                 this.touch.next.$border.style.opacity = '0.5';
@@ -1784,7 +1784,7 @@ export default class Controls extends EventEmitter
         this.touch.zoomSlider.$element = document.getElementById('touch-slider');
         this.touch.zoomSlider.$element.type = 'range';
         this.touch.zoomSlider.$element.min = '0';
-        this.touch.zoomSlider.$element.max = '1';
+        this.touch.zoomSlider.$element.max = `${this.camera.zoom.maxValue}`;
         this.touch.zoomSlider.$element.step = '0.01';
         this.touch.zoomSlider.$element.value = this.camera.zoom.targetValue;
         this.touch.zoomSlider.$element.style.userSelect = 'none';
@@ -2165,6 +2165,16 @@ export default class Controls extends EventEmitter
         // Events
         this.touch.boost.events = {}
         this.touch.boost.touchIdentifier = null
+        this.touch.boost.release = () =>
+        {
+            this.actions.up = false
+            this.actions.boost = false
+            this.touch.boost.touchIdentifier = null
+            this.touch.boost.$border.style.opacity = '0.25'
+
+            document.removeEventListener('touchend', this.touch.boost.events.touchend)
+            document.removeEventListener('touchcancel', this.touch.boost.events.touchcancel)
+        }
         this.touch.boost.events.touchstart = (_event) =>
         {
             _event.preventDefault()
@@ -2173,6 +2183,7 @@ export default class Controls extends EventEmitter
 
             if(touch)
             {
+                this.touch.boost.release()
                 this.camera.pan.reset()
 
                 this.touch.boost.touchIdentifier = touch.identifier
@@ -2183,6 +2194,7 @@ export default class Controls extends EventEmitter
                 this.touch.boost.$border.style.opacity = '0.5'
 
                 document.addEventListener('touchend', this.touch.boost.events.touchend)
+                document.addEventListener('touchcancel', this.touch.boost.events.touchcancel)
             }
         }
 
@@ -2193,12 +2205,18 @@ export default class Controls extends EventEmitter
 
             if(touch)
             {
-                this.actions.up = false
-                this.actions.boost = false
+                this.touch.boost.release()
+            }
+        }
 
-                this.touch.boost.$border.style.opacity = '0.25'
+        this.touch.boost.events.touchcancel = (_event) =>
+        {
+            const touches = [..._event.changedTouches]
+            const touch = touches.find((_touch) => _touch.identifier === this.touch.boost.touchIdentifier)
 
-                document.removeEventListener('touchend', this.touch.boost.events.touchend)
+            if(touch || this.touch.boost.touchIdentifier !== null)
+            {
+                this.touch.boost.release()
             }
         }
 
@@ -2211,9 +2229,7 @@ export default class Controls extends EventEmitter
                 this.touch.boost.$border.style.opacity = '0.5'
             },
             onRelease: () => {
-                this.actions.up = false
-                this.actions.boost = false
-                this.touch.boost.$border.style.opacity = '0.25'
+                this.touch.boost.release()
             }
         })
 

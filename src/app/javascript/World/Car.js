@@ -345,7 +345,7 @@ export default class Car
             texture.needsUpdate = true;
 
             const material = new THREE.PointsMaterial({
-                size: 9.5,
+                size: 6.4,
                 vertexColors: true,
                 sizeAttenuation: true,
                 transparent: true,
@@ -355,11 +355,11 @@ export default class Car
                 depthWrite: false,
             });
 
-            const particleCount = 8;
+            const particleCount = 6;
             const geometry = new THREE.BufferGeometry();
             const vertices = [];
             const colors = [];
-            const haloRadius = 0.72;
+            const haloRadius = 0.5;
 
             for (let i = 0; i < particleCount; i++) {
                 const angle = (i / particleCount) * Math.PI * 2;
@@ -389,7 +389,7 @@ export default class Car
                     const angle = (i / particleCount) * Math.PI * 2 + spin;
                     positions[i * 3] = Math.cos(angle) * haloRadius;
                     positions[i * 3 + 1] = Math.sin(angle) * haloRadius;
-                    positions[i * 3 + 2] = Math.sin(elapsedTime * 0.006 + i) * 0.08;
+                    positions[i * 3 + 2] = Math.sin(elapsedTime * 0.006 + i) * 0.05;
                 }
 
                 geometry.attributes.position.needsUpdate = true;
@@ -403,7 +403,7 @@ export default class Car
                 }
             };
 
-            particles.position.set(0, 0, 1.8);
+            particles.position.set(0, 0, 1.58);
 
             animateParticles();
         };
@@ -604,23 +604,29 @@ export default class Car
 
             const particles = new THREE.Points(geometry, material);
 
-            // Attach particles to the car's chassis object
+            // Keep the exhaust fully local to the chassis and anchor it to the actual rear-light side.
             carChassis.add(particles);
 
-            this.container.add(particles);
+            const rearAnchor = this.backLightsBrake?.object?.position?.clone() || new THREE.Vector3(-0.95, 0, 0.38);
+            const rearDirection = rearAnchor.clone();
+            rearDirection.z = 0;
 
-            // Rotate the particle system to align with rocket exhaust direction
-            particles.rotation.x = Math.PI / 2; // Rotate around X-axis for correct alignment
+            if (rearDirection.lengthSq() < 0.0001) {
+                rearDirection.set(-1, 0, 0);
+            } else {
+                rearDirection.normalize();
+            }
 
-            this.container.add(particles); // Add particles to the scene
+            const lateralDirection = new THREE.Vector3().crossVectors(new THREE.Vector3(0, 0, 1), rearDirection);
+            if (lateralDirection.lengthSq() < 0.0001) {
+                lateralDirection.set(0, 1, 0);
+            } else {
+                lateralDirection.normalize();
+            }
 
-            // Calculate the exhaust offset
-            const exhaustOffset = new THREE.Vector3(-0.95, 0, 0.6);
-            exhaustOffset.applyQuaternion(quaternion);
-
-            // Set the initial position of the particles
-            particles.position.copy(position).add(exhaustOffset);
-            particles.quaternion.copy(quaternion); // Align with bullet’s orientation
+            const exhaustOffset = rearAnchor.clone().add(rearDirection.clone().multiplyScalar(0.32));
+            exhaustOffset.z += 0.04;
+            particles.position.copy(exhaustOffset);
 
             let isBoostActive = true; // Track if bullet is active
 
@@ -629,33 +635,20 @@ export default class Car
 
                 const positions = geometry.attributes.position.array;
 
-                // Update particle positions to move toward their initial position
+                // Emit particles farther along the rear-light direction so the plume always trails the rear.
                 for (let i = 0; i < particleCount; i++) {
-                    // Calculate the movement vector in local space
-                    const localMovement = new THREE.Vector3(
-                        1 * (Math.random() - 0.5) * 0.1, // X-axis jitter
-                        -1 * (Math.random() - 0.5) * 0.1, // Y-axis jitter
-                        -1 * (Math.random() * 0.05) // Z-axis forward movement (toward initial position)
-                    );
+                    const spread = (Math.random() - 0.5) * 0.12;
+                    const verticalJitter = (Math.random() - 0.5) * 0.08;
+                    const localMovement = rearDirection.clone().multiplyScalar(0.14 + Math.random() * 0.18);
+                    localMovement.add(lateralDirection.clone().multiplyScalar(spread));
+                    localMovement.z += verticalJitter;
 
-                    // Rotate the movement 90 degrees along the Y-axis
-                    const yRotation = new THREE.Quaternion();
-                    yRotation.setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI / 2); // 90 degrees along Y-axis
-
-                    localMovement.applyQuaternion(yRotation); // Apply the Y-axis rotation
-                    localMovement.applyQuaternion(quaternion); // Align with rocket’s orientation
-
-                    // Update the particle positions
-                    positions[i * 3 + 0] += localMovement.x  * 3;
+                    positions[i * 3 + 0] += localMovement.x;
                     positions[i * 3 + 1] += localMovement.y;
                     positions[i * 3 + 2] += localMovement.z;
                 }
 
                 geometry.attributes.position.needsUpdate = true;
-
-                // Keep particles aligned with the bullet’s position and orientation
-                particles.position.copy(carChassis.position).add(exhaustOffset);
-                particles.quaternion.copy(quaternion);
 
                 requestAnimationFrame(animateParticles); // Continue animation
             };
@@ -665,7 +658,6 @@ export default class Car
             // Cleanup function to remove the fire effect when the bullet disappears
             const cleanupNitroEffect  = () => {
                 isBoostActive = false; // Stop animation
-                this.container.remove(particles);
                 carChassis.remove(particles); // Remove particles from chassis
                 geometry.dispose();
                 material.dispose();
