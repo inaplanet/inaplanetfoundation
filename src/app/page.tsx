@@ -476,12 +476,15 @@ export default function Home() {
   const [selectedWorldId, setSelectedWorldId] = useState<string | null>(null); // New state for selected world ID
   const [token, setToken] = useState<string | null>(null); // State to store the token
   const [showLandingPage, setShowLandingPage] = useState(true);
+  const [showLandingPageShell, setShowLandingPageShell] = useState(true);
   const [language, setLanguage] = useState<ModalLanguage>('en');
   const [renderedLanguage, setRenderedLanguage] = useState<ModalLanguage>('en');
   const [isModalLanguageReady, setIsModalLanguageReady] = useState(true);
   const [activeGreetingIndex, setActiveGreetingIndex] = useState(0);
   const [animatedGreeting, setAnimatedGreeting] = useState('');
   const [isDeletingGreeting, setIsDeletingGreeting] = useState(false);
+  const landingOpenTimerRef = useRef<number | undefined>(undefined);
+  const landingCloseTimerRef = useRef<number | undefined>(undefined);
   const [carName, setCarName] = useState<string | null>(() => {
     if (typeof window === 'undefined') return null;
     return localStorage.getItem('selectedCarName');
@@ -599,6 +602,18 @@ export default function Home() {
   };
 
   useEffect(() => {
+    return () => {
+      if (typeof landingOpenTimerRef.current === 'number') {
+        window.clearTimeout(landingOpenTimerRef.current);
+      }
+
+      if (typeof landingCloseTimerRef.current === 'number') {
+        window.clearTimeout(landingCloseTimerRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
     const currentGreeting = GREETING_ITEMS[activeGreetingIndex];
     const normalizedGreeting = animatedGreeting === '\u00A0' ? '' : animatedGreeting;
     const reachedEnd = normalizedGreeting === currentGreeting;
@@ -629,12 +644,36 @@ export default function Home() {
   }, [activeGreetingIndex, animatedGreeting, isDeletingGreeting]);
 
   const openLandingPage = useCallback(() => {
+    if (typeof landingCloseTimerRef.current === 'number') {
+      window.clearTimeout(landingCloseTimerRef.current);
+      landingCloseTimerRef.current = undefined;
+    }
+
     setShowLandingPage(true);
+    setShowLandingPageShell(false);
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        landingOpenTimerRef.current = window.setTimeout(() => {
+          setShowLandingPageShell(true);
+          landingOpenTimerRef.current = undefined;
+        }, 120);
+      });
+    });
   }, []);
 
   const closeLandingPage = useCallback(() => {
+    if (typeof landingOpenTimerRef.current === 'number') {
+      window.clearTimeout(landingOpenTimerRef.current);
+      landingOpenTimerRef.current = undefined;
+    }
+
     landingShowcaseRef.current?.scrollTo({ top: 0, behavior: 'auto' });
-    setShowLandingPage(false);
+    setShowLandingPageShell(false);
+    landingCloseTimerRef.current = window.setTimeout(() => {
+      setShowLandingPage(false);
+      landingCloseTimerRef.current = undefined;
+    }, 220);
   }, []);
 
   const predefinedWorldIds = [
@@ -1251,7 +1290,7 @@ const handleWorldSelection = (worldId: string, listItem: HTMLLIElement, worldLis
             </div>
             <section className={`landing-showcase ${showLandingPage ? 'landing-showcase-active' : ''}`}>
               <div
-                className={`landing-showcase__shell ${modalLanguage === 'en' ? 'landing-showcase__shell--orbitron' : 'landing-showcase__shell--exo'} ${isModalLanguageReady ? '' : 'landing-showcase__shell--switching'}`}
+                className={`landing-showcase__shell ${showLandingPageShell ? 'landing-showcase__shell-active' : ''} ${modalLanguage === 'en' ? 'landing-showcase__shell--orbitron' : 'landing-showcase__shell--exo'} ${isModalLanguageReady ? '' : 'landing-showcase__shell--switching'}`}
                 aria-busy={!isModalLanguageReady}
               >
                 <div className="landing-showcase__topbar">

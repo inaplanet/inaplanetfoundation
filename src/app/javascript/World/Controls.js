@@ -628,9 +628,9 @@ export default class Controls extends EventEmitter
         {
             this.touch.joystick.cursorOffset.x = x
             this.touch.joystick.cursorOffset.y = y
-            this.touch.joystick.$cursor.style.left = `${this.touch.joystick.cursorRestOffset + x}px`
-            this.touch.joystick.$cursor.style.top = `${this.touch.joystick.cursorRestOffset + y}px`
-            this.touch.joystick.$cursor.style.transform = 'translate3d(0, 0, 0)'
+            this.touch.joystick.$cursor.style.left = `${this.touch.joystick.cursorRestOffset}px`
+            this.touch.joystick.$cursor.style.top = `${this.touch.joystick.cursorRestOffset}px`
+            this.touch.joystick.$cursor.style.transform = `translate3d(${x}px, ${y}px, 0)`
         }
 
         this.touch.joystick.getTouchFromCollection = (_touchList) =>
