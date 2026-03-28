@@ -560,7 +560,9 @@ export default class Controls extends EventEmitter
 
         this.touch.joystick.cursorSize = 60
         this.touch.joystick.cursorRestOffset = (170 - this.touch.joystick.cursorSize) * 0.5
+        this.touch.joystick.cursorTravelLimit = 43
         this.touch.joystick.cursorOffset = { x: 0, y: 0 }
+        this.touch.joystick.steerValue = 0
 
         this.touch.joystick.$cursor = document.createElement('div')
         this.touch.joystick.$cursor.style.position = 'absolute'
@@ -626,7 +628,26 @@ export default class Controls extends EventEmitter
         {
             this.touch.joystick.cursorOffset.x = x
             this.touch.joystick.cursorOffset.y = y
-            this.touch.joystick.$cursor.style.transform = `translate3d(${x}px, ${y}px, 0)`
+            this.touch.joystick.$cursor.style.left = `${this.touch.joystick.cursorRestOffset + x}px`
+            this.touch.joystick.$cursor.style.top = `${this.touch.joystick.cursorRestOffset + y}px`
+            this.touch.joystick.$cursor.style.transform = 'translate3d(0, 0, 0)'
+        }
+
+        this.touch.joystick.getTouchFromCollection = (_touchList) =>
+        {
+            if(!_touchList || this.touch.joystick.touchIdentifier === null)
+            {
+                return null
+            }
+
+            return [..._touchList].find((_touch) => _touch.identifier === this.touch.joystick.touchIdentifier) || null
+        }
+
+        this.touch.joystick.getTrackedTouch = (_event) =>
+        {
+            return this.touch.joystick.getTouchFromCollection(_event.touches)
+                || this.touch.joystick.getTouchFromCollection(_event.targetTouches)
+                || this.touch.joystick.getTouchFromCollection(_event.changedTouches)
         }
 
         this.touch.joystick.syncCursorFromCurrentPosition = () =>
@@ -655,11 +676,12 @@ export default class Controls extends EventEmitter
             }
             if(radius > 43)
             {
-                radius = 43
+                radius = this.touch.joystick.cursorTravelLimit
             }
 
             const cursorX = Math.sin(this.touch.joystick.angle.originalValue + Math.PI * 0.5) * radius
             const cursorY = Math.cos(this.touch.joystick.angle.originalValue + Math.PI * 0.5) * radius
+            this.touch.joystick.steerValue = Math.max(-1, Math.min(1, cursorX / this.touch.joystick.cursorTravelLimit))
             this.touch.joystick.updateCursorVisual(cursorX, cursorY)
         }
 
@@ -667,6 +689,7 @@ export default class Controls extends EventEmitter
         {
             this.touch.joystick.active = false
             this.touch.joystick.touchIdentifier = null
+            this.touch.joystick.steerValue = 0
             this.touch.joystick.$limit.style.opacity = '0.25'
             this.touch.joystick.updateCursorVisual()
 
@@ -698,8 +721,14 @@ export default class Controls extends EventEmitter
         this.touch.joystick.events.touchstart = (_event) =>
         {
             _event.preventDefault()
+            _event.stopPropagation()
 
-            const touch = _event.changedTouches[0]
+            if(this.touch.joystick.active)
+            {
+                return
+            }
+
+            const touch = _event.changedTouches[0] || _event.touches[0] || _event.targetTouches[0]
 
             if(touch)
             {
@@ -724,10 +753,15 @@ export default class Controls extends EventEmitter
 
         this.touch.joystick.events.touchmove = (_event) =>
         {
-            _event.preventDefault()
+            if(!this.touch.joystick.active)
+            {
+                return
+            }
 
-            const touches = [..._event.changedTouches]
-            const touch = touches.find((_touch) => _touch.identifier === this.touch.joystick.touchIdentifier)
+            _event.preventDefault()
+            _event.stopPropagation()
+
+            const touch = this.touch.joystick.getTrackedTouch(_event)
 
             if(touch)
             {
@@ -741,8 +775,12 @@ export default class Controls extends EventEmitter
 
         this.touch.joystick.events.touchend = (_event) =>
         {
-            const touches = [..._event.changedTouches]
-            const touch = touches.find((_touch) => _touch.identifier === this.touch.joystick.touchIdentifier)
+            if(!this.touch.joystick.active)
+            {
+                return
+            }
+
+            const touch = this.touch.joystick.getTouchFromCollection(_event.changedTouches)
 
             if(touch)
             {
@@ -752,8 +790,12 @@ export default class Controls extends EventEmitter
 
         this.touch.joystick.events.touchcancel = (_event) =>
         {
-            const touches = [..._event.changedTouches]
-            const touch = touches.find((_touch) => _touch.identifier === this.touch.joystick.touchIdentifier)
+            if(!this.touch.joystick.active)
+            {
+                return
+            }
+
+            const touch = this.touch.joystick.getTouchFromCollection(_event.changedTouches)
 
             if(touch)
             {

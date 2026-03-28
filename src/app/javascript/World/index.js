@@ -1525,6 +1525,7 @@ export default class
                 off: () => {}
             };
             const remotePhysics = Object.create(this.physics);
+            remotePhysics.isRemoteReplica = true;
             remotePhysics.controls = remoteControls;
             remotePhysics.setCar(playerId, selectedCar);
 
@@ -1667,6 +1668,7 @@ export default class
 
             if (data.position) car.physics[carKey].chassis.body.position.set(data.position.x, data.position.y, data.position.z);
             if (data.rotation) car.physics[carKey].chassis.body.quaternion.set(data.rotation.x, data.rotation.y, data.rotation.z, data.rotation.w);
+            if (data.velocity) car.physics[carKey].chassis.body.velocity.set(data.velocity.x, data.velocity.y, data.velocity.z);
             if (data.battery !== undefined) car.battery = data.battery;
             if (data.score !== undefined) car.score = data.score;
 
@@ -1757,20 +1759,28 @@ export default class
                     car.backLightsBrake.material.opacity = data.controls.brake ? 1 : 0.5;
                 }
 
-                const carSteeringValue = data.controls.steering;
+                const carSteeringValue = Number.isFinite(data.controls.steering) ? data.controls.steering : 0;
+                car.physics[carKey].steering = carSteeringValue;
                 const frontLeftIndex = car.physics[carKey].wheels?.indexes?.frontLeft;
                 const frontRightIndex = car.physics[carKey].wheels?.indexes?.frontRight;
+                const backLeftIndex = car.physics[carKey].wheels?.indexes?.backLeft;
+                const backRightIndex = car.physics[carKey].wheels?.indexes?.backRight;
                 if (typeof frontLeftIndex === 'number') {
-                    car.physics[carKey].vehicle.wheelInfos[frontLeftIndex].steering = -carSteeringValue;
+                    car.physics[carKey].vehicle.setSteeringValue(-carSteeringValue, frontLeftIndex);
                 }
                 if (typeof frontRightIndex === 'number') {
-                    car.physics[carKey].vehicle.wheelInfos[frontRightIndex].steering = -carSteeringValue;
+                    car.physics[carKey].vehicle.setSteeringValue(-carSteeringValue, frontRightIndex);
                 }
-                const shouldApplyRemoteForces = false;
-                if (shouldApplyRemoteForces) {
-                    car.physics[carKey].vehicle.setSteeringValue(-carSteeringValue, 0);
-                    car.physics[carKey].vehicle.setSteeringValue(-carSteeringValue, 1);
+                if (car.physics[carKey].options?.controlsSteeringQuad) {
+                    if (typeof backLeftIndex === 'number') {
+                        car.physics[carKey].vehicle.setSteeringValue(carSteeringValue, backLeftIndex);
+                    }
+                    if (typeof backRightIndex === 'number') {
+                        car.physics[carKey].vehicle.setSteeringValue(carSteeringValue, backRightIndex);
+                    }
                 }
+
+                car.physics.syncWheelBodies?.(car.physics[carKey], { freezeWheelRoll: true });
 
                 if (data.controls.boost) {
                     car.createNitroEffect(car.physics[carKey].chassis.body.position, car.physics[carKey].chassis.body.quaternion, car.chassis.object)
@@ -1778,32 +1788,6 @@ export default class
 
                 if (data.controls.siren) {
                     car.createSirenEffect()
-                }
-
-                if (shouldApplyRemoteForces) {
-                    if (data.controls.up) {
-                        car.physics[carKey].vehicle.applyEngineForce(car.physics[carKey].options.controlsAcceleratingSpeed, 2);
-                        car.physics[carKey].vehicle.applyEngineForce(car.physics[carKey].options.controlsAcceleratingSpeed, 3);
-                    } else if (data.controls.down) {
-                        car.physics[carKey].vehicle.applyEngineForce(-car.physics[carKey].options.controlsAcceleratingSpeed, 2);
-                        car.physics[carKey].vehicle.applyEngineForce(-car.physics[carKey].options.controlsAcceleratingSpeed, 3);
-                    } else {
-                        car.physics[carKey].vehicle.applyEngineForce(0, 2);
-                        car.physics[carKey].vehicle.applyEngineForce(0, 3);
-                    }
-
-                    if (data.controls.brake) {
-                        car.physics[carKey].vehicle.setBrake(car.physics[carKey].options.controlsBrakeStrength, 0);
-                        car.physics[carKey].vehicle.setBrake(car.physics[carKey].options.controlsBrakeStrength, 1);
-                        car.physics[carKey].vehicle.setBrake(car.physics[carKey].options.controlsBrakeStrength, 2);
-                        car.physics[carKey].vehicle.setBrake(car.physics[carKey].options.controlsBrakeStrength, 3);
-
-                    } else {
-                        car.physics[carKey].vehicle.setBrake(0, 0);
-                        car.physics[carKey].vehicle.setBrake(0, 1);
-                        car.physics[carKey].vehicle.setBrake(0, 2);
-                        car.physics[carKey].vehicle.setBrake(0, 3);
-                    }
                 }
             }
             

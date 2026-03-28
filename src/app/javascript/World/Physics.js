@@ -8369,55 +8369,7 @@ export default class Physics
                 }
             }
 
-            // Update wheel bodies
-            const isCarNearlyStationary =
-                chassisBody.velocity.lengthSquared() < 0.0225 &&
-                Math.abs(this.car.accelerating) < 0.0001 &&
-                !this.controls.actions.up &&
-                !this.controls.actions.down &&
-                !this.controls.actions.boost
-
-            if(!this.car.wheels.restQuaternions)
-            {
-                this.car.wheels.restQuaternions = []
-            }
-
-            for(let i = 0; i < this.car.vehicle.wheelInfos.length; i++)
-            {
-                this.car.vehicle.updateWheelTransform(i)
-
-                const transform = this.car.vehicle.wheelInfos[i].worldTransform
-                this.car.wheels.bodies[i].position.copy(transform.position)
-                const targetQuaternion = new CANNON.Quaternion(
-                    transform.quaternion.x,
-                    transform.quaternion.y,
-                    transform.quaternion.z,
-                    transform.quaternion.w
-                )
-
-                // Rotate the wheels on the right
-                if(i === 1 || i === 3)
-                {
-                    const rotationQuaternion = new CANNON.Quaternion(0, 0, 0, 1)
-                    rotationQuaternion.setFromAxisAngle(new CANNON.Vec3(0, 0, 1), Math.PI)
-                    targetQuaternion.copy(targetQuaternion.mult(rotationQuaternion))
-                }
-
-                if(isCarNearlyStationary && this.car.wheels.restQuaternions[i])
-                {
-                    this.car.wheels.bodies[i].quaternion.copy(this.car.wheels.restQuaternions[i])
-                }
-                else
-                {
-                    this.car.wheels.bodies[i].quaternion.copy(targetQuaternion)
-                    this.car.wheels.restQuaternions[i] = new CANNON.Quaternion(
-                        targetQuaternion.x,
-                        targetQuaternion.y,
-                        targetQuaternion.z,
-                        targetQuaternion.w
-                    )
-                }
-            }
+            this.syncWheelBodies(this.car, { freezeWheelRoll: true })
 
             // Slow down back
             if(!this.controls.actions.up && !this.controls.actions.down)
@@ -8457,23 +8409,28 @@ export default class Physics
                 wheelMesh.quaternion.copy(wheelBody.quaternion)
             }
 
+            if(this.isRemoteReplica)
+            {
+                return
+            }
+
             /**
              * Steering
              */
-            if(this.controls.touch)
+            if(this.controls.touch?.joystick?.active)
             {
-                let deltaAngle = 0
+                const rawSteerValue = Number.isFinite(this.controls.touch.joystick.steerValue) ? this.controls.touch.joystick.steerValue : 0
+                const deadZone = 0.08
+                const steerValue = Math.abs(rawSteerValue) < deadZone ? 0 : rawSteerValue
+                const targetSteering = steerValue * this.car.options.controlsSteeringMax
+                const steerFollowStrength = Math.min(1, this.time.delta * 0.018)
 
-                if(this.controls.touch.joystick.active)
+                this.car.steering += (targetSteering - this.car.steering) * steerFollowStrength
+
+                if(Math.abs(targetSteering - this.car.steering) < 0.0005)
                 {
-                    // Calculate delta between joystick and car angles
-                    deltaAngle = (this.controls.touch.joystick.angle.value - this.car.angle + Math.PI) % (Math.PI * 2) - Math.PI
-                    deltaAngle = deltaAngle < - Math.PI ? deltaAngle + Math.PI * 2 : deltaAngle
+                    this.car.steering = targetSteering
                 }
-
-                // Update steering directly
-                const goingForward = Math.abs(this.car.forwardSpeed) < 0.01 ? true : this.car.goingForward
-                this.car.steering = deltaAngle * (goingForward ? - 1 : 1)
 
                 // Clamp steer
                 if(Math.abs(this.car.steering) > this.car.options.controlsSteeringMax)
@@ -8524,6 +8481,17 @@ export default class Physics
             {
                 this.car.vehicle.setSteeringValue(this.car.steering, this.car.wheels.indexes.backLeft)
                 this.car.vehicle.setSteeringValue(this.car.steering, this.car.wheels.indexes.backRight)
+            }
+
+            this.syncWheelBodies(this.car, { freezeWheelRoll: true })
+
+            for(const _wheelKey in this.car.wheels.bodies)
+            {
+                const wheelBody = this.car.wheels.bodies[_wheelKey]
+                const wheelMesh = this.car.model.wheels[_wheelKey]
+
+                wheelMesh.position.copy(wheelBody.position)
+                wheelMesh.quaternion.copy(wheelBody.quaternion)
             }
 
             /**
@@ -9469,6 +9437,81 @@ export default class Physics
         }
 
         return null;
+    }
+
+    isWheelRollFrozen(car)
+    {
+        const body = car?.chassis?.body
+        if(!body)
+        {
+            return false
+        }
+
+        return body.velocity.lengthSquared() < 0.01
+            && body.angularVelocity.lengthSquared() < 0.04
+            && Math.abs(car.forwardSpeed || 0) < 0.01
+            && Math.abs(car.accelerating || 0) < 0.0001
+    }
+
+    syncWheelBodies(car, options = {})
+    {
+        if(!car?.vehicle?.wheelInfos || !car?.wheels?.bodies)
+        {
+            return
+        }
+
+        const freezeWheelRoll = options.freezeWheelRoll === true
+        const shouldFreezeWheelRoll = freezeWheelRoll && this.isWheelRollFrozen(car)
+
+        if(!Array.isArray(car.wheels.restRotationValues))
+        {
+            car.wheels.restRotationValues = []
+        }
+
+        for(let i = 0; i < car.vehicle.wheelInfos.length; i++)
+        {
+            const wheelInfo = car.vehicle.wheelInfos[i]
+            if(!wheelInfo)
+            {
+                continue
+            }
+
+            if(shouldFreezeWheelRoll && Number.isFinite(car.wheels.restRotationValues[i]))
+            {
+                wheelInfo.rotation = car.wheels.restRotationValues[i]
+            }
+
+            car.vehicle.updateWheelTransform(i)
+
+            const wheelBody = car.wheels.bodies[i]
+            const transform = wheelInfo.worldTransform
+            if(!wheelBody || !transform)
+            {
+                continue
+            }
+
+            wheelBody.position.copy(transform.position)
+            const targetQuaternion = new CANNON.Quaternion(
+                transform.quaternion.x,
+                transform.quaternion.y,
+                transform.quaternion.z,
+                transform.quaternion.w
+            )
+
+            if(i === 1 || i === 3)
+            {
+                const rotationQuaternion = new CANNON.Quaternion(0, 0, 0, 1)
+                rotationQuaternion.setFromAxisAngle(new CANNON.Vec3(0, 0, 1), Math.PI)
+                targetQuaternion.copy(targetQuaternion.mult(rotationQuaternion))
+            }
+
+            wheelBody.quaternion.copy(targetQuaternion)
+
+            if(!shouldFreezeWheelRoll)
+            {
+                car.wheels.restRotationValues[i] = wheelInfo.rotation
+            }
+        }
     }
 
     getCarBody(car) {

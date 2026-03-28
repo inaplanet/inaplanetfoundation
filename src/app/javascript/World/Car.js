@@ -1880,15 +1880,12 @@ export default class Car
                 new THREE.Vector3(0, 0, 1),
                 -this.chassis.object.rotation.z
             );
-    
-            // Update speedometer
-            this.updateSpeedometer();
-    
-            // Handle nitro effect
-            this.handleNitroEffect();
-    
-            // Handle siren effect
-            this.handleSirenEffect();
+
+            if (!this.isRemotePlayer) {
+                this.updateSpeedometer();
+                this.handleNitroEffect();
+                this.handleSirenEffect();
+            }
     
             // Handle screech sound
             // if (this.movement.localAcceleration.x > 0.03 && this.time.elapsed - this.movement.lastScreech > 5000) {
