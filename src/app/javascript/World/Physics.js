@@ -8431,14 +8431,21 @@ export default class Physics
                 const steerValue = touchSteerMagnitude < deadZone ? 0 : rawTouchSteerValue
                 const steeringRangeScale = THREE.MathUtils.lerp(
                     1,
-                    this.controls.actions.boost ? 0.52 : 0.7,
+                    this.controls.actions.boost ? 0.42 : 0.62,
                     speedRatio
                 )
                 const targetSteering = steerValue * this.car.options.controlsSteeringMax * steeringRangeScale
-                const steerFollowBase = this.controls.actions.boost ? 0.012 : 0.015
+                const steeringNeedsCentering = Math.abs(targetSteering) < Math.abs(this.car.steering)
+                const steerFollowBase = steeringNeedsCentering
+                    ? (this.controls.actions.boost ? 0.032 : 0.038)
+                    : (this.controls.actions.boost ? 0.0085 : 0.0115)
                 const steerFollowStrength = Math.min(
                     1,
-                    this.time.delta * THREE.MathUtils.lerp(steerFollowBase, steerFollowBase * 0.72, speedRatio)
+                    this.time.delta * THREE.MathUtils.lerp(
+                        steerFollowBase,
+                        steerFollowBase * (steeringNeedsCentering ? 0.9 : 0.76),
+                        speedRatio
+                    )
                 )
 
                 this.car.steering += (targetSteering - this.car.steering) * steerFollowStrength
@@ -8519,7 +8526,7 @@ export default class Physics
 
             if(touchJoystickActive && this.controls.actions.boost)
             {
-                const turningBoostCut = THREE.MathUtils.lerp(1, 0.74, touchSteerMagnitude * (0.55 + speedRatio * 0.45))
+                const turningBoostCut = THREE.MathUtils.lerp(1, 0.62, touchSteerMagnitude * (0.65 + speedRatio * 0.35))
                 accelerateStrength *= turningBoostCut
             }
 
