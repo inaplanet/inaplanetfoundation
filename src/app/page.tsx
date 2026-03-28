@@ -477,6 +477,8 @@ export default function Home() {
   const [token, setToken] = useState<string | null>(null); // State to store the token
   const [showLandingPage, setShowLandingPage] = useState(true);
   const [language, setLanguage] = useState<ModalLanguage>('en');
+  const [renderedLanguage, setRenderedLanguage] = useState<ModalLanguage>('en');
+  const [isModalLanguageReady, setIsModalLanguageReady] = useState(true);
   const [activeGreetingIndex, setActiveGreetingIndex] = useState(0);
   const [animatedGreeting, setAnimatedGreeting] = useState('');
   const [isDeletingGreeting, setIsDeletingGreeting] = useState(false);
@@ -486,7 +488,80 @@ export default function Home() {
   });
   // Websocket
   const [matcaps, setMatcaps] = useState({});
-  const modalCopy = MODAL_COPY[language];
+  useEffect(() => {
+    if (language === renderedLanguage) {
+      setIsModalLanguageReady(true);
+      return;
+    }
+
+    let isCancelled = false;
+    let swapTimer: number | undefined;
+    let revealTimer: number | undefined;
+
+    const fontFamily = language === 'en' ? 'Orbitron' : 'Exo 2';
+    const fontSet = typeof document !== 'undefined' ? document.fonts : null;
+    const applyLanguage = () => {
+      if (isCancelled) {
+        return;
+      }
+
+      requestAnimationFrame(() => {
+        if (isCancelled) {
+          return;
+        }
+
+        setIsModalLanguageReady(false);
+        swapTimer = window.setTimeout(() => {
+          if (isCancelled) {
+            return;
+          }
+
+          setRenderedLanguage(language);
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+              if (isCancelled) {
+                return;
+              }
+
+              revealTimer = window.setTimeout(() => {
+                if (!isCancelled) {
+                  setIsModalLanguageReady(true);
+                }
+              }, 60);
+            });
+          });
+        }, 160);
+      });
+    };
+
+    if (!fontSet?.load) {
+      applyLanguage();
+      return () => {
+        isCancelled = true;
+      };
+    }
+
+    Promise.all([
+      fontSet.load(`400 16px "${fontFamily}"`),
+      fontSet.load(`700 16px "${fontFamily}"`),
+      fontSet.ready,
+    ])
+      .catch(() => undefined)
+      .finally(applyLanguage);
+
+    return () => {
+      isCancelled = true;
+      if (typeof swapTimer === 'number') {
+        window.clearTimeout(swapTimer);
+      }
+      if (typeof revealTimer === 'number') {
+        window.clearTimeout(revealTimer);
+      }
+    };
+  }, [language, renderedLanguage]);
+
+  const modalLanguage = renderedLanguage;
+  const modalCopy = MODAL_COPY[modalLanguage];
   const storyCtaLabel = 'ENTER';
   const highlightedWorldParagraph = modalCopy.worldParagraphs[2];
   const highlightedWorldParagraphParts = highlightedWorldParagraph.split(storyCtaLabel);
@@ -1175,7 +1250,10 @@ const handleWorldSelection = (worldId: string, listItem: HTMLLIElement, worldLis
               </div>
             </div>
             <section className={`landing-showcase ${showLandingPage ? 'landing-showcase-active' : ''}`}>
-              <div className={`landing-showcase__shell ${language === 'en' ? 'landing-showcase__shell--orbitron' : 'landing-showcase__shell--exo'}`}>
+              <div
+                className={`landing-showcase__shell ${modalLanguage === 'en' ? 'landing-showcase__shell--orbitron' : 'landing-showcase__shell--exo'} ${isModalLanguageReady ? '' : 'landing-showcase__shell--switching'}`}
+                aria-busy={!isModalLanguageReady}
+              >
                 <div className="landing-showcase__topbar">
                   <button
                     type="button"
@@ -1313,7 +1391,7 @@ const handleWorldSelection = (worldId: string, listItem: HTMLLIElement, worldLis
                       )}
                     </p>
                     <div className="landing-showcase__greeting-strip" aria-label={modalCopy.greetingStripAria}>
-                      {language === 'az' ? (
+                      {modalLanguage === 'az' ? (
                         <>
                           <div className="landing-showcase__greeting-typewriter" aria-live="polite">
                             <span>{animatedGreeting}</span>

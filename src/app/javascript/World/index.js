@@ -36,7 +36,6 @@ import CrossroadsSection from './Sections/CrossroadsSection.js'
 import InformationSection from './Sections/InformationSection.js'
 import PlaygroundSection from './Sections/PlaygroundSection.js'
 import Controls from './Controls.js'
-import Controls1 from './Controls1.js'
 import Sounds from './Sounds.js'
 import feather from 'feather-icons'
 import LazyLoad from 'react-lazy-load';
@@ -195,6 +194,10 @@ export default class
             restoreBody.velocity.set(0, 0, 0);
             restoreBody.angularVelocity.set(0, 0, 0);
             restoreBody.wakeUp();
+        }
+
+        if (typeof car.triggerBatteryDepletedBlink === 'function') {
+            car.triggerBatteryDepletedBlink(5);
         }
     };
 
@@ -1107,7 +1110,6 @@ export default class
                             const car = this.otherPlayers[message.carId];
                             if (car) {
                                 car.battery = message.battery;
-                                car.createSparkEffect();
                                 // this.updateScoreStatus(message.score);
                                 console.log("Updating bullet collision score info", message.score)
 
@@ -1115,9 +1117,6 @@ export default class
                                     this.recreateOtherPlayerCarImmediately(car);
                                     break;
                                 }
-
-                                const twitchForce = new CANNON.Vec3(Math.random() * 10 - 5, Math.random() * 10 - 5, Math.random() * 10 - 5);
-                                car.physics.car.chassis.body.applyImpulse(twitchForce, car.physics.car.chassis.body.position);
                             }
                         }
                         break;
@@ -1705,28 +1704,12 @@ export default class
 
             this.ensureRemotePlayerIdText(car, data.playerId);                                                  
 
-            const remoteSpeed = data.velocity
-                ? Math.sqrt(
-                    (data.velocity.x || 0) * (data.velocity.x || 0) +
-                    (data.velocity.y || 0) * (data.velocity.y || 0) +
-                    (data.velocity.z || 0) * (data.velocity.z || 0)
-                )
-                : 0;
-            const remoteControlsActive = Boolean(
-                data.controls?.up ||
-                data.controls?.down ||
-                data.controls?.boost
-            );
-            const shouldSpinWheels = remoteControlsActive || remoteSpeed > 0.35;
-
             if (data.wheels) {
                 data.wheels.forEach((wheelData, index) => {
                     const wheelBody = car.physics[carKey].wheels.bodies[index];
                     wheelBody.position.set(wheelData.position.x, wheelData.position.y, wheelData.position.z);
-                    if (shouldSpinWheels) {
-                        wheelBody.quaternion.set(wheelData.rotation.x, wheelData.rotation.y, wheelData.rotation.z, wheelData.rotation.w);
-                        car.physics[carKey].vehicle.wheelInfos[index].rotation = wheelData.rotationAngle;
-                    }
+                    wheelBody.quaternion.set(wheelData.rotation.x, wheelData.rotation.y, wheelData.rotation.z, wheelData.rotation.w);
+                    car.physics[carKey].vehicle.wheelInfos[index].rotation = wheelData.rotationAngle;
                     car.physics[carKey].vehicle.wheelInfos[index].brake = wheelData.brake
                 })
             }
@@ -1741,12 +1724,12 @@ export default class
                 car.controls.actions.shoot = data.controls.shoot;
                 car.controls.actions.siren = data.controls.siren;
 
-                if (car.headLights?.material) {
+                if (!car.isLightBlinkActive?.() && car.headLights?.material) {
                     car.headLights.material.transparent = true;
                     car.headLights.material.opacity = data.controls.up ? 1 : 0.1;
                 }
 
-                if (car.headLights?.object) {
+                if (!car.isLightBlinkActive?.() && car.headLights?.object) {
                     car.headLights.object.traverse((child) => {
                         if (child instanceof THREE.Mesh) {
                             child.visible = true;
@@ -1764,17 +1747,25 @@ export default class
                     });
                 }
 
-                if (car.backLightsReverse?.material) {
+                if (!car.isLightBlinkActive?.() && car.backLightsReverse?.material) {
                     car.backLightsReverse.material.transparent = true;
                     car.backLightsReverse.material.opacity = data.controls.down ? 1 : 0.5;
                 }
 
-                if (car.backLightsBrake?.material) {
+                if (!car.isLightBlinkActive?.() && car.backLightsBrake?.material) {
                     car.backLightsBrake.material.transparent = true;
                     car.backLightsBrake.material.opacity = data.controls.brake ? 1 : 0.5;
                 }
 
                 const carSteeringValue = data.controls.steering;
+                const frontLeftIndex = car.physics[carKey].wheels?.indexes?.frontLeft;
+                const frontRightIndex = car.physics[carKey].wheels?.indexes?.frontRight;
+                if (typeof frontLeftIndex === 'number') {
+                    car.physics[carKey].vehicle.wheelInfos[frontLeftIndex].steering = -carSteeringValue;
+                }
+                if (typeof frontRightIndex === 'number') {
+                    car.physics[carKey].vehicle.wheelInfos[frontRightIndex].steering = -carSteeringValue;
+                }
                 const shouldApplyRemoteForces = false;
                 if (shouldApplyRemoteForces) {
                     car.physics[carKey].vehicle.setSteeringValue(-carSteeringValue, 0);
@@ -4656,7 +4647,6 @@ export default class
             const loadingLayer = document.getElementById('loading-layer');
             const w3mLayer = document.getElementById('w3m-layer');
             const worldLayer = document.getElementById('world-layer');
-            const garageLayer = document.getElementById('garage');
             const worldClock = document.getElementById('worldclock');
 
             if (loadingLayer) {
@@ -4669,10 +4659,6 @@ export default class
 
             if (worldLayer) {
                 worldLayer.style.display = 'none';
-            }
-
-            if (garageLayer) {
-                garageLayer.style.display = 'none';
             }
 
             if (worldClock) {

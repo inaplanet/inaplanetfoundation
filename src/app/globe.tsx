@@ -39,23 +39,6 @@ export function initGlobe(containerId: string): void {
 
     applyResponsiveScale();
 
-    // Lighting
-    const ambientLight = new THREE.AmbientLight(0x7b89a8, 0.56);
-    const hemisphereLight = new THREE.HemisphereLight(0xa9d3ff, 0x05070d, 1.44);
-    const sunLight = new THREE.DirectionalLight(0xffe1a8, 3.3);
-    const moonLight = new THREE.DirectionalLight(0x8eb6ff, 0.84);
-    const sunFillLight = new THREE.PointLight(0xffc66d, 2.2, 42, 2);
-    const moonFillLight = new THREE.PointLight(0x6e92ff, 0.48, 28, 2);
-
-    if (scene) {
-        scene.add(ambientLight);
-        scene.add(hemisphereLight);
-        scene.add(sunLight);
-        scene.add(moonLight);
-        scene.add(sunFillLight);
-        scene.add(moonFillLight);
-    }
-
     // Determine texture based on current time (AM or PM)
     const textureLoader = new THREE.TextureLoader();
     const currentTime = new Date();
@@ -66,11 +49,28 @@ export function initGlobe(containerId: string): void {
     const nightTextureUrl = '//unpkg.com/three-globe/example/img/earth-dark.jpg';
     const bumpTextureUrl = '//unpkg.com/three-globe/example/img/earth-topology.png';
 
-    const isAM = hours < 12;
-    const earthTexture = textureLoader.load(isAM ? dayTextureUrl : nightTextureUrl);
-    console.log(`Loading ${isAM ? 'day' : 'night'} texture based on time: ${hours} hours`);
+    const isDayTexture = hours < 12;
+    const earthTexture = textureLoader.load(isDayTexture ? dayTextureUrl : nightTextureUrl);
+    console.log(`Loading ${isDayTexture ? 'day' : 'night'} texture based on time: ${hours} hours`);
 
     const bumpTexture = textureLoader.load(bumpTextureUrl);
+
+    // Lighting
+    const ambientLight = new THREE.AmbientLight(0x7b89a8, 0.56);
+    const hemisphereLight = new THREE.HemisphereLight(0xa9d3ff, 0x05070d, 1.44);
+    const sunLight = new THREE.DirectionalLight(0xffe1a8, isDayTexture ? 1.65 : 3.3);
+    const moonLight = new THREE.DirectionalLight(0x8eb6ff, isDayTexture ? 0.42 : 0.84);
+    const sunFillLight = new THREE.PointLight(0xffc66d, isDayTexture ? 1.1 : 2.2, 42, 2);
+    const moonFillLight = new THREE.PointLight(0x6e92ff, isDayTexture ? 0.24 : 0.48, 28, 2);
+
+    if (scene) {
+        scene.add(ambientLight);
+        scene.add(hemisphereLight);
+        scene.add(sunLight);
+        scene.add(moonLight);
+        scene.add(sunFillLight);
+        scene.add(moonFillLight);
+    }
 
     // Create Globe
     const globeGeometry = new THREE.SphereGeometry(5, 64, 64);

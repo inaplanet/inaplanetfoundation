@@ -22,6 +22,34 @@ import Car18 from './Car18'
 import Car19 from './Car19'
 import Controls from './Controls'
 
+let collisionGlowTexture = null
+
+function getCollisionGlowTexture()
+{
+    if(collisionGlowTexture)
+    {
+        return collisionGlowTexture
+    }
+
+    const glowCanvas = document.createElement('canvas')
+    glowCanvas.width = 128
+    glowCanvas.height = 128
+
+    const glowContext = glowCanvas.getContext('2d')
+    const glowGradient = glowContext.createRadialGradient(64, 64, 6, 64, 64, 64)
+    glowGradient.addColorStop(0, 'rgba(255, 255, 255, 1)')
+    glowGradient.addColorStop(0.2, 'rgba(255, 245, 220, 0.95)')
+    glowGradient.addColorStop(0.48, 'rgba(255, 208, 92, 0.4)')
+    glowGradient.addColorStop(1, 'rgba(255, 208, 92, 0)')
+    glowContext.fillStyle = glowGradient
+    glowContext.fillRect(0, 0, 128, 128)
+
+    collisionGlowTexture = new THREE.CanvasTexture(glowCanvas)
+    collisionGlowTexture.needsUpdate = true
+
+    return collisionGlowTexture
+}
+
 export default class Physics
 {
     constructor(_options)
@@ -8342,20 +8370,52 @@ export default class Physics
             }
 
             // Update wheel bodies
+            const isCarNearlyStationary =
+                chassisBody.velocity.lengthSquared() < 0.0225 &&
+                Math.abs(this.car.accelerating) < 0.0001 &&
+                !this.controls.actions.up &&
+                !this.controls.actions.down &&
+                !this.controls.actions.boost
+
+            if(!this.car.wheels.restQuaternions)
+            {
+                this.car.wheels.restQuaternions = []
+            }
+
             for(let i = 0; i < this.car.vehicle.wheelInfos.length; i++)
             {
                 this.car.vehicle.updateWheelTransform(i)
 
                 const transform = this.car.vehicle.wheelInfos[i].worldTransform
                 this.car.wheels.bodies[i].position.copy(transform.position)
-                this.car.wheels.bodies[i].quaternion.copy(transform.quaternion)
+                const targetQuaternion = new CANNON.Quaternion(
+                    transform.quaternion.x,
+                    transform.quaternion.y,
+                    transform.quaternion.z,
+                    transform.quaternion.w
+                )
 
                 // Rotate the wheels on the right
                 if(i === 1 || i === 3)
                 {
                     const rotationQuaternion = new CANNON.Quaternion(0, 0, 0, 1)
                     rotationQuaternion.setFromAxisAngle(new CANNON.Vec3(0, 0, 1), Math.PI)
-                    this.car.wheels.bodies[i].quaternion = this.car.wheels.bodies[i].quaternion.mult(rotationQuaternion)
+                    targetQuaternion.copy(targetQuaternion.mult(rotationQuaternion))
+                }
+
+                if(isCarNearlyStationary && this.car.wheels.restQuaternions[i])
+                {
+                    this.car.wheels.bodies[i].quaternion.copy(this.car.wheels.restQuaternions[i])
+                }
+                else
+                {
+                    this.car.wheels.bodies[i].quaternion.copy(targetQuaternion)
+                    this.car.wheels.restQuaternions[i] = new CANNON.Quaternion(
+                        targetQuaternion.x,
+                        targetQuaternion.y,
+                        targetQuaternion.z,
+                        targetQuaternion.w
+                    )
                 }
             }
 
@@ -8903,9 +8963,6 @@ export default class Physics
                 shooterCar.score += 1;
                 this.updateScoreStatus(shooterCar.score);
             }
-            if (typeof car.createCrashEffect === 'function' && car.chassis?.object) {
-                car.createCrashEffect(car.chassis.object.position, car.chassis.object.quaternion, car.chassis.object);
-            }
             this.triggerCarDestroyed(car, 'bullet', bullet.body.shooterId);
         }
     
@@ -8972,7 +9029,7 @@ export default class Physics
         );
     }
 
-    createImpactEffect({ hostContainer, origin, direction, impactStrength, mode = 'car' }) {
+    createImpactEffect({ hostContainer, origin, direction, impactStrength }) {
         if (!hostContainer || !origin) {
             return;
         }
@@ -8992,9 +9049,8 @@ export default class Physics
 
         const bitangent = new THREE.Vector3().crossVectors(normalizedDirection, tangent).normalize();
         const intensity = Math.max(1, impactStrength || 1);
-        const isRocket = mode === 'rocket';
-        const sparkCount = Math.min(isRocket ? 38 : 28, Math.max(isRocket ? 20 : 16, Math.round(intensity * (isRocket ? 0.55 : 0.4))));
-        const streakCount = Math.min(isRocket ? 22 : 16, Math.max(isRocket ? 10 : 8, Math.round(intensity * 0.22)));
+        const sparkCount = Math.min(42, Math.max(18, Math.round(intensity * 0.55)));
+        const streakCount = Math.min(18, Math.max(8, Math.round(intensity * 0.22)));
 
         const sparkGeometry = new THREE.BufferGeometry();
         const sparkPositions = new Float32Array(sparkCount * 3);
@@ -9006,29 +9062,19 @@ export default class Physics
             sparkPositions[i * 3 + 1] = 0;
             sparkPositions[i * 3 + 2] = 0;
 
-            const forward = normalizedDirection.clone().multiplyScalar((0.12 + Math.random() * 0.24) * (isRocket ? 1.45 : 1));
-            const lateral = tangent.clone().multiplyScalar((Math.random() - 0.5) * (isRocket ? 0.26 : 0.18));
+            const forward = normalizedDirection.clone().multiplyScalar(0.16 + Math.random() * 0.28);
+            const lateral = tangent.clone().multiplyScalar((Math.random() - 0.5) * 0.22);
             const vertical = bitangent.clone().multiplyScalar((Math.random() - 0.5) * 0.12);
             forward.z += 0.04 + Math.random() * 0.08;
             sparkVelocities.push(forward.add(lateral).add(vertical));
 
             const heat = Math.random();
-            if (isRocket) {
-                if (heat < 0.18) {
-                    sparkColors.set([1, 1, 1], i * 3);
-                } else if (heat < 0.62) {
-                    sparkColors.set([0.38, 0.72, 1], i * 3);
-                } else {
-                    sparkColors.set([1, 0.62, 0.18], i * 3);
-                }
+            if (heat < 0.18) {
+                sparkColors.set([1, 1, 1], i * 3);
+            } else if (heat < 0.58) {
+                sparkColors.set([1, 0.9, 0.55], i * 3);
             } else {
-                if (heat < 0.22) {
-                    sparkColors.set([1, 1, 1], i * 3);
-                } else if (heat < 0.68) {
-                    sparkColors.set([1, 0.82, 0.38], i * 3);
-                } else {
-                    sparkColors.set([1, 0.46, 0.14], i * 3);
-                }
+                sparkColors.set([1, 0.56, 0.12], i * 3);
             }
         }
 
@@ -9036,7 +9082,8 @@ export default class Physics
         sparkGeometry.setAttribute('color', new THREE.BufferAttribute(sparkColors, 3));
 
         const sparkMaterial = new THREE.PointsMaterial({
-            size: isRocket ? 0.38 : 0.3,
+            size: 0.34,
+            map: getCollisionGlowTexture(),
             vertexColors: true,
             transparent: true,
             opacity: 0.95,
@@ -9056,8 +9103,8 @@ export default class Physics
         for (let i = 0; i < streakCount; i++) {
             const streakVelocity = normalizedDirection
                 .clone()
-                .multiplyScalar((0.18 + Math.random() * 0.22) * (isRocket ? 1.6 : 1.15))
-                .add(tangent.clone().multiplyScalar((Math.random() - 0.5) * 0.16))
+                .multiplyScalar(0.22 + Math.random() * 0.24)
+                .add(tangent.clone().multiplyScalar((Math.random() - 0.5) * 0.18))
                 .add(bitangent.clone().multiplyScalar((Math.random() - 0.5) * 0.09));
             streakVelocity.z += 0.02 + Math.random() * 0.06;
             streakVelocities.push(streakVelocity);
@@ -9070,7 +9117,7 @@ export default class Physics
             streakPositions[base + 4] = -streakVelocity.y * 0.7;
             streakPositions[base + 5] = -streakVelocity.z * 0.7;
 
-            const streakColor = isRocket ? [0.72, 0.9, 1] : [1, 0.86, 0.48];
+            const streakColor = [1, 0.88, 0.56];
             streakColors.set(streakColor, base + 0);
             streakColors.set(streakColor, base + 3);
         }
@@ -9081,7 +9128,7 @@ export default class Physics
         const streakMaterial = new THREE.LineBasicMaterial({
             vertexColors: true,
             transparent: true,
-            opacity: isRocket ? 0.8 : 0.72,
+            opacity: 0.74,
             blending: THREE.AdditiveBlending,
             depthWrite: false
         });
@@ -9090,33 +9137,61 @@ export default class Physics
         streaks.position.copy(origin);
         hostContainer.add(streaks);
 
-        const ringMaterial = new THREE.MeshBasicMaterial({
-            color: isRocket ? 0x7db8ff : 0xffc56b,
-            transparent: true,
-            opacity: isRocket ? 0.38 : 0.26,
-            side: THREE.DoubleSide,
-            depthWrite: false,
-            blending: THREE.AdditiveBlending
-        });
-        const ring = new THREE.Mesh(new THREE.RingGeometry(isRocket ? 0.14 : 0.18, isRocket ? 0.3 : 0.4, 32), ringMaterial);
-        ring.position.copy(origin);
-        ring.lookAt(origin.clone().add(normalizedDirection));
-        hostContainer.add(ring);
-
         const flashMaterial = new THREE.SpriteMaterial({
-            color: isRocket ? 0xa8d4ff : 0xfff1cb,
+            map: getCollisionGlowTexture(),
+            color: 0xfff4da,
             transparent: true,
-            opacity: isRocket ? 0.48 : 0.34,
+            opacity: 0.52,
             blending: THREE.AdditiveBlending,
             depthWrite: false
         });
         const flash = new THREE.Sprite(flashMaterial);
         flash.position.copy(origin);
-        flash.scale.setScalar(isRocket ? 0.95 : 0.72);
+        flash.scale.setScalar(0.78);
         hostContainer.add(flash);
 
+        const haloMaterial = new THREE.SpriteMaterial({
+            map: getCollisionGlowTexture(),
+            color: 0xffcf73,
+            transparent: true,
+            opacity: 0.34,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false
+        });
+        const halo = new THREE.Sprite(haloMaterial);
+        halo.position.copy(origin);
+        halo.scale.setScalar(1.1);
+        halo.lookAt(origin.clone().add(normalizedDirection));
+        hostContainer.add(halo);
+
+        const burstGeometry = new THREE.BufferGeometry();
+        const burstPositions = new Float32Array(streakCount * 6);
+        for (let i = 0; i < streakCount; i++) {
+            const angle = (i / streakCount) * Math.PI * 2;
+            const radius = 0.14 + Math.random() * 0.06;
+            const base = i * 6;
+            burstPositions[base + 0] = Math.cos(angle) * radius;
+            burstPositions[base + 1] = Math.sin(angle) * radius;
+            burstPositions[base + 2] = 0;
+            burstPositions[base + 3] = Math.cos(angle) * (radius * 1.7);
+            burstPositions[base + 4] = Math.sin(angle) * (radius * 1.7);
+            burstPositions[base + 5] = 0;
+        }
+        burstGeometry.setAttribute('position', new THREE.BufferAttribute(burstPositions, 3));
+
+        const burstMaterial = new THREE.LineBasicMaterial({
+            color: 0xffe6b5,
+            transparent: true,
+            opacity: 0.55,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false
+        });
+        const burst = new THREE.LineSegments(burstGeometry, burstMaterial);
+        burst.position.copy(origin);
+        hostContainer.add(burst);
+
         const startedAt = performance.now();
-        const duration = isRocket ? 320 : 260;
+        const duration = 280;
 
         const animate = () => {
             const elapsed = performance.now() - startedAt;
@@ -9125,15 +9200,17 @@ export default class Physics
             if (progress >= 1) {
                 hostContainer.remove(sparks);
                 hostContainer.remove(streaks);
-                hostContainer.remove(ring);
                 hostContainer.remove(flash);
+                hostContainer.remove(halo);
+                hostContainer.remove(burst);
                 sparkGeometry.dispose();
                 sparkMaterial.dispose();
                 streakGeometry.dispose();
                 streakMaterial.dispose();
-                ring.geometry.dispose();
-                ringMaterial.dispose();
                 flashMaterial.dispose();
+                haloMaterial.dispose();
+                burstGeometry.dispose();
+                burstMaterial.dispose();
                 return;
             }
 
@@ -9142,8 +9219,8 @@ export default class Physics
                 sparkPositions[i * 3 + 0] += velocity.x;
                 sparkPositions[i * 3 + 1] += velocity.y;
                 sparkPositions[i * 3 + 2] += velocity.z;
-                velocity.multiplyScalar(isRocket ? 0.94 : 0.92);
-                velocity.z -= isRocket ? 0.003 : 0.006;
+                velocity.multiplyScalar(0.92);
+                velocity.z -= 0.005;
             }
 
             for (let i = 0; i < streakCount; i++) {
@@ -9162,11 +9239,13 @@ export default class Physics
             streakGeometry.attributes.position.needsUpdate = true;
 
             sparkMaterial.opacity = 0.95 * (1 - progress);
-            streakMaterial.opacity = (isRocket ? 0.8 : 0.72) * (1 - progress);
-            ring.scale.setScalar(1 + progress * (isRocket ? 2.4 : 1.9));
-            ringMaterial.opacity = (isRocket ? 0.38 : 0.26) * (1 - progress);
-            flash.scale.setScalar((isRocket ? 0.95 : 0.72) + progress * (isRocket ? 1.8 : 1.25));
-            flashMaterial.opacity = (isRocket ? 0.48 : 0.34) * (1 - progress);
+            streakMaterial.opacity = 0.74 * (1 - progress);
+            flash.scale.setScalar(0.78 + progress * 1.5);
+            flashMaterial.opacity = 0.52 * (1 - progress);
+            halo.scale.setScalar(1.1 + progress * 2.2);
+            haloMaterial.opacity = 0.34 * (1 - progress);
+            burst.scale.setScalar(1 + progress * 1.35);
+            burstMaterial.opacity = 0.55 * (1 - progress);
 
             requestAnimationFrame(animate);
         };
@@ -9191,8 +9270,7 @@ export default class Physics
             hostContainer,
             origin,
             direction: impactDirection,
-            impactStrength,
-            mode: 'car'
+            impactStrength
         });
     }
 
@@ -9206,8 +9284,7 @@ export default class Physics
             hostContainer,
             origin,
             direction: impactDirection,
-            impactStrength,
-            mode: 'rocket'
+            impactStrength
         });
     }
     

@@ -259,86 +259,33 @@ export default class Car
     }
 
     createCrashEffect(position, quaternion, chassis) {
-        const crashTexture = '/images/texture/crash.png';
-    
-        const img = new Image();
-        img.src = crashTexture;
-        img.crossOrigin = "anonymous"; // Handle CORS
-
-        img.onload = () => {
-            const texture = new THREE.Texture(img);
-            texture.needsUpdate = true;
-
-            const material = new THREE.PointsMaterial({
-                size: 6.4,
-                vertexColors: true,
-                sizeAttenuation: true,
-                transparent: true,
-                opacity: 0.9,
-                map: texture,
-                blending: THREE.AdditiveBlending,
-                depthWrite: false,
-            });
-
-            const particleCount = 6;
-            const geometry = new THREE.BufferGeometry();
-            const vertices = [];
-            const colors = [];
-            const haloRadius = 0.5;
-
-            for (let i = 0; i < particleCount; i++) {
-                const angle = (i / particleCount) * Math.PI * 2;
-                vertices.push(
-                    Math.cos(angle) * haloRadius,
-                    Math.sin(angle) * haloRadius,
-                    0
-                );
-                colors.push(1.0, 1.0, 1.0);
-            }
-
-            geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
-            geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-
-            const particles = new THREE.Points(geometry, material);
-            chassis.add(particles);
-
-            const duration = 5000;
-            const startTime = performance.now();
-
-            const animateParticles = () => {
-                const elapsedTime = performance.now() - startTime;
-                const positions = geometry.attributes.position.array;
-                const spin = elapsedTime * 0.0025;
-
-                for (let i = 0; i < particleCount; i++) {
-                    const angle = (i / particleCount) * Math.PI * 2 + spin;
-                    positions[i * 3] = Math.cos(angle) * haloRadius;
-                    positions[i * 3 + 1] = Math.sin(angle) * haloRadius;
-                    positions[i * 3 + 2] = Math.sin(elapsedTime * 0.006 + i) * 0.05;
-                }
-
-                geometry.attributes.position.needsUpdate = true;
-
-                if (elapsedTime < duration) {
-                    requestAnimationFrame(animateParticles);
-                } else {
-                    chassis.remove(particles);
-                    particles.geometry.dispose();
-                    particles.material.dispose();
-                }
-            };
-
-            particles.position.set(0, 0, 1.58);
-
-            animateParticles();
-        };
-
-        img.onerror = (error) => {
-            console.error('Failed to load base64 image:', error);
-        };
+        this.triggerBatteryDepletedBlink()
     }
 
-    createFireEffect(position, quaternion) {
+    isLightBlinkActive()
+    {
+        return Boolean(this.lightBlink?.active)
+    }
+
+    triggerBatteryDepletedBlink(count = 5)
+    {
+        if(!this.lightBlink)
+        {
+            return
+        }
+
+        this.lightBlink.active = true
+        this.lightBlink.startedAt = performance.now()
+        this.lightBlink.totalPhases = Math.max(2, count * 2)
+    }
+
+    createFireEffect(bullet) {
+        const bulletMesh = bullet?.mesh
+        if(!bulletMesh)
+        {
+            return
+        }
+
         const fireTexture = '/images/texture/fire.png';
     
         const img = new Image();
@@ -349,22 +296,48 @@ export default class Car
             const texture = new THREE.Texture(img);
             texture.needsUpdate = true;
 
+            const glowCanvas = document.createElement('canvas')
+            glowCanvas.width = 128
+            glowCanvas.height = 128
+
+            const glowContext = glowCanvas.getContext('2d')
+            const glowGradient = glowContext.createRadialGradient(64, 64, 10, 64, 64, 64)
+            glowGradient.addColorStop(0, 'rgba(255, 255, 255, 1)')
+            glowGradient.addColorStop(0.3, 'rgba(255, 214, 128, 0.95)')
+            glowGradient.addColorStop(0.62, 'rgba(255, 120, 30, 0.35)')
+            glowGradient.addColorStop(1, 'rgba(255, 120, 30, 0)')
+            glowContext.fillStyle = glowGradient
+            glowContext.fillRect(0, 0, 128, 128)
+
+            const glowTexture = new THREE.CanvasTexture(glowCanvas)
+            glowTexture.needsUpdate = true;
+
             const material = new THREE.PointsMaterial({
-                size: 1.5, // Adjust size for visibility
+                size: 1.9,
                 map: texture,
                 vertexColors: true,
-                sizeAttenuation: true, // Size decreases with distance
+                sizeAttenuation: true,
                 transparent: true,
                 opacity: 1,
-                blending: THREE.AdditiveBlending, // Glowing effect
-                depthWrite: false, // Prevent depth issues
+                blending: THREE.AdditiveBlending,
+                depthWrite: false,
             });
+
+            const glowMaterial = new THREE.SpriteMaterial({
+                map: glowTexture,
+                color: 0xffe3b0,
+                transparent: true,
+                opacity: 0.72,
+                blending: THREE.AdditiveBlending,
+                depthWrite: false,
+            })
 
             const particleCount = 150;
             const geometry = new THREE.BufferGeometry();
             const vertices = [];
             const colors = [];
             const sizes = [];
+            const velocities = [];
 
             // Initialize particle vertices, colors, and sizes
             for (let i = 0; i < particleCount; i++) {
@@ -386,89 +359,96 @@ export default class Car
                 }
 
                 sizes.push(Math.random() * 0.1 + 0.05); // Size between 0.05 and 0.15
+                velocities.push({
+                    x: -(0.32 + Math.random() * 0.2),
+                    y: (Math.random() - 0.5) * 0.18,
+                    z: (Math.random() - 0.5) * 0.18,
+                })
             }
 
             geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
             geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
             geometry.setAttribute('size', new THREE.Float32BufferAttribute(sizes, 1));
 
+            const exhaustOffset = new THREE.Vector3(-1.75, 0, 0)
             const particles = new THREE.Points(geometry, material);
+            particles.position.copy(exhaustOffset)
+            bulletMesh.add(particles)
 
-            // Rotate the particle system to align with rocket exhaust direction
-            particles.rotation.x = Math.PI / 2; // Rotate around X-axis for correct alignment
-
-            this.container.add(particles); // Add particles to the scene
-
-            // Calculate the exhaust offset
-            const exhaustOffset = new THREE.Vector3(-1.6, 0, 0);
-            exhaustOffset.applyQuaternion(quaternion);
-
-            // Set the initial position of the particles
-            particles.position.copy(position).add(exhaustOffset);
-            particles.quaternion.copy(quaternion); // Align with bullet’s orientation
+            const glow = new THREE.Sprite(glowMaterial)
+            glow.position.copy(exhaustOffset)
+            glow.scale.setScalar(1.45)
+            bulletMesh.add(glow)
 
             let isBulletActive = true; // Track if bullet is active
+            let previousFrameTime = performance.now()
+
+            const resetParticle = (index) => {
+                vertices[index * 3 + 0] = Math.random() * 0.05
+                vertices[index * 3 + 1] = (Math.random() - 0.5) * 0.04
+                vertices[index * 3 + 2] = (Math.random() - 0.5) * 0.04
+                velocities[index].x = -(0.32 + Math.random() * 0.2)
+                velocities[index].y = (Math.random() - 0.5) * 0.18
+                velocities[index].z = (Math.random() - 0.5) * 0.18
+            }
+
+            for (let i = 0; i < particleCount; i++) {
+                resetParticle(i)
+            }
+            geometry.attributes.position.needsUpdate = true
+
+            const cleanupFireEffect = () => {
+                isBulletActive = false
+                if (particles.parent) {
+                    particles.parent.remove(particles)
+                }
+                if (glow.parent) {
+                    glow.parent.remove(glow)
+                }
+                geometry.dispose()
+                material.dispose()
+                texture.dispose()
+                glowMaterial.dispose()
+                glowTexture.dispose()
+            }
 
             const animateParticles = () => {
                 if (!isBulletActive) return; // Stop animation if bullet is removed
 
+                if (!bulletMesh.parent) {
+                    cleanupFireEffect()
+                    return
+                }
+
                 const positions = geometry.attributes.position.array;
+                const now = performance.now()
+                const deltaTime = Math.min((now - previousFrameTime) / 16.6667, 1.8)
+                previousFrameTime = now
 
-                // Update particle positions to move toward their initial position
                 for (let i = 0; i < particleCount; i++) {
-                    // Calculate the movement vector in local space
-                    const localMovement = new THREE.Vector3(
-                        -1 * (Math.random() - 0.5) * 0.1, // X-axis jitter
-                        -1 * (Math.random() - 0.5) * 0.1, // Y-axis jitter
-                        0 // Z-axis forward movement (toward initial position)
-                    );
+                    const velocity = velocities[i]
+                    positions[i * 3 + 0] += velocity.x * 0.08 * deltaTime
+                    positions[i * 3 + 1] += velocity.y * 0.08 * deltaTime
+                    positions[i * 3 + 2] += velocity.z * 0.08 * deltaTime
 
-                    // Rotate the movement 90 degrees along the Y-axis
-                    const yRotation = new THREE.Quaternion();
-                    yRotation.setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI / 2); // 90 degrees along Y-axis
+                    velocity.x *= 0.988
+                    velocity.y *= 0.975
+                    velocity.z *= 0.975
 
-                    localMovement.applyQuaternion(yRotation); // Apply the Y-axis rotation
-                    localMovement.applyQuaternion(quaternion); // Align with rocket’s orientation
-
-                    // Update the particle positions
-                    positions[i * 3 + 0] += localMovement.x * -2;
-                    positions[i * 3 + 1] += localMovement.y;
-                    positions[i * 3 + 2] += localMovement.z;
+                    if (positions[i * 3 + 0] < -0.95) {
+                        resetParticle(i)
+                    }
                 }
 
                 geometry.attributes.position.needsUpdate = true;
-
-                // Keep particles aligned with the bullet’s position and orientation
-                particles.position.copy(position).add(exhaustOffset);
-                particles.quaternion.copy(quaternion);
+                const pulse = 0.58 + Math.abs(Math.sin(performance.now() * 0.02)) * 0.26
+                glowMaterial.opacity = pulse
+                glow.scale.setScalar(1.15 + pulse * 0.65)
 
                 requestAnimationFrame(animateParticles); // Continue animation
             };
 
             animateParticles(); // Start animation
-
-            // Cleanup function to remove the fire effect when the bullet disappears
-            const cleanupFireEffect = () => {
-                isBulletActive = false; // Stop animation
-                this.container.remove(particles);
-                geometry.dispose();
-                material.dispose();
-            };
-
-            // Listen for bullet removal and trigger cleanup
-            const bulletCheckInterval = setInterval(() => {
-                const bulletExists = this.physics.bullets.some(
-                    (bullet) =>
-                        Math.abs(bullet.body.position.x - position.x) < 0.01 &&
-                        Math.abs(bullet.body.position.y - position.y) < 0.01 &&
-                        Math.abs(bullet.body.position.z - position.z) < 0.01
-                );
-
-                if (!bulletExists) {
-                    clearInterval(bulletCheckInterval); // Stop checking
-                    cleanupFireEffect(); // Cleanup fire effect
-                }
-            }, 1000); // Check every 100ms
         };
 
         // Handle texture loading errors
@@ -716,7 +696,7 @@ export default class Car
             this.physics.handleBulletCollision(bullet, index);
         });
 
-        this.createFireEffect(bulletBall.position, bulletQuaternion);
+        this.createFireEffect(bullet);
     
         // Send bullet data to the server via WebSocket
         const bulletDataToSend = {
@@ -1919,16 +1899,30 @@ export default class Car
     }
 
     updateSpeedometer() {
-        const speed = this.movement.speed.length() * 300; // Actual speed of the car
-        const maxSpeed = 200; // Maximum speed (adjust based on your game)
-        const speedPercentage = Math.min(speed / maxSpeed, 1); // Normalize speed to range [0, 1]
+        const bodyVelocity = this.physics?.car?.chassis?.body?.velocity
+        const horizontalSpeedMetersPerSecond = bodyVelocity
+            ? Math.hypot(bodyVelocity.x, bodyVelocity.y)
+            : Math.hypot(this.movement.speed.x, this.movement.speed.y)
+        const targetSpeedMph = Math.max(0, horizontalSpeedMetersPerSecond * 2.236936)
+
+        if(typeof this.speedometerDisplaySpeed !== 'number')
+        {
+            this.speedometerDisplaySpeed = targetSpeedMph
+        }
+        else
+        {
+            this.speedometerDisplaySpeed = THREE.MathUtils.lerp(this.speedometerDisplaySpeed, targetSpeedMph, 0.22)
+        }
+
+        const maxSpeed = 180
+        const speedPercentage = Math.min(this.speedometerDisplaySpeed / maxSpeed, 1)
     
         const needle = document.getElementById('needle');
         const speedValue = document.getElementById('speed-value');
         if (needle && speedValue) {
             const rotation = speedPercentage * 180 - 100; // Convert speed to needle rotation (0 to 180 degrees)
             needle.style.transform = `rotate(${rotation}deg)`;
-            speedValue.textContent = Math.round(speed); // Display actual speed value
+            speedValue.textContent = Math.round(this.speedometerDisplaySpeed); // Display actual speed value
         }
     }
 
@@ -2195,6 +2189,12 @@ export default class Car
     {
         this.backLightsBrake = {}
         this.headLights = {}
+        this.lightBlink = {
+            active: false,
+            startedAt: 0,
+            phaseDurationMs: 140,
+            totalPhases: 10
+        }
 
         this.backLightsBrake.material = this.materials.pures.items.red.clone()
         this.backLightsBrake.material.transparent = true
@@ -2272,9 +2272,27 @@ export default class Car
         // Time tick
         this.time.on('tick', () =>
             {
-                this.backLightsBrake.material.opacity = this.physics.controls.actions.brake ? 1 : 0.5
-                this.backLightsReverse.material.opacity = this.physics.controls.actions.down ? 1 : 0.5
-                this.headLights.material.opacity = this.physics.controls.actions.up ? 1 : 0.1
+                const blinkPhase = Math.floor((performance.now() - this.lightBlink.startedAt) / this.lightBlink.phaseDurationMs)
+                const isBlinking = this.lightBlink.active && blinkPhase < this.lightBlink.totalPhases
+
+                if(this.lightBlink.active && !isBlinking)
+                {
+                    this.lightBlink.active = false
+                }
+
+                if(isBlinking)
+                {
+                    const lightsOn = blinkPhase % 2 === 0
+                    this.backLightsBrake.material.opacity = lightsOn ? 1 : 0.1
+                    this.backLightsReverse.material.opacity = lightsOn ? 1 : 0.1
+                    this.headLights.material.opacity = lightsOn ? 1 : 0.1
+                }
+                else
+                {
+                    this.backLightsBrake.material.opacity = this.physics.controls.actions.brake ? 1 : 0.5
+                    this.backLightsReverse.material.opacity = this.physics.controls.actions.down ? 1 : 0.5
+                    this.headLights.material.opacity = this.physics.controls.actions.up ? 1 : 0.1
+                }
 
                 // const batteryLevelWidth = this.battery / 100; // Calculate the width based on battery percentage
                 //     this.backLightsBattery.object.children.forEach(child => {

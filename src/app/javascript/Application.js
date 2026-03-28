@@ -8,14 +8,6 @@ import Time from './Utils/Time.js'
 import World from './World/index.js'
 import Resources from './Resources.js'
 import Camera from './Camera.js'
-import gsap from 'gsap'
-import { TweenLite } from 'gsap/TweenLite'
-
-import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js'
-import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js'
-import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
-import BlurPass from './Passes/Blur.js'
-import GlowsPass from './Passes/Glows.js'
 
 // Main Application as a React component
 const Application = ({ playerId, selectedWorldId, token, carName, matcaps }) => {
@@ -76,10 +68,6 @@ const Application = ({ playerId, selectedWorldId, token, carName, matcaps }) => 
                     this.world.controls.setTouch();
                 }
     
-                // this.passes.horizontalBlurPass.strength = 1;
-                // this.passes.horizontalBlurPass.material.uniforms.uStrength.value = new THREE.Vector2(this.passes.horizontalBlurPass.strength, 0);
-                // this.passes.verticalBlurPass.strength = 1;
-                // this.passes.verticalBlurPass.material.uniforms.uStrength.value = new THREE.Vector2(0, this.passes.verticalBlurPass.strength);
             }, { once: true });
         }
     }    
@@ -387,67 +375,6 @@ const Application = ({ playerId, selectedWorldId, token, carName, matcaps }) => 
     setPasses()
     {
         this.passes = {}
-
-        this.passes.composer = new EffectComposer(this.renderer)
-
-        // Create passes
-        this.passes.renderPass = new RenderPass(this.scene, this.camera.instance)
-
-        // Debug
-        if(this.debug)
-        {
-            const folder = this.passes.debugFolder.addFolder('glows')
-            folder.open()
-
-            folder.add(this.passes.glowsPass.material.uniforms.uPosition.value, 'x').step(0.001).min(- 1).max(2).name('positionX')
-            folder.add(this.passes.glowsPass.material.uniforms.uPosition.value, 'y').step(0.001).min(- 1).max(2).name('positionY')
-            folder.add(this.passes.glowsPass.material.uniforms.uRadius, 'value').step(0.001).min(0).max(2).name('radius')
-            folder.addColor(this.passes.glowsPass, 'color').name('color').onChange(() =>
-            {
-                // this.passes.glowsPass.material.uniforms.uColor.value = new THREE.Color(this.passes.glowsPass.color)
-            })
-            folder.add(this.passes.glowsPass.material.uniforms.uAlpha, 'value').step(0.001).min(0).max(1).name('alpha')
-        }
-
-        // if (this.passes.horizontalBlurPass && this.passes.verticalBlurPass && this.passes.glowsPass) {
-
-        //     // Add passes
-        //     this.passes.composer.addPass(this.passes.renderPass)
-        //     this.passes.composer.addPass(this.passes.horizontalBlurPass)
-        //     this.passes.composer.addPass(this.passes.verticalBlurPass)
-        //     this.passes.composer.addPass(this.passes.glowsPass)
-
-        // } else {
-        //     console.error('One or more passes are not initialized correctly');
-        // }
-
-        // Time tick
-        // this.time.on('tick', () =>
-        // {
-        //     if (this.passes.horizontalBlurPass) {
-        //         this.passes.horizontalBlurPass.enabled = this.passes.horizontalBlurPass.material.uniforms.uStrength.value.x > 0
-        //     }
-
-        //     if (this.passes.verticalBlurPass) {
-        //         this.passes.verticalBlurPass.enabled = this.passes.verticalBlurPass.material.uniforms.uStrength.value.y > 0
-        //     }
-
-        //     // Renderer
-        //     this.passes.composer.render()
-        //     // this.renderer.domElement.style.background = 'black'
-        //     // this.renderer.render(this.scene, this.camera.instance)
-        // })
-
-        // Resize event
-        this.sizes.on('resize', () =>
-        {
-            this.renderer.setSize(this.sizes.viewport.width, this.sizes.viewport.height)
-            this.passes.composer.setSize(this.sizes.viewport.width, this.sizes.viewport.height)
-            // this.passes.horizontalBlurPass.material.uniforms.uResolution.value.x = this.sizes.viewport.width
-            // this.passes.horizontalBlurPass.material.uniforms.uResolution.value.y = this.sizes.viewport.height
-            // this.passes.verticalBlurPass.material.uniforms.uResolution.value.x = this.sizes.viewport.width
-            // this.passes.verticalBlurPass.material.uniforms.uResolution.value.y = this.sizes.viewport.height
-        })
     }
 
     /**
@@ -476,8 +403,6 @@ const Application = ({ playerId, selectedWorldId, token, carName, matcaps }) => 
             ws: this.ws
         })
         this.scene.add(this.world.container)
-        console.log("Game World:", this.world)
-        console.log("Game World Texture panel:", this.world.matcaps)
     }
 
     /**
@@ -503,7 +428,6 @@ appInstanceRef.current = app;
 
 // Cleanup on unmount
 return () => {
-  console.log('Cleaning up Application');
   if (appInstanceRef.current) {
     const worldSocket = appInstanceRef.current?.world?.ws;
     const currentPlayerId = appInstanceRef.current?.playerId;

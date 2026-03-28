@@ -560,6 +560,7 @@ export default class Controls extends EventEmitter
 
         this.touch.joystick.cursorSize = 60
         this.touch.joystick.cursorRestOffset = (170 - this.touch.joystick.cursorSize) * 0.5
+        this.touch.joystick.cursorOffset = { x: 0, y: 0 }
 
         this.touch.joystick.$cursor = document.createElement('div')
         this.touch.joystick.$cursor.style.position = 'absolute'
@@ -571,8 +572,11 @@ export default class Controls extends EventEmitter
         this.touch.joystick.$cursor.style.background = 'rgba(2, 19, 247, 0.12)'
         this.touch.joystick.$cursor.style.borderRadius = '50%'
         this.touch.joystick.$cursor.style.boxSizing = 'border-box'
+        this.touch.joystick.$cursor.style.boxShadow = '0 0 24px rgba(2, 19, 247, 0.28)'
         this.touch.joystick.$cursor.style.pointerEvents = 'none'
-        this.touch.joystick.$cursor.style.transform = 'translate3d(0px, 0px, 0px)'
+        this.touch.joystick.$cursor.style.transform = 'translate3d(0px, 0px, 0)'
+        this.touch.joystick.$cursor.style.transformOrigin = 'center center'
+        this.touch.joystick.$cursor.style.backfaceVisibility = 'hidden'
         this.touch.joystick.$cursor.style.willChange = 'transform'
         this.touch.joystick.$cursor.style.zIndex = '2'
         this.touch.joystick.$element.appendChild(this.touch.joystick.$cursor)
@@ -618,12 +622,53 @@ export default class Controls extends EventEmitter
             this.touch.joystick.angle.center.y = boundings.top + boundings.height * 0.5
         }
 
+        this.touch.joystick.updateCursorVisual = (x = 0, y = 0) =>
+        {
+            this.touch.joystick.cursorOffset.x = x
+            this.touch.joystick.cursorOffset.y = y
+            this.touch.joystick.$cursor.style.transform = `translate3d(${x}px, ${y}px, 0)`
+        }
+
+        this.touch.joystick.syncCursorFromCurrentPosition = () =>
+        {
+            if(!this.touch.joystick.active)
+            {
+                return
+            }
+
+            this.touch.joystick.resize()
+
+            this.touch.joystick.angle.originalValue = - Math.atan2(
+                this.touch.joystick.angle.current.y - this.touch.joystick.angle.center.y,
+                this.touch.joystick.angle.current.x - this.touch.joystick.angle.center.x
+            )
+            this.touch.joystick.angle.value = this.touch.joystick.angle.originalValue + this.touch.joystick.angle.offset
+
+            const distance = Math.hypot(
+                this.touch.joystick.angle.current.y - this.touch.joystick.angle.center.y,
+                this.touch.joystick.angle.current.x - this.touch.joystick.angle.center.x
+            )
+            let radius = distance
+            if(radius > 20)
+            {
+                radius = 20 + Math.log(distance - 20) * 5
+            }
+            if(radius > 43)
+            {
+                radius = 43
+            }
+
+            const cursorX = Math.sin(this.touch.joystick.angle.originalValue + Math.PI * 0.5) * radius
+            const cursorY = Math.cos(this.touch.joystick.angle.originalValue + Math.PI * 0.5) * radius
+            this.touch.joystick.updateCursorVisual(cursorX, cursorY)
+        }
+
         this.touch.joystick.reset = () =>
         {
             this.touch.joystick.active = false
             this.touch.joystick.touchIdentifier = null
             this.touch.joystick.$limit.style.opacity = '0.25'
-            this.touch.joystick.$cursor.style.transform = 'translate3d(0px, 0px, 0px)'
+            this.touch.joystick.updateCursorVisual()
 
             document.removeEventListener('touchend', this.touch.joystick.events.touchend)
             document.removeEventListener('touchmove', this.touch.joystick.events.touchmove)
@@ -643,29 +688,7 @@ export default class Controls extends EventEmitter
             // Joystick active
             if(this.touch.joystick.active)
             {
-                this.touch.joystick.resize()
-
-                // Calculate joystick angle
-                this.touch.joystick.angle.originalValue = - Math.atan2(
-                    this.touch.joystick.angle.current.y - this.touch.joystick.angle.center.y,
-                    this.touch.joystick.angle.current.x - this.touch.joystick.angle.center.x
-                )
-                this.touch.joystick.angle.value = this.touch.joystick.angle.originalValue + this.touch.joystick.angle.offset
-
-                // Update joystick
-                const distance = Math.hypot(this.touch.joystick.angle.current.y - this.touch.joystick.angle.center.y, this.touch.joystick.angle.current.x - this.touch.joystick.angle.center.x)
-                let radius = distance
-                if(radius > 20)
-                {
-                    radius = 20 + Math.log(distance - 20) * 5
-                }
-                if(radius > 43)
-                {
-                    radius = 43
-                }
-                const cursorX = Math.sin(this.touch.joystick.angle.originalValue + Math.PI * 0.5) * radius
-                const cursorY = Math.cos(this.touch.joystick.angle.originalValue + Math.PI * 0.5) * radius
-                this.touch.joystick.$cursor.style.transform = `translate3d(${cursorX}px, ${cursorY}px, 0px)`
+                this.touch.joystick.syncCursorFromCurrentPosition()
             }
         })
 
@@ -689,6 +712,7 @@ export default class Controls extends EventEmitter
                 this.touch.joystick.angle.current.y = touch.clientY
 
                 this.touch.joystick.$limit.style.opacity = '0.5'
+                this.touch.joystick.syncCursorFromCurrentPosition()
 
                 document.addEventListener('touchend', this.touch.joystick.events.touchend)
                 document.addEventListener('touchmove', this.touch.joystick.events.touchmove, { passive: false })
@@ -707,9 +731,9 @@ export default class Controls extends EventEmitter
 
             if(touch)
             {
-                this.touch.joystick.resize()
                 this.touch.joystick.angle.current.x = touch.clientX
                 this.touch.joystick.angle.current.y = touch.clientY
+                this.touch.joystick.syncCursorFromCurrentPosition()
 
                 this.trigger('joystickMove')
             }
@@ -748,6 +772,7 @@ export default class Controls extends EventEmitter
             this.touch.joystick.angle.current.x = _event.clientX
             this.touch.joystick.angle.current.y = _event.clientY
             this.touch.joystick.$limit.style.opacity = '0.5'
+            this.touch.joystick.syncCursorFromCurrentPosition()
 
             document.addEventListener('mousemove', this.touch.joystick.events.mousemove)
             document.addEventListener('mouseup', this.touch.joystick.events.mouseup)
@@ -762,9 +787,9 @@ export default class Controls extends EventEmitter
                 return
             }
 
-            this.touch.joystick.resize()
             this.touch.joystick.angle.current.x = _event.clientX
             this.touch.joystick.angle.current.y = _event.clientY
+            this.touch.joystick.syncCursorFromCurrentPosition()
 
             this.trigger('joystickMove')
         }
