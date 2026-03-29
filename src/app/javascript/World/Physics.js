@@ -8369,55 +8369,7 @@ export default class Physics
                 }
             }
 
-            // Update wheel bodies
-            const isCarNearlyStationary =
-                chassisBody.velocity.lengthSquared() < 0.0225 &&
-                Math.abs(this.car.accelerating) < 0.0001 &&
-                !this.controls.actions.up &&
-                !this.controls.actions.down &&
-                !this.controls.actions.boost
-
-            if(!this.car.wheels.restQuaternions)
-            {
-                this.car.wheels.restQuaternions = []
-            }
-
-            for(let i = 0; i < this.car.vehicle.wheelInfos.length; i++)
-            {
-                this.car.vehicle.updateWheelTransform(i)
-
-                const transform = this.car.vehicle.wheelInfos[i].worldTransform
-                this.car.wheels.bodies[i].position.copy(transform.position)
-                const targetQuaternion = new CANNON.Quaternion(
-                    transform.quaternion.x,
-                    transform.quaternion.y,
-                    transform.quaternion.z,
-                    transform.quaternion.w
-                )
-
-                // Rotate the wheels on the right
-                if(i === 1 || i === 3)
-                {
-                    const rotationQuaternion = new CANNON.Quaternion(0, 0, 0, 1)
-                    rotationQuaternion.setFromAxisAngle(new CANNON.Vec3(0, 0, 1), Math.PI)
-                    targetQuaternion.copy(targetQuaternion.mult(rotationQuaternion))
-                }
-
-                if(isCarNearlyStationary && this.car.wheels.restQuaternions[i])
-                {
-                    this.car.wheels.bodies[i].quaternion.copy(this.car.wheels.restQuaternions[i])
-                }
-                else
-                {
-                    this.car.wheels.bodies[i].quaternion.copy(targetQuaternion)
-                    this.car.wheels.restQuaternions[i] = new CANNON.Quaternion(
-                        targetQuaternion.x,
-                        targetQuaternion.y,
-                        targetQuaternion.z,
-                        targetQuaternion.w
-                    )
-                }
-            }
+            this.syncWheelBodies(this.car, { freezeWheelRoll: true })
 
             // Slow down back
             if(!this.controls.actions.up && !this.controls.actions.down)
@@ -8529,6 +8481,17 @@ export default class Physics
             {
                 this.car.vehicle.setSteeringValue(this.car.steering, this.car.wheels.indexes.backLeft)
                 this.car.vehicle.setSteeringValue(this.car.steering, this.car.wheels.indexes.backRight)
+            }
+
+            this.syncWheelBodies(this.car, { freezeWheelRoll: true })
+
+            for(const _wheelKey in this.car.wheels.bodies)
+            {
+                const wheelBody = this.car.wheels.bodies[_wheelKey]
+                const wheelMesh = this.car.model.wheels[_wheelKey]
+
+                wheelMesh.position.copy(wheelBody.position)
+                wheelMesh.quaternion.copy(wheelBody.quaternion)
             }
 
             /**
