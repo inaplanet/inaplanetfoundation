@@ -252,6 +252,50 @@ export default class Controls extends EventEmitter
         slot8: { bottom: '190px', left: '80px', right: 'unset' },
     };
 
+    getCustomizableTouchElements()
+    {
+        if (!this.touch) {
+            return {};
+        }
+
+        return {
+            shoot: this.touch.shoot?.$element,
+            boost: this.touch.boost?.$element,
+            siren: this.touch.siren?.$element,
+            forward: this.touch.forward?.$element,
+            backward: this.touch.backward?.$element,
+            brake: this.touch.brake?.$element,
+            camera: this.touch.camera?.$element,
+            reset: this.touch.reset?.$element,
+        };
+    }
+
+    applyTouchElementPosition(_touchElement, _position)
+    {
+        if (!_touchElement || !_position) {
+            return;
+        }
+
+        _touchElement.style.position = 'fixed';
+        _touchElement.style.top = '';
+        _touchElement.style.bottom = _position.bottom ?? '';
+        _touchElement.style.right = _position.right ?? '';
+        _touchElement.style.left = _position.left ?? '';
+        _touchElement.style.opacity = '1';
+        _touchElement.style.pointerEvents = 'auto';
+        _touchElement.style.display = 'block';
+    }
+
+    hideTouchElement(_touchElement)
+    {
+        if (!_touchElement) {
+            return;
+        }
+
+        _touchElement.style.opacity = '0';
+        _touchElement.style.pointerEvents = 'none';
+    }
+
     updateController() {
         if (!this.touch) {
             return;
@@ -261,16 +305,11 @@ export default class Controls extends EventEmitter
         const savedPositions = JSON.parse(localStorage.getItem('buttonPositions')) || {};
     
         // Define a mapping between actions and touch elements
-        const actionToTouchElement = {
-            shoot: this.touch.shoot.$element,
-            boost: this.touch.boost.$element,
-            siren: this.touch.siren.$element,
-            forward: this.touch.forward.$element,
-            backward: this.touch.backward.$element,
-            brake: this.touch.brake.$element,
-            camera: this.touch.camera.$element,
-            reset: this.touch.reset.$element,
-        };
+        const actionToTouchElement = this.getCustomizableTouchElements();
+
+        Object.values(actionToTouchElement).forEach((_touchElement) => {
+            this.hideTouchElement(_touchElement);
+        });
     
         // Loop through each saved position and apply it
         Object.keys(savedPositions).forEach(slotNumber => {
@@ -279,17 +318,7 @@ export default class Controls extends EventEmitter
             const slotId = `slot${slotNumber}`;
     
             if (touchElement && this.slotPositions[slotId]) {
-                // Get the defined position for this slot
-                const position = this.slotPositions[slotId];
-    
-                // Apply the position values
-                touchElement.style.position = 'fixed';
-                if (position.bottom) touchElement.style.bottom = position.bottom;
-                if (position.right) touchElement.style.right = position.right;
-                if (position.left) touchElement.style.left = position.left;
-    
-                // Ensure the touch element is visible
-                touchElement.style.opacity = '1';
+                this.applyTouchElementPosition(touchElement, this.slotPositions[slotId]);
     
                 console.log(`Button for action "${action}" placed at ${slotId}`);
             }
@@ -312,20 +341,15 @@ export default class Controls extends EventEmitter
             return;
         }
 
+        const actionToTouchElement = this.getCustomizableTouchElements();
+    
         // Reset buttons to their initial positions based on resetPositions
         Object.keys(this.resetPositions).forEach(slotKey => {
             const { action, bottom, right, left } = this.resetPositions[slotKey];
-            const touchElement = this.touch[action]?.$element; // Access the correct touch element by action name
+            const touchElement = actionToTouchElement[action];
     
             if (touchElement) {
-                // Apply the initial position values
-                touchElement.style.position = 'fixed';
-                touchElement.style.bottom = bottom;
-                touchElement.style.right = right;
-                touchElement.style.left = left;
-    
-                // Ensure the button is visible
-                touchElement.style.opacity = '1';
+                this.applyTouchElementPosition(touchElement, { bottom, right, left });
     
                 console.log(`Button for action "${action}" reset to initial position at ${slotKey}`);
             }
@@ -1273,6 +1297,7 @@ export default class Controls extends EventEmitter
         this.touch.radio.$element.style.transition = 'opacity 0.3s 0.4s';
         this.touch.radio.$element.style.willChange = 'opacity';
         this.touch.radio.$element.style.opacity = '0';
+        this.touch.radio.$element.style.touchAction = 'none';
         document.body.appendChild(this.touch.radio.$element);
 
         this.touch.radio.$border = document.createElement('div');
@@ -1373,17 +1398,26 @@ export default class Controls extends EventEmitter
         // Events
         this.touch.radio.events = {};
         this.touch.radio.touchIdentifier = null;
+        this.touch.radio.release = () => {
+            this.touch.radio.touchIdentifier = null;
+
+            document.removeEventListener('touchend', this.touch.radio.events.touchend);
+            document.removeEventListener('touchcancel', this.touch.radio.events.touchcancel);
+        };
         this.touch.radio.events.touchstart = (_event) => {
             _event.preventDefault();
+            _event.stopPropagation();
 
             const touch = _event.changedTouches[0];
             if (touch) {
+                this.touch.radio.release();
                 this.touch.radio.touchIdentifier = touch.identifier;
 
                 // Toggle radio power on/off
                 this.toggleRadioPower();
 
                 document.addEventListener('touchend', this.touch.radio.events.touchend);
+                document.addEventListener('touchcancel', this.touch.radio.events.touchcancel);
             }
         };
 
@@ -1392,11 +1426,20 @@ export default class Controls extends EventEmitter
             const touch = touches.find((_touch) => _touch.identifier === this.touch.radio.touchIdentifier);
 
             if (touch) {
-                document.removeEventListener('touchend', this.touch.radio.events.touchend);
+                this.touch.radio.release();
             }
         };
 
-        this.touch.radio.$element.addEventListener('touchstart', this.touch.radio.events.touchstart);
+        this.touch.radio.events.touchcancel = (_event) => {
+            const touches = [..._event.changedTouches];
+            const touch = touches.find((_touch) => _touch.identifier === this.touch.radio.touchIdentifier);
+
+            if (touch || this.touch.radio.touchIdentifier !== null) {
+                this.touch.radio.release();
+            }
+        };
+
+        this.touch.radio.$element.addEventListener('touchstart', this.touch.radio.events.touchstart, { passive: false });
         bindDesktopPress(this.touch.radio.$element, {
             onClick: () => {
                 this.toggleRadioPower();
@@ -2099,6 +2142,7 @@ export default class Controls extends EventEmitter
         this.touch.mute.$element.style.transition = 'opacity 0.3s 0.4s';
         this.touch.mute.$element.style.willChange = 'opacity';
         this.touch.mute.$element.style.opacity = '0';
+        this.touch.mute.$element.style.touchAction = 'none';
         // this.touch.mute.$element.style.backgroundColor = '#00ff00'; // Uncomment for visual debugging
         document.body.appendChild(this.touch.mute.$element);
 
@@ -2138,13 +2182,23 @@ export default class Controls extends EventEmitter
         // Events
         this.touch.mute.events = {};
         this.touch.mute.touchIdentifier = null;
+        this.touch.mute.release = () => {
+            this.touch.mute.touchIdentifier = null;
+            this.touch.mute.$border.style.opacity = '1';
+            updateMuteButtonStyle();
+
+            document.removeEventListener('touchend', this.touch.mute.events.touchend);
+            document.removeEventListener('touchcancel', this.touch.mute.events.touchcancel);
+        };
 
         this.touch.mute.events.touchstart = (_event) => {
             _event.preventDefault();
+            _event.stopPropagation();
 
             const touch = _event.changedTouches[0];
 
             if (touch) {
+                this.touch.mute.release();
                 this.touch.mute.touchIdentifier = touch.identifier;
 
                 // Toggle mute state
@@ -2164,6 +2218,7 @@ export default class Controls extends EventEmitter
                 this.touch.mute.$border.style.opacity = '0.5';
 
                 document.addEventListener('touchend', this.touch.mute.events.touchend);
+                document.addEventListener('touchcancel', this.touch.mute.events.touchcancel);
             }
         };
 
@@ -2172,16 +2227,20 @@ export default class Controls extends EventEmitter
             const touch = touches.find((_touch) => _touch.identifier === this.touch.mute.touchIdentifier);
 
             if (touch) {
-                this.touch.mute.$border.style.opacity = '1';
-
-                // Ensure style update
-                updateMuteButtonStyle();
-
-                document.removeEventListener('touchend', this.touch.mute.events.touchend);
+                this.touch.mute.release();
             }
         };
 
-        this.touch.mute.$element.addEventListener('touchstart', this.touch.mute.events.touchstart);
+        this.touch.mute.events.touchcancel = (_event) => {
+            const touches = [..._event.changedTouches];
+            const touch = touches.find((_touch) => _touch.identifier === this.touch.mute.touchIdentifier);
+
+            if (touch || this.touch.mute.touchIdentifier !== null) {
+                this.touch.mute.release();
+            }
+        };
+
+        this.touch.mute.$element.addEventListener('touchstart', this.touch.mute.events.touchstart, { passive: false });
         bindDesktopPress(this.touch.mute.$element, {
             onClick: () => {
                 this.sounds.toggleMute();
