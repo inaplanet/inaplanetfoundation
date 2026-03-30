@@ -485,6 +485,7 @@ export default function Home() {
   const [showLandingPage, setShowLandingPage] = useState(true);
   const [showLandingPageShell, setShowLandingPageShell] = useState(true);
   const [language, setLanguage] = useState<ModalLanguage>('en');
+  const [renderedFontLanguage, setRenderedFontLanguage] = useState<ModalLanguage>('en');
   const [renderedLanguage, setRenderedLanguage] = useState<ModalLanguage>('en');
   const [isModalLanguageReady, setIsModalLanguageReady] = useState(true);
   const [activeGreetingIndex, setActiveGreetingIndex] = useState(0);
@@ -499,7 +500,7 @@ export default function Home() {
   // Websocket
   const [matcaps, setMatcaps] = useState({});
   useEffect(() => {
-    if (language === renderedLanguage) {
+    if (language === renderedLanguage && language === renderedFontLanguage) {
       setIsModalLanguageReady(true);
       return;
     }
@@ -526,12 +527,14 @@ export default function Home() {
             return;
           }
 
-          setRenderedLanguage(language);
+          setRenderedFontLanguage(language);
           requestAnimationFrame(() => {
             requestAnimationFrame(() => {
               if (isCancelled) {
                 return;
               }
+
+              setRenderedLanguage(language);
 
               revealTimer = window.setTimeout(() => {
                 if (!isCancelled) {
@@ -568,7 +571,7 @@ export default function Home() {
         window.clearTimeout(revealTimer);
       }
     };
-  }, [language, renderedLanguage]);
+  }, [language, renderedFontLanguage, renderedLanguage]);
 
   const modalLanguage = renderedLanguage;
   const modalCopy = MODAL_COPY[modalLanguage];
@@ -1329,7 +1332,7 @@ const handleWorldSelection = (worldId: string, listItem: HTMLLIElement, worldLis
             </div>
             <section className={`landing-showcase ${showLandingPage ? 'landing-showcase-active' : ''}`}>
               <div
-                className={`landing-showcase__shell ${showLandingPageShell ? 'landing-showcase__shell-active' : ''} ${modalLanguage === 'en' ? 'landing-showcase__shell--orbitron' : 'landing-showcase__shell--exo'} ${isModalLanguageReady ? '' : 'landing-showcase__shell--switching'}`}
+                className={`landing-showcase__shell ${showLandingPageShell ? 'landing-showcase__shell-active' : ''} ${renderedFontLanguage === 'en' ? 'landing-showcase__shell--orbitron' : 'landing-showcase__shell--exo'} ${isModalLanguageReady ? '' : 'landing-showcase__shell--switching'}`}
                 aria-busy={!isModalLanguageReady}
               >
                 <div className="landing-showcase__topbar">

@@ -577,8 +577,14 @@ export default class Controls extends EventEmitter
         this.touch.joystick.$cursor.style.boxShadow = '0 0 24px rgba(2, 19, 247, 0.28)'
         this.touch.joystick.$cursor.style.pointerEvents = 'none'
         this.touch.joystick.$cursor.style.transform = 'translate3d(0px, 0px, 0)'
+        this.touch.joystick.$cursor.style.webkitTransform = 'translate3d(0px, 0px, 0)'
+        this.touch.joystick.$cursor.style.translate = '0px 0px'
         this.touch.joystick.$cursor.style.transformOrigin = 'center center'
+        this.touch.joystick.$cursor.style.webkitTransformOrigin = 'center center'
         this.touch.joystick.$cursor.style.backfaceVisibility = 'hidden'
+        this.touch.joystick.$cursor.style.webkitBackfaceVisibility = 'hidden'
+        this.touch.joystick.$cursor.style.transformStyle = 'preserve-3d'
+        this.touch.joystick.$cursor.style.contain = 'layout paint style'
         this.touch.joystick.$cursor.style.willChange = 'transform'
         this.touch.joystick.$cursor.style.zIndex = '2'
         this.touch.joystick.$element.appendChild(this.touch.joystick.$cursor)
@@ -628,9 +634,13 @@ export default class Controls extends EventEmitter
         {
             this.touch.joystick.cursorOffset.x = x
             this.touch.joystick.cursorOffset.y = y
+            const transformValue = `translate3d(${x}px, ${y}px, 0)`
+
             this.touch.joystick.$cursor.style.left = `${this.touch.joystick.cursorRestOffset}px`
             this.touch.joystick.$cursor.style.top = `${this.touch.joystick.cursorRestOffset}px`
-            this.touch.joystick.$cursor.style.transform = `translate3d(${x}px, ${y}px, 0)`
+            this.touch.joystick.$cursor.style.transform = transformValue
+            this.touch.joystick.$cursor.style.webkitTransform = transformValue
+            this.touch.joystick.$cursor.style.translate = `${x}px ${y}px`
         }
 
         this.touch.joystick.getTouchFromCollection = (_touchList) =>
