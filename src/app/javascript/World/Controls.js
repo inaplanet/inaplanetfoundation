@@ -501,8 +501,17 @@ export default class Controls extends EventEmitter
             if (!_element) return
 
             let active = false
+            let ignoreMouseUntil = 0
+
+            const markTouchInteraction = () => {
+                ignoreMouseUntil = Date.now() + 800
+            }
 
             const mouseDown = (_event) => {
+                if (Date.now() < ignoreMouseUntil) {
+                    return
+                }
+
                 _event.preventDefault()
                 active = true
                 if (_handlers.onPress) {
@@ -522,7 +531,15 @@ export default class Controls extends EventEmitter
             }
 
             _element.addEventListener('mousedown', mouseDown)
+            _element.addEventListener('touchstart', markTouchInteraction, { passive: true })
+            _element.addEventListener('touchend', markTouchInteraction, { passive: true })
+            _element.addEventListener('touchcancel', markTouchInteraction, { passive: true })
             _element.addEventListener('click', (_event) => {
+                if (Date.now() < ignoreMouseUntil) {
+                    _event.preventDefault()
+                    return
+                }
+
                 _event.preventDefault()
                 if (_handlers.onClick) {
                     _handlers.onClick(_event)
@@ -2282,6 +2299,7 @@ export default class Controls extends EventEmitter
         this.touch.boost.events.touchstart = (_event) =>
         {
             _event.preventDefault()
+            _event.stopPropagation()
 
             const touch = _event.changedTouches[0]
 
