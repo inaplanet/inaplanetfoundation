@@ -286,16 +286,6 @@ export default class Controls extends EventEmitter
         _touchElement.style.display = 'block';
     }
 
-    hideTouchElement(_touchElement)
-    {
-        if (!_touchElement) {
-            return;
-        }
-
-        _touchElement.style.opacity = '0';
-        _touchElement.style.pointerEvents = 'none';
-    }
-
     updateController() {
         if (!this.touch) {
             return;
@@ -306,21 +296,27 @@ export default class Controls extends EventEmitter
     
         // Define a mapping between actions and touch elements
         const actionToTouchElement = this.getCustomizableTouchElements();
+        const effectivePositionsByAction = {};
 
-        Object.values(actionToTouchElement).forEach((_touchElement) => {
-            this.hideTouchElement(_touchElement);
+        Object.values(this.resetPositions).forEach(({ action, bottom, right, left }) => {
+            effectivePositionsByAction[action] = { bottom, right, left };
         });
     
         // Loop through each saved position and apply it
         Object.keys(savedPositions).forEach(slotNumber => {
             const action = savedPositions[slotNumber];
-            const touchElement = actionToTouchElement[action];
             const slotId = `slot${slotNumber}`;
     
-            if (touchElement && this.slotPositions[slotId]) {
-                this.applyTouchElementPosition(touchElement, this.slotPositions[slotId]);
-    
-                console.log(`Button for action "${action}" placed at ${slotId}`);
+            if (action && this.slotPositions[slotId]) {
+                effectivePositionsByAction[action] = { ...this.slotPositions[slotId] };
+            }
+        });
+
+        Object.entries(actionToTouchElement).forEach(([action, touchElement]) => {
+            const position = effectivePositionsByAction[action];
+
+            if (touchElement && position) {
+                this.applyTouchElementPosition(touchElement, position);
             }
         });
     }
@@ -703,6 +699,21 @@ export default class Controls extends EventEmitter
                 || this.touch.joystick.getTouchFromCollection(_event.changedTouches)
         }
 
+        this.touch.joystick.release = () =>
+        {
+            this.touch.joystick.active = false
+            this.touch.joystick.touchIdentifier = null
+            this.touch.joystick.steerValue = 0
+            this.touch.joystick.$limit.style.opacity = '0.25'
+            this.touch.joystick.updateCursorVisual()
+
+            document.removeEventListener('touchend', this.touch.joystick.events.touchend)
+            document.removeEventListener('touchmove', this.touch.joystick.events.touchmove)
+            document.removeEventListener('touchcancel', this.touch.joystick.events.touchcancel)
+            document.removeEventListener('mousemove', this.touch.joystick.events.mousemove)
+            document.removeEventListener('mouseup', this.touch.joystick.events.mouseup)
+        }
+
         this.touch.joystick.syncCursorFromCurrentPosition = () =>
         {
             if(!this.touch.joystick.active)
@@ -740,18 +751,7 @@ export default class Controls extends EventEmitter
 
         this.touch.joystick.reset = () =>
         {
-            this.touch.joystick.active = false
-            this.touch.joystick.touchIdentifier = null
-            this.touch.joystick.steerValue = 0
-            this.touch.joystick.$limit.style.opacity = '0.25'
-            this.touch.joystick.updateCursorVisual()
-
-            document.removeEventListener('touchend', this.touch.joystick.events.touchend)
-            document.removeEventListener('touchmove', this.touch.joystick.events.touchmove)
-            document.removeEventListener('touchcancel', this.touch.joystick.events.touchcancel)
-            document.removeEventListener('mousemove', this.touch.joystick.events.mousemove)
-            document.removeEventListener('mouseup', this.touch.joystick.events.mouseup)
-
+            this.touch.joystick.release()
             this.trigger('joystickEnd')
         }
 
@@ -778,7 +778,7 @@ export default class Controls extends EventEmitter
 
             if(this.touch.joystick.active)
             {
-                return
+                this.touch.joystick.release()
             }
 
             const touch = _event.changedTouches[0] || _event.touches[0] || _event.targetTouches[0]
@@ -824,6 +824,10 @@ export default class Controls extends EventEmitter
 
                 this.trigger('joystickMove')
             }
+            else
+            {
+                this.touch.joystick.reset()
+            }
         }
 
         this.touch.joystick.events.touchend = (_event) =>
@@ -837,7 +841,7 @@ export default class Controls extends EventEmitter
 
             const touch = this.touch.joystick.getTouchFromCollection(_event.changedTouches)
 
-            if(touch)
+            if(touch || !_event.touches || _event.touches.length === 0)
             {
                 this.touch.joystick.reset()
             }
@@ -854,7 +858,7 @@ export default class Controls extends EventEmitter
 
             const touch = this.touch.joystick.getTouchFromCollection(_event.changedTouches)
 
-            if(touch)
+            if(touch || !_event.touches || _event.touches.length === 0)
             {
                 this.touch.joystick.reset()
             }
