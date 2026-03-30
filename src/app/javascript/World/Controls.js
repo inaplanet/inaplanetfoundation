@@ -553,6 +553,7 @@ export default class Controls extends EventEmitter
          */
         this.touch.joystick = {}
         this.touch.joystick.active = false
+        this.touch.joystick.ignoreMouseUntil = 0
 
         // Element
         this.touch.joystick.$element = document.createElement('div')
@@ -747,6 +748,7 @@ export default class Controls extends EventEmitter
         {
             _event.preventDefault()
             _event.stopPropagation()
+            this.touch.joystick.ignoreMouseUntil = Date.now() + 800
 
             if(this.touch.joystick.active)
             {
@@ -805,6 +807,8 @@ export default class Controls extends EventEmitter
                 return
             }
 
+            this.touch.joystick.ignoreMouseUntil = Date.now() + 800
+
             const touch = this.touch.joystick.getTouchFromCollection(_event.changedTouches)
 
             if(touch)
@@ -820,6 +824,8 @@ export default class Controls extends EventEmitter
                 return
             }
 
+            this.touch.joystick.ignoreMouseUntil = Date.now() + 800
+
             const touch = this.touch.joystick.getTouchFromCollection(_event.changedTouches)
 
             if(touch)
@@ -831,6 +837,11 @@ export default class Controls extends EventEmitter
         this.touch.joystick.$element.addEventListener('touchstart', this.touch.joystick.events.touchstart, { passive: false })
         this.touch.joystick.events.mousedown = (_event) =>
         {
+            if(Date.now() < this.touch.joystick.ignoreMouseUntil)
+            {
+                return
+            }
+
             _event.preventDefault()
 
             this.touch.joystick.resize()
@@ -1388,6 +1399,7 @@ export default class Controls extends EventEmitter
         this.touch.reset.$element.style.transition = 'opacity 0.3s 0.4s';
         this.touch.reset.$element.style.willChange = 'opacity';
         this.touch.reset.$element.style.opacity = '0';
+        this.touch.reset.$element.style.touchAction = 'none';
         // this.touch.reset.$element.style.backgroundColor = '#00ff00'; // Uncomment for visual debugging
         document.body.appendChild(this.touch.reset.$element);
 
@@ -1436,12 +1448,21 @@ export default class Controls extends EventEmitter
         // Events
         this.touch.reset.events = {};
         this.touch.reset.touchIdentifier = null;
+        this.touch.reset.release = () => {
+            this.touch.reset.touchIdentifier = null;
+            this.touch.reset.$border.style.opacity = '0.25';
+
+            document.removeEventListener('touchend', this.touch.reset.events.touchend);
+            document.removeEventListener('touchcancel', this.touch.reset.events.touchcancel);
+        };
         this.touch.reset.events.touchstart = (_event) => {
             _event.preventDefault();
+            _event.stopPropagation();
 
             const touch = _event.changedTouches[0];
 
             if (touch) {
+                this.touch.reset.release();
                 this.touch.reset.touchIdentifier = touch.identifier;
 
                 this.trigger('action', ['reset']);
@@ -1449,6 +1470,7 @@ export default class Controls extends EventEmitter
                 this.touch.reset.$border.style.opacity = '0.5';
 
                 document.addEventListener('touchend', this.touch.reset.events.touchend);
+                document.addEventListener('touchcancel', this.touch.reset.events.touchcancel);
             }
         };
 
@@ -1457,13 +1479,20 @@ export default class Controls extends EventEmitter
             const touch = touches.find((_touch) => _touch.identifier === this.touch.reset.touchIdentifier);
 
             if (touch) {
-                this.touch.reset.$border.style.opacity = '0.25';
-
-                document.removeEventListener('touchend', this.touch.reset.events.touchend);
+                this.touch.reset.release();
             }
         };
 
-        this.touch.reset.$element.addEventListener('touchstart', this.touch.reset.events.touchstart);
+        this.touch.reset.events.touchcancel = (_event) => {
+            const touches = [..._event.changedTouches];
+            const touch = touches.find((_touch) => _touch.identifier === this.touch.reset.touchIdentifier);
+
+            if (touch || this.touch.reset.touchIdentifier !== null) {
+                this.touch.reset.release();
+            }
+        };
+
+        this.touch.reset.$element.addEventListener('touchstart', this.touch.reset.events.touchstart, { passive: false });
         bindDesktopPress(this.touch.reset.$element, {
             onPress: () => {
                 this.trigger('action', ['reset']);
@@ -1497,6 +1526,7 @@ export default class Controls extends EventEmitter
         this.touch.camera.$element.style.transition = 'opacity 0.3s 0.4s';
         this.touch.camera.$element.style.willChange = 'opacity';
         this.touch.camera.$element.style.opacity = '0';
+        this.touch.camera.$element.style.touchAction = 'none';
 
         this.touch.camera.$border = document.createElement('div');
         this.touch.camera.$border.style.position = 'absolute';
@@ -1543,14 +1573,24 @@ export default class Controls extends EventEmitter
         // Events
         this.touch.camera.events = {};
         this.touch.camera.touchIdentifier = null;
+        this.touch.camera.release = () => {
+            this.touch.camera.touchIdentifier = null;
+            this.touch.camera.$border.style.opacity = '0.25';
+
+            document.removeEventListener('touchend', this.touch.camera.events.touchend);
+            document.removeEventListener('touchcancel', this.touch.camera.events.touchcancel);
+        };
 
         this.touch.camera.events.touchstart = (_event) => {
             _event.preventDefault();
+            _event.stopPropagation();
 
             const touch = _event.changedTouches[0];
 
             if (touch) {
+                this.touch.camera.release();
                 this.touch.camera.touchIdentifier = touch.identifier;
+                this.touch.camera.$border.style.opacity = '0.5';
 
                 // Toggle the camera type
                 if (!this.camera.actionInProgress) {
@@ -1563,6 +1603,7 @@ export default class Controls extends EventEmitter
                 // this.touch.camera.$element.style.opacity = '0.5';
 
                 document.addEventListener('touchend', this.touch.camera.events.touchend);
+                document.addEventListener('touchcancel', this.touch.camera.events.touchcancel);
             }
         };
 
@@ -1571,13 +1612,20 @@ export default class Controls extends EventEmitter
             const touch = touches.find((_touch) => _touch.identifier === this.touch.camera.touchIdentifier);
 
             if (touch) {
-                // this.touch.camera.$element.style.opacity = '0.25';
-
-                document.removeEventListener('touchend', this.touch.camera.events.touchend);
+                this.touch.camera.release();
             }
         };
 
-        this.touch.camera.$element.addEventListener('touchstart', this.touch.camera.events.touchstart);
+        this.touch.camera.events.touchcancel = (_event) => {
+            const touches = [..._event.changedTouches];
+            const touch = touches.find((_touch) => _touch.identifier === this.touch.camera.touchIdentifier);
+
+            if (touch || this.touch.camera.touchIdentifier !== null) {
+                this.touch.camera.release();
+            }
+        };
+
+        this.touch.camera.$element.addEventListener('touchstart', this.touch.camera.events.touchstart, { passive: false });
         bindDesktopPress(this.touch.camera.$element, {
             onPress: () => {
                 if (!this.camera.actionInProgress) {
@@ -1716,6 +1764,7 @@ export default class Controls extends EventEmitter
         this.touch.previous.$element.style.transition = 'opacity 0.3s 0.4s';
         this.touch.previous.$element.style.willChange = 'opacity';
         this.touch.previous.$element.style.opacity = '0';
+        this.touch.previous.$element.style.touchAction = 'none';
         // this.touch.previous.$element.style.backgroundColor = '#00ff00'; // Uncomment for visual debugging
         document.body.appendChild(this.touch.previous.$element);
 
@@ -1750,12 +1799,21 @@ export default class Controls extends EventEmitter
         // Events
         this.touch.previous.events = {};
         this.touch.previous.touchIdentifier = null;
+        this.touch.previous.release = () => {
+            this.touch.previous.touchIdentifier = null;
+            this.touch.previous.$border.style.opacity = '0.5';
+
+            document.removeEventListener('touchend', this.touch.previous.events.touchend);
+            document.removeEventListener('touchcancel', this.touch.previous.events.touchcancel);
+        };
         this.touch.previous.events.touchstart = (_event) => {
             _event.preventDefault();
+            _event.stopPropagation();
 
             const touch = _event.changedTouches[0];
 
             if (touch) {
+                this.touch.previous.release();
                 this.touch.previous.touchIdentifier = touch.identifier;
 
                 this.camera.zoom.targetValue = Math.max(0, this.camera.zoom.targetValue - 0.1);
@@ -1763,6 +1821,7 @@ export default class Controls extends EventEmitter
                 this.touch.previous.$border.style.opacity = '0.5';
 
                 document.addEventListener('touchend', this.touch.previous.events.touchend);
+                document.addEventListener('touchcancel', this.touch.previous.events.touchcancel);
             }
         };
 
@@ -1771,13 +1830,20 @@ export default class Controls extends EventEmitter
             const touch = touches.find((_touch) => _touch.identifier === this.touch.previous.touchIdentifier);
 
             if (touch) {
-                this.touch.previous.$border.style.opacity = '0.5';
-
-                document.removeEventListener('touchend', this.touch.previous.events.touchend);
+                this.touch.previous.release();
             }
         };
 
-        this.touch.previous.$element.addEventListener('touchstart', this.touch.previous.events.touchstart);
+        this.touch.previous.events.touchcancel = (_event) => {
+            const touches = [..._event.changedTouches];
+            const touch = touches.find((_touch) => _touch.identifier === this.touch.previous.touchIdentifier);
+
+            if (touch || this.touch.previous.touchIdentifier !== null) {
+                this.touch.previous.release();
+            }
+        };
+
+        this.touch.previous.$element.addEventListener('touchstart', this.touch.previous.events.touchstart, { passive: false });
         bindDesktopPress(this.touch.previous.$element, {
             onPress: () => {
                 this.touch.previous.$border.style.opacity = '0.5';
@@ -1806,6 +1872,7 @@ export default class Controls extends EventEmitter
         this.touch.next.$element.style.transition = 'opacity 0.3s 0.4s';
         this.touch.next.$element.style.willChange = 'opacity';
         this.touch.next.$element.style.opacity = '0';
+        this.touch.next.$element.style.touchAction = 'none';
         // this.touch.next.$element.style.backgroundColor = '#000'; // Uncomment for visual debugging
         document.body.appendChild(this.touch.next.$element);
 
@@ -1840,12 +1907,21 @@ export default class Controls extends EventEmitter
         // Events
         this.touch.next.events = {};
         this.touch.next.touchIdentifier = null;
+        this.touch.next.release = () => {
+            this.touch.next.touchIdentifier = null;
+            this.touch.next.$border.style.opacity = '0.5';
+
+            document.removeEventListener('touchend', this.touch.next.events.touchend);
+            document.removeEventListener('touchcancel', this.touch.next.events.touchcancel);
+        };
         this.touch.next.events.touchstart = (_event) => {
             _event.preventDefault();
+            _event.stopPropagation();
 
             const touch = _event.changedTouches[0];
 
             if (touch) {
+                this.touch.next.release();
                 this.touch.next.touchIdentifier = touch.identifier;
 
                 this.camera.zoom.targetValue = Math.min(this.camera.zoom.maxValue, this.camera.zoom.targetValue + 0.1);
@@ -1853,6 +1929,7 @@ export default class Controls extends EventEmitter
                 this.touch.next.$border.style.opacity = '0.5';
 
                 document.addEventListener('touchend', this.touch.next.events.touchend);
+                document.addEventListener('touchcancel', this.touch.next.events.touchcancel);
             }
         };
 
@@ -1861,13 +1938,20 @@ export default class Controls extends EventEmitter
             const touch = touches.find((_touch) => _touch.identifier === this.touch.next.touchIdentifier);
 
             if (touch) {
-                this.touch.next.$border.style.opacity = '0.5';
-
-                document.removeEventListener('touchend', this.touch.next.events.touchend);
+                this.touch.next.release();
             }
         };
 
-        this.touch.next.$element.addEventListener('touchstart', this.touch.next.events.touchstart);
+        this.touch.next.events.touchcancel = (_event) => {
+            const touches = [..._event.changedTouches];
+            const touch = touches.find((_touch) => _touch.identifier === this.touch.next.touchIdentifier);
+
+            if (touch || this.touch.next.touchIdentifier !== null) {
+                this.touch.next.release();
+            }
+        };
+
+        this.touch.next.$element.addEventListener('touchstart', this.touch.next.events.touchstart, { passive: false });
         bindDesktopPress(this.touch.next.$element, {
             onPress: () => {
                 this.touch.next.$border.style.opacity = '0.5';
@@ -3018,6 +3102,8 @@ export default class Controls extends EventEmitter
         if (typeof window !== 'undefined') {
             this.touch.releaseInterruptedInputs = () => {
                 this.touch.joystick.reset()
+                this.touch.previous.release()
+                this.touch.next.release()
                 this.touch.siren.release()
                 this.touch.boost.release()
                 this.touch.forward.release()
