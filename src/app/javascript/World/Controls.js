@@ -578,7 +578,6 @@ export default class Controls extends EventEmitter
         this.touch.joystick.$cursor.style.pointerEvents = 'none'
         this.touch.joystick.$cursor.style.transform = 'translate3d(0px, 0px, 0)'
         this.touch.joystick.$cursor.style.webkitTransform = 'translate3d(0px, 0px, 0)'
-        this.touch.joystick.$cursor.style.translate = '0px 0px'
         this.touch.joystick.$cursor.style.transformOrigin = 'center center'
         this.touch.joystick.$cursor.style.webkitTransformOrigin = 'center center'
         this.touch.joystick.$cursor.style.backfaceVisibility = 'hidden'
@@ -588,6 +587,7 @@ export default class Controls extends EventEmitter
         this.touch.joystick.$cursor.style.willChange = 'transform'
         this.touch.joystick.$cursor.style.zIndex = '2'
         this.touch.joystick.$element.appendChild(this.touch.joystick.$cursor)
+        this.touch.joystick.$element.style.touchAction = 'none'
 
         this.touch.joystick.$limit = document.createElement('div')
         this.touch.joystick.$limit.id = 'touch-joystick-limit'
@@ -640,7 +640,6 @@ export default class Controls extends EventEmitter
             this.touch.joystick.$cursor.style.top = `${this.touch.joystick.cursorRestOffset}px`
             this.touch.joystick.$cursor.style.transform = transformValue
             this.touch.joystick.$cursor.style.webkitTransform = transformValue
-            this.touch.joystick.$cursor.style.translate = `${x}px ${y}px`
         }
 
         this.touch.joystick.getTouchFromCollection = (_touchList) =>
@@ -2131,15 +2130,25 @@ export default class Controls extends EventEmitter
         // Events
         this.touch.siren.events = {};
         this.touch.siren.touchIdentifier = null;
+        this.touch.siren.release = () => {
+            this.actions.siren = false;
+            this.touch.siren.touchIdentifier = null;
+            this.touch.siren.$border.style.opacity = '0.25';
+
+            document.removeEventListener('touchend', this.touch.siren.events.touchend);
+            document.removeEventListener('touchcancel', this.touch.siren.events.touchcancel);
+        };
 
         this.touch.siren.events.touchstart = (_event) => {
-            this.actions.siren = true;
             _event.preventDefault();
+            _event.stopPropagation();
 
             const touch = _event.changedTouches[0];
 
             if (touch) {
+                this.touch.siren.release();
                 this.touch.siren.touchIdentifier = touch.identifier;
+                this.actions.siren = true;
 
                 // Play random horn sound
                 const hornIndices = [12, 13, 14]; // Indices for carHorn1, carHorn2, carHorn3
@@ -2154,23 +2163,30 @@ export default class Controls extends EventEmitter
                 }, 500); // 500 ms delay
 
                 document.addEventListener('touchend', this.touch.siren.events.touchend);
+                document.addEventListener('touchcancel', this.touch.siren.events.touchcancel);
             }
         };
 
         this.touch.siren.events.touchend = (_event) => {
-            this.actions.siren = false;
             const touches = [..._event.changedTouches];
             const touch = touches.find((_touch) => _touch.identifier === this.touch.siren.touchIdentifier);
 
             if (touch) {
-                this.touch.siren.$border.style.opacity = '0.25';
-
-
-                document.removeEventListener('touchend', this.touch.siren.events.touchend);
+                this.touch.siren.release();
             }
         };
 
-        this.touch.siren.$element.addEventListener('touchstart', this.touch.siren.events.touchstart);
+        this.touch.siren.events.touchcancel = (_event) => {
+            const touches = [..._event.changedTouches];
+            const touch = touches.find((_touch) => _touch.identifier === this.touch.siren.touchIdentifier);
+
+            if (touch || this.touch.siren.touchIdentifier !== null) {
+                this.touch.siren.release();
+            }
+        };
+
+        this.touch.siren.$element.style.touchAction = 'none';
+        this.touch.siren.$element.addEventListener('touchstart', this.touch.siren.events.touchstart, { passive: false });
         bindDesktopPress(this.touch.siren.$element, {
             onPress: () => {
                 this.actions.siren = true;
@@ -2207,6 +2223,7 @@ export default class Controls extends EventEmitter
         this.touch.boost.$element.style.transition = 'opacity 0.3s 0.4s'
         this.touch.boost.$element.style.willChange = 'opacity'
         this.touch.boost.$element.style.opacity = '0'
+        this.touch.boost.$element.style.touchAction = 'none'
         // this.touch.boost.$element.style.backgroundColor = '#00ff00'
         document.body.appendChild(this.touch.boost.$element)
 
@@ -2307,7 +2324,7 @@ export default class Controls extends EventEmitter
             }
         }
 
-        this.touch.boost.$element.addEventListener('touchstart', this.touch.boost.events.touchstart)
+        this.touch.boost.$element.addEventListener('touchstart', this.touch.boost.events.touchstart, { passive: false })
         bindDesktopPress(this.touch.boost.$element, {
             onPress: () => {
                 this.camera.pan.reset()
@@ -2342,6 +2359,7 @@ export default class Controls extends EventEmitter
         this.touch.forward.$element.style.transition = 'opacity 0.3s 0.3s'
         this.touch.forward.$element.style.willChange = 'opacity'
         this.touch.forward.$element.style.opacity = '0'
+        this.touch.forward.$element.style.touchAction = 'none'
         // this.touch.forward.$element.style.backgroundColor = '#00ff00'
         document.body.appendChild(this.touch.forward.$element)
 
@@ -2387,14 +2405,25 @@ export default class Controls extends EventEmitter
         // Events
         this.touch.forward.events = {}
         this.touch.forward.touchIdentifier = null
+        this.touch.forward.release = () =>
+        {
+            this.actions.up = false
+            this.touch.forward.touchIdentifier = null
+            this.touch.forward.$border.style.opacity = '0.25'
+
+            document.removeEventListener('touchend', this.touch.forward.events.touchend)
+            document.removeEventListener('touchcancel', this.touch.forward.events.touchcancel)
+        }
         this.touch.forward.events.touchstart = (_event) =>
         {
             _event.preventDefault()
+            _event.stopPropagation()
 
             const touch = _event.changedTouches[0]
 
             if(touch)
             {
+                this.touch.forward.release()
                 this.camera.pan.reset()
 
                 this.touch.forward.touchIdentifier = touch.identifier
@@ -2404,6 +2433,7 @@ export default class Controls extends EventEmitter
                 this.touch.forward.$border.style.opacity = '0.5'
 
                 document.addEventListener('touchend', this.touch.forward.events.touchend)
+                document.addEventListener('touchcancel', this.touch.forward.events.touchcancel)
             }
         }
 
@@ -2414,15 +2444,22 @@ export default class Controls extends EventEmitter
 
             if(touch)
             {
-                this.actions.up = false
-
-                this.touch.forward.$border.style.opacity = '0.25'
-
-                document.removeEventListener('touchend', this.touch.forward.events.touchend)
+                this.touch.forward.release()
             }
         }
 
-        this.touch.forward.$element.addEventListener('touchstart', this.touch.forward.events.touchstart)
+        this.touch.forward.events.touchcancel = (_event) =>
+        {
+            const touches = [..._event.changedTouches]
+            const touch = touches.find((_touch) => _touch.identifier === this.touch.forward.touchIdentifier)
+
+            if(touch || this.touch.forward.touchIdentifier !== null)
+            {
+                this.touch.forward.release()
+            }
+        }
+
+        this.touch.forward.$element.addEventListener('touchstart', this.touch.forward.events.touchstart, { passive: false })
         bindDesktopPress(this.touch.forward.$element, {
             onPress: () => {
                 this.camera.pan.reset()
@@ -2457,6 +2494,7 @@ export default class Controls extends EventEmitter
         this.touch.shoot.$element.style.transition = 'opacity 0.3s 0.4s';
         this.touch.shoot.$element.style.willChange = 'opacity';
         this.touch.shoot.$element.style.opacity = '0';
+        this.touch.shoot.$element.style.touchAction = 'none';
 
         // Create a separate label for the slot
         const shootLabel = document.createElement('span');
@@ -2503,13 +2541,23 @@ export default class Controls extends EventEmitter
         // Events setup
         this.touch.shoot.events = {};
         this.touch.shoot.touchIdentifier = null;
+        this.touch.shoot.release = () => {
+            this.actions.shoot = false;
+            this.touch.shoot.touchIdentifier = null;
+            this.touch.shoot.$border.style.opacity = '0.25';
+
+            document.removeEventListener('touchend', this.touch.shoot.events.touchend);
+            document.removeEventListener('touchcancel', this.touch.shoot.events.touchcancel);
+        };
 
         this.touch.shoot.events.touchstart = (_event) => {
             _event.preventDefault();
+            _event.stopPropagation();
 
             const touch = _event.changedTouches[0];
 
             if (touch) {
+                this.touch.shoot.release();
 
                 this.touch.shoot.touchIdentifier = touch.identifier;
 
@@ -2528,6 +2576,7 @@ export default class Controls extends EventEmitter
                 this.touch.shoot.$border.style.opacity = '0.5';
 
                 document.addEventListener('touchend', this.touch.shoot.events.touchend);
+                document.addEventListener('touchcancel', this.touch.shoot.events.touchcancel);
             }
         };
 
@@ -2536,15 +2585,20 @@ export default class Controls extends EventEmitter
             const touch = touches.find((_touch) => _touch.identifier === this.touch.shoot.touchIdentifier);
 
             if (touch) {
-                this.actions.shoot = false;
-
-                this.touch.shoot.$border.style.opacity = '0.25';
-
-                document.removeEventListener('touchend', this.touch.shoot.events.touchend);
+                this.touch.shoot.release();
             }
         };
 
-        this.touch.shoot.$element.addEventListener('touchstart', this.touch.shoot.events.touchstart);
+        this.touch.shoot.events.touchcancel = (_event) => {
+            const touches = [..._event.changedTouches];
+            const touch = touches.find((_touch) => _touch.identifier === this.touch.shoot.touchIdentifier);
+
+            if (touch || this.touch.shoot.touchIdentifier !== null) {
+                this.touch.shoot.release();
+            }
+        };
+
+        this.touch.shoot.$element.addEventListener('touchstart', this.touch.shoot.events.touchstart, { passive: false });
         bindDesktopPress(this.touch.shoot.$element, {
             onPress: () => {
                 const mouseEvent = new MouseEvent('mousedown', {
@@ -2586,6 +2640,7 @@ export default class Controls extends EventEmitter
         this.touch.brake.$element.style.transition = 'opacity 0.3s 0.2s'
         this.touch.brake.$element.style.willChange = 'opacity'
         this.touch.brake.$element.style.opacity = '0'
+        this.touch.brake.$element.style.touchAction = 'none'
         // this.touch.brake.$element.style.backgroundColor = '#ff0000'
         document.body.appendChild(this.touch.brake.$element)
 
@@ -2632,14 +2687,25 @@ export default class Controls extends EventEmitter
         // Events
         this.touch.brake.events = {}
         this.touch.brake.touchIdentifier = null
+        this.touch.brake.release = () =>
+        {
+            this.actions.brake = false
+            this.touch.brake.touchIdentifier = null
+            this.touch.brake.$border.style.opacity = '0.25'
+
+            document.removeEventListener('touchend', this.touch.brake.events.touchend)
+            document.removeEventListener('touchcancel', this.touch.brake.events.touchcancel)
+        }
         this.touch.brake.events.touchstart = (_event) =>
         {
             _event.preventDefault()
+            _event.stopPropagation()
 
             const touch = _event.changedTouches[0]
 
             if(touch)
             {
+                this.touch.brake.release()
                 this.touch.brake.touchIdentifier = touch.identifier
 
                 this.actions.brake = true
@@ -2647,6 +2713,7 @@ export default class Controls extends EventEmitter
                 this.touch.brake.$border.style.opacity = '0.5'
 
                 document.addEventListener('touchend', this.touch.brake.events.touchend)
+                document.addEventListener('touchcancel', this.touch.brake.events.touchcancel)
             }
         }
 
@@ -2657,15 +2724,22 @@ export default class Controls extends EventEmitter
 
             if(touch)
             {
-                this.actions.brake = false
-
-                this.touch.brake.$border.style.opacity = '0.25'
-
-                document.removeEventListener('touchend', this.touch.brake.events.touchend)
+                this.touch.brake.release()
             }
         }
 
-        this.touch.brake.$element.addEventListener('touchstart', this.touch.brake.events.touchstart)
+        this.touch.brake.events.touchcancel = (_event) =>
+        {
+            const touches = [..._event.changedTouches]
+            const touch = touches.find((_touch) => _touch.identifier === this.touch.brake.touchIdentifier)
+
+            if(touch || this.touch.brake.touchIdentifier !== null)
+            {
+                this.touch.brake.release()
+            }
+        }
+
+        this.touch.brake.$element.addEventListener('touchstart', this.touch.brake.events.touchstart, { passive: false })
         bindDesktopPress(this.touch.brake.$element, {
             onPress: () => {
                 this.camera.pan.reset()
@@ -2701,6 +2775,7 @@ export default class Controls extends EventEmitter
         this.touch.backward.$element.style.transition = 'opacity 0.3s 0.1s'
         this.touch.backward.$element.style.willChange = 'opacity'
         this.touch.backward.$element.style.opacity = '0'
+        this.touch.backward.$element.style.touchAction = 'none'
         // this.touch.backward.$element.style.backgroundColor = '#0000ff'
         document.body.appendChild(this.touch.backward.$element)
 
@@ -2747,14 +2822,25 @@ export default class Controls extends EventEmitter
         // Events
         this.touch.backward.events = {}
         this.touch.backward.touchIdentifier = null
+        this.touch.backward.release = () =>
+        {
+            this.actions.down = false
+            this.touch.backward.touchIdentifier = null
+            this.touch.backward.$border.style.opacity = '0.25'
+
+            document.removeEventListener('touchend', this.touch.backward.events.touchend)
+            document.removeEventListener('touchcancel', this.touch.backward.events.touchcancel)
+        }
         this.touch.backward.events.touchstart = (_event) =>
         {
             _event.preventDefault()
+            _event.stopPropagation()
 
             const touch = _event.changedTouches[0]
 
             if(touch)
             {
+                this.touch.backward.release()
                 this.camera.pan.reset()
 
                 this.touch.backward.touchIdentifier = touch.identifier
@@ -2764,6 +2850,7 @@ export default class Controls extends EventEmitter
                 this.touch.backward.$border.style.opacity = '0.5'
 
                 document.addEventListener('touchend', this.touch.backward.events.touchend)
+                document.addEventListener('touchcancel', this.touch.backward.events.touchcancel)
             }
         }
 
@@ -2774,15 +2861,22 @@ export default class Controls extends EventEmitter
 
             if(touch)
             {
-                this.actions.down = false
-
-                this.touch.backward.$border.style.opacity = '0.25'
-
-                document.removeEventListener('touchend', this.touch.backward.events.touchend)
+                this.touch.backward.release()
             }
         }
 
-        this.touch.backward.$element.addEventListener('touchstart', this.touch.backward.events.touchstart)
+        this.touch.backward.events.touchcancel = (_event) =>
+        {
+            const touches = [..._event.changedTouches]
+            const touch = touches.find((_touch) => _touch.identifier === this.touch.backward.touchIdentifier)
+
+            if(touch || this.touch.backward.touchIdentifier !== null)
+            {
+                this.touch.backward.release()
+            }
+        }
+
+        this.touch.backward.$element.addEventListener('touchstart', this.touch.backward.events.touchstart, { passive: false })
         bindDesktopPress(this.touch.backward.$element, {
             onPress: () => {
                 this.camera.pan.reset()
@@ -2904,6 +2998,23 @@ export default class Controls extends EventEmitter
         // Call this function initially and whenever the window is resized
         this.updateButtonPositions();
         if (typeof window !== 'undefined') {
+            this.touch.releaseInterruptedInputs = () => {
+                this.touch.joystick.reset()
+                this.touch.siren.release()
+                this.touch.boost.release()
+                this.touch.forward.release()
+                this.touch.shoot.release()
+                this.touch.brake.release()
+                this.touch.backward.release()
+            }
+
+            window.addEventListener('blur', this.touch.releaseInterruptedInputs)
+            document.addEventListener('visibilitychange', () => {
+                if(document.hidden)
+                {
+                    this.touch.releaseInterruptedInputs()
+                }
+            })
 
             window.addEventListener('resize', () => {
                 this.updateButtonPositions();
