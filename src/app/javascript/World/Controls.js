@@ -490,6 +490,7 @@ export default class Controls extends EventEmitter
         if (typeof window !== 'undefined') {
             // Function to determine if the display is vertical or horizontal
             this.isVerticalDisplay = () => window.innerHeight > window.innerWidth;
+            this.isCoarsePointer = window.matchMedia?.('(pointer: coarse)').matches || navigator.maxTouchPoints > 0;
         }
 
         const speedometer = document.getElementById('speedometer');
@@ -499,6 +500,7 @@ export default class Controls extends EventEmitter
 
         const bindDesktopPress = (_element, _handlers = {}) => {
             if (!_element) return
+            if (this.isCoarsePointer) return
 
             let active = false
             let ignoreMouseUntil = 0
@@ -882,7 +884,10 @@ export default class Controls extends EventEmitter
             this.touch.joystick.reset()
         }
 
-        this.touch.joystick.$element.addEventListener('mousedown', this.touch.joystick.events.mousedown)
+        if(!this.isCoarsePointer)
+        {
+            this.touch.joystick.$element.addEventListener('mousedown', this.touch.joystick.events.mousedown)
+        }
 
         // Function to move the joystick to the right
         function moveJoystickRight() {
@@ -1185,6 +1190,29 @@ export default class Controls extends EventEmitter
         const touchPrevious = document.getElementById('touch-previous');
         const touchNext = document.getElementById('touch-next');
         const partyInfo = document.getElementById('party-info');
+        const settingsWindowButton = document.getElementById('toggle-settings-window');
+
+        const resetUiTouchState = () => {
+            this.touch.joystick.reset();
+            if(this.touch.previous?.release) this.touch.previous.release();
+            if(this.touch.next?.release) this.touch.next.release();
+        };
+
+        if (this.isCoarsePointer) {
+            const panelTouchTargets = [switchButton, settings, settingsWindowButton, touchSlider, touchPrevious, touchNext];
+
+            panelTouchTargets.forEach((_element) => {
+                if (!_element) {
+                    return;
+                }
+
+                _element.style.touchAction = 'none';
+                _element.addEventListener('touchstart', (_event) => {
+                    _event.stopPropagation();
+                    resetUiTouchState();
+                }, { passive: true });
+            });
+        }
 
 
         // Toggle function to move the square and toggle visibility of elements
