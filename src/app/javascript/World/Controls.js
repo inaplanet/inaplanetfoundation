@@ -270,6 +270,47 @@ export default class Controls extends EventEmitter
         };
     }
 
+    resolveControllerSlotAssignments(_savedPositions = null)
+    {
+        const resolvedSlotAssignments = {}
+        const currentSlotByAction = {}
+
+        Object.entries(this.resetPositions).forEach(([slotKey, { action }]) => {
+            const slotNumber = slotKey.replace('slot', '')
+            resolvedSlotAssignments[slotNumber] = action
+            currentSlotByAction[action] = slotNumber
+        })
+
+        if(!_savedPositions || typeof _savedPositions !== 'object')
+        {
+            return resolvedSlotAssignments
+        }
+
+        Object.entries(_savedPositions).forEach(([slotNumber, action]) => {
+            if(!action || !resolvedSlotAssignments[slotNumber])
+            {
+                return
+            }
+
+            const currentSlotNumber = currentSlotByAction[action]
+
+            if(!currentSlotNumber || currentSlotNumber === slotNumber)
+            {
+                return
+            }
+
+            const displacedAction = resolvedSlotAssignments[slotNumber]
+
+            resolvedSlotAssignments[currentSlotNumber] = displacedAction
+            currentSlotByAction[displacedAction] = currentSlotNumber
+
+            resolvedSlotAssignments[slotNumber] = action
+            currentSlotByAction[action] = slotNumber
+        })
+
+        return resolvedSlotAssignments
+    }
+
     applyTouchElementPosition(_touchElement, _position)
     {
         if (!_touchElement || !_position) {
@@ -296,29 +337,17 @@ export default class Controls extends EventEmitter
     
         // Define a mapping between actions and touch elements
         const actionToTouchElement = this.getCustomizableTouchElements();
-        const effectivePositionsByAction = {};
+        const resolvedSlotAssignments = this.resolveControllerSlotAssignments(savedPositions)
 
-        Object.values(this.resetPositions).forEach(({ action, bottom, right, left }) => {
-            effectivePositionsByAction[action] = { bottom, right, left };
-        });
-    
-        // Loop through each saved position and apply it
-        Object.keys(savedPositions).forEach(slotNumber => {
-            const action = savedPositions[slotNumber];
-            const slotId = `slot${slotNumber}`;
-    
-            if (action && this.slotPositions[slotId]) {
-                effectivePositionsByAction[action] = { ...this.slotPositions[slotId] };
-            }
-        });
-
-        Object.entries(actionToTouchElement).forEach(([action, touchElement]) => {
-            const position = effectivePositionsByAction[action];
+        Object.entries(resolvedSlotAssignments).forEach(([slotNumber, action]) => {
+            const slotId = `slot${slotNumber}`
+            const touchElement = actionToTouchElement[action]
+            const position = this.slotPositions[slotId]
 
             if (touchElement && position) {
-                this.applyTouchElementPosition(touchElement, position);
+                this.applyTouchElementPosition(touchElement, position)
             }
-        });
+        })
     }
 
     resetPositions = {
@@ -505,6 +534,11 @@ export default class Controls extends EventEmitter
 
     setTouch()
     {
+        if (this.touchInitialized) {
+            return
+        }
+
+        this.touchInitialized = true
         this.touch = {}
 
         if (typeof window !== 'undefined') {

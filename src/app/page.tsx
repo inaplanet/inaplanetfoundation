@@ -1535,6 +1535,11 @@ const handleWorldSelection = (worldId: string, listItem: HTMLLIElement, worldLis
                   className="game-zoom-button"
                   id="game-zoom-in-button"
                   onClick={() => handleCameraZoom('in')}
+                  onTouchStart={(event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    handleCameraZoom('in');
+                  }}
                   style={{ opacity: 0, display: 'none' }}
                   aria-label="Zoom in"
                 >
@@ -1545,6 +1550,11 @@ const handleWorldSelection = (worldId: string, listItem: HTMLLIElement, worldLis
                   className="game-zoom-button"
                   id="game-zoom-out-button"
                   onClick={() => handleCameraZoom('out')}
+                  onTouchStart={(event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    handleCameraZoom('out');
+                  }}
                   style={{ opacity: 0, display: 'none' }}
                   aria-label="Zoom out"
                 >

@@ -76,10 +76,6 @@ const Application = ({ playerId, selectedWorldId, token, carName, matcaps }) => 
                 if (this.renderer) {
                     this.renderer.setPixelRatio(this.getPixelRatio());
                 }
-                if (this.world && this.world.controls) {
-                    this.world.controls.setTouch();
-                }
-    
             }, { once: true });
         }
     }    
@@ -317,6 +313,13 @@ const Application = ({ playerId, selectedWorldId, token, carName, matcaps }) => 
         this.handleCameraZoomButton = (event) => {
             if (!this.camera || !this.camera.zoom || this.camera.isNewCameraActive) {
                 return;
+            }
+
+            const controlsTouch = this.world?.controls?.touch;
+            if (controlsTouch?.releaseInterruptedInputs) {
+                controlsTouch.releaseInterruptedInputs();
+            } else if (controlsTouch?.joystick?.reset) {
+                controlsTouch.joystick.reset();
             }
 
             const direction = event?.detail?.direction;

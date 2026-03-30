@@ -2823,6 +2823,7 @@ export default class
                 // Toggle visibility with animation
                 if (settingsContainer.style.display === 'flex') {
                     // Hide with scaling animation
+                    settingsContainer.style.pointerEvents = 'none';
                     settingsContainer.style.transform = 'scale(1.25)';
                     settingsContainer.style.opacity = '1';
             
@@ -2838,6 +2839,7 @@ export default class
                 } else {
                     // Show with scaling animation
                     settingsContainer.style.display = 'flex';
+                    settingsContainer.style.pointerEvents = 'auto';
                     settingsContainer.style.transform = 'scale(0)';
                     settingsContainer.style.opacity = '0';
             
@@ -2939,6 +2941,7 @@ export default class
                 const dropSlots = document.querySelectorAll('.drop-slot');
                 const resetButton = document.getElementById('reset-button');
                 const saveSettingsButton = document.getElementById('save-settings-button');
+                const buttonSetupContainer = document.getElementById('button-setup');
             
                 // Define button actions
                 const buttonActions = {
@@ -2951,6 +2954,10 @@ export default class
                     btn7: 'camera',
                     btn8: 'reset'
                 };
+
+                const actionToButtonId = Object.fromEntries(
+                    Object.entries(buttonActions).map(([buttonId, action]) => [action, buttonId])
+                );
             
                 // Store initial positions of the buttons
                 const initialButtonPositions = {};
@@ -2960,6 +2967,33 @@ export default class
                         index: Array.from(button.parentElement.children).indexOf(button)
                     };
                 });
+
+                this.syncControllerSetup = (buttonPositions = null) => {
+                    if (!buttonSetupContainer) {
+                        return;
+                    }
+
+                    const resolvedAssignments = this.controls.resolveControllerSlotAssignments(buttonPositions);
+
+                    draggableButtons.forEach(button => {
+                        buttonSetupContainer.appendChild(button);
+                    });
+
+                    dropSlots.forEach((slot) => {
+                        slot.style.backgroundColor = '';
+                    });
+
+                    Object.entries(resolvedAssignments).forEach(([slotNumber, action]) => {
+                        const slot = document.querySelector(`.drop-slot[data-slot="${slotNumber}"]`);
+                        const buttonId = actionToButtonId[action];
+                        const button = buttonId ? document.getElementById(buttonId) : null;
+
+                        if (slot && button) {
+                            slot.appendChild(button);
+                            slot.style.backgroundColor = 'rgba(0, 0, 0, 0.2)';
+                        }
+                    });
+                };
             
                 // Drag start
                 draggableButtons.forEach(button => {
@@ -3019,12 +3053,7 @@ export default class
             
                 // Reset the positions of the buttons to their initial positions
                 resetButton.addEventListener('click', () => {
-                    draggableButtons.forEach(button => {
-                        const initialPosition = initialButtonPositions[button.id];
-                        const parent = initialPosition.parent;
-                        const index = initialPosition.index;
-                        parent.insertBefore(button, parent.children[index]); // Move the button back to its original position
-                    });
+                    this.syncControllerSetup(null);
                     this.controls.resetController();
                     this.saveControllerPrefs(null);
                     this.showPopup('Buttons reset to initial positions.');
@@ -3052,6 +3081,7 @@ export default class
                     localStorage.setItem('buttonPositions', JSON.stringify(buttonPositions));
                     this.saveControllerPrefs(buttonPositions);
                     this.showPopup('Settings saved successfully.');
+                    this.syncControllerSetup(buttonPositions);
                     this.controls.updateController();
                 });
             }
@@ -3062,8 +3092,10 @@ export default class
             
                 if (savedPositions && this.controls.touch) {
                     console.log('Applying saved button positions...');
+                    this.syncControllerSetup?.(savedPositions);
                     this.controls.updateController(); // Apply saved positions
                 } else {
+                    this.syncControllerSetup?.(null);
                     console.log('Applying default button positions...');
                 }
             }
