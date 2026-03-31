@@ -43,7 +43,7 @@ const nextConfig = {
       config.module.rules.push(
         {
           test: /\.js$/,
-          exclude: /node_modules\/(?!(unstorage|@walletconnect|@walletconnect\/keyvaluestorage|@walletconnect\/web3wallet|@web3modal\/ethereum|@web3modal\/html)\/).*/,
+          exclude: /node_modules/,
         },
         {
           test: /\.mjs$/,

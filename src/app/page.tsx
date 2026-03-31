@@ -20,7 +20,6 @@ import {
   FaTelegramPlane,
   FaUserShield,
   FaUsers,
-  FaWallet,
   FaWhatsapp,
   FaWindowMaximize,
 } from 'react-icons/fa';
@@ -31,10 +30,12 @@ import { SiCss3, SiExpress, SiExpo, SiFlutter, SiJavascript, SiSolidity, SiWebrt
 import { TbBrandReactNative, TbBrandSocketIo } from 'react-icons/tb';
 import { getOrCreatePlayerIdentity } from './javascript/Utils/playerIdentity.js';
 import { createRandomStarterLoadout } from './javascript/Utils/playerLoadout.js';
+import { SITE_EMAIL, SITE_NAME, SITE_URL } from './content/site';
 
 // Dynamically import the Application component and disable SSR
 const Application = dynamic(() => import('./javascript/Application'), {
   ssr: false,
+  loading: () => null,
 });
 
 const GREETING_ITEMS = [
@@ -83,6 +84,28 @@ const MODAL_COPY = {
       { title: 'Scope', copy: 'We turn rough briefs into a clear build plan.' },
       { title: 'Execution', copy: 'Frontend, backend, integrations, and tooling move as one system.' },
       { title: 'Launch', copy: 'Production readiness matters more than demo polish.' },
+    ],
+    professionalServicesEyebrow: 'Professional Services',
+    professionalServicesTitle: 'How we deliver web apps, mobile apps, backend systems, and AI-assisted products',
+    professionalServicesCopy: 'Clients usually need clarity before code. We turn rough briefs, half-built products, technical debt, and ambitious ideas into scope, architecture, implementation order, and production-ready delivery.',
+    workMechanismTitle: 'How we work',
+    workMechanismItems: [
+      {
+        question: 'How do you start a project?',
+        answer: 'We translate the brief into a technical task, delivery phases, priorities, and a realistic launch path instead of starting with blind implementation.',
+      },
+      {
+        question: 'How is AI applied in delivery?',
+        answer: 'AI is used to accelerate research, implementation drafts, QA thinking, and documentation, while architecture, security-sensitive flows, and review discipline stay under human ownership.',
+      },
+      {
+        question: 'Why is AI important for strong products?',
+        answer: 'It shortens iteration cycles, increases execution bandwidth, and helps teams test more product ideas before slower competitors can react.',
+      },
+      {
+        question: 'What does the client actually get?',
+        answer: 'A working delivery system: product architecture, implementation, integrations, deployment structure, and a path to scale after launch.',
+      },
     ],
     coreStackTitle: 'Core Stack',
     clientsTitle: 'What Clients Usually Bring',
@@ -183,6 +206,28 @@ const MODAL_COPY = {
       { title: 'İcra', copy: 'Frontend, backend, inteqrasiyalar və alətlər bir sistem kimi işləyir.' },
       { title: 'Buraxılış', copy: 'Demo görünüşündən çox production hazırlığı vacibdir.' },
     ],
+    professionalServicesEyebrow: 'Professional Services',
+    professionalServicesTitle: 'Web tətbiqləri, mobil tətbiqləri, backend sistemlərini və AI dəstəkli məhsulları necə çatdırırıq',
+    professionalServicesCopy: 'Müştərinin çox vaxt koda başlamazdan əvvəl aydınlığa ehtiyacı olur. Biz qeyri-dəqiq briefləri, yarımçıq məhsulları, texniki borcu və iddialı ideyaları scope-a, arxitekturaya, implementasiya sırasına və production-ready delivery-yə çeviririk.',
+    workMechanismTitle: 'İş mexanizmimiz',
+    workMechanismItems: [
+      {
+        question: 'Layihəyə necə başlayırıq?',
+        answer: 'Blind implementasiya ilə başlamırıq. Briefi texniki tapşırığa, mərhələli delivery-yə, prioritetlərə və real launch yoluna çeviririk.',
+      },
+      {
+        question: 'AI delivery-də necə tətbiq olunur?',
+        answer: 'AI research-i, ilkin implementasiya draft-larını, QA düşüncəsini və dokumentasiyanı sürətləndirir, amma arxitektura, security-sensitive axınlar və review intizamı insan ownership-də qalır.',
+      },
+      {
+        question: 'AI niyə güclü məhsul üçün vacibdir?',
+        answer: 'O, iterasiya dövrünü qısaldır, icra tutumunu artırır və komandaya daha yavaş rəqiblər reaksiya vermədən əvvəl daha çox məhsul ideyasını yoxlamağa imkan verir.',
+      },
+      {
+        question: 'Müştəri sonda nə əldə edir?',
+        answer: 'İşləyən delivery sistemi: məhsul arxitekturası, implementasiya, inteqrasiyalar, deploy strukturu və launchdan sonrakı miqyaslanma yolu.',
+      },
+    ],
     coreStackTitle: 'Əsas texnologiyalar',
     clientsTitle: 'Müştərilər adətən nə ilə gəlir',
     clientsCopy: 'Qeyri-dəqiq brief, texniki tapşırıq, Figma faylı, yarımçıq məhsul və ya əməliyyat bottleneck-i ilə. Biz bunu arxitektura, implementasiya, deadline planlaması, təhvil strukturu, deploy və iterasiyaya çeviririk. Bu da adətən prioritetləri aydınlaşdırmaq, əvvəl nəyin çatdırılacağını müəyyən etmək və qeyri-müəyyən başlanğıcı praktik launch yoluna çevirmək deməkdir.',
@@ -281,6 +326,28 @@ const MODAL_COPY = {
       { title: 'Объем', copy: 'Мы превращаем сырой бриф в понятный план сборки.' },
       { title: 'Исполнение', copy: 'Frontend, backend, интеграции и инструменты движутся как одна система.' },
       { title: 'Запуск', copy: 'Готовность к production важнее, чем просто эффектный демо-вид.' },
+    ],
+    professionalServicesEyebrow: 'Professional Services',
+    professionalServicesTitle: 'Как мы поставляем web-приложения, mobile-приложения, backend-системы и AI-assisted продукты',
+    professionalServicesCopy: 'До кода клиенту обычно нужна ясность. Мы превращаем сырые брифы, полуготовые продукты, технический долг и амбициозные идеи в scope, архитектуру, порядок implementation и production-ready delivery.',
+    workMechanismTitle: 'Как мы работаем',
+    workMechanismItems: [
+      {
+        question: 'Как вы стартуете проект?',
+        answer: 'Мы не начинаем с blind implementation. Мы переводим бриф в technical task, delivery phases, priorities и реалистичный путь к launch.',
+      },
+      {
+        question: 'Как AI применяется в delivery?',
+        answer: 'AI ускоряет research, первые implementation drafts, QA thinking и documentation, но архитектура, security-sensitive потоки и review discipline остаются под человеческим ownership.',
+      },
+      {
+        question: 'Почему AI важен для сильного продукта?',
+        answer: 'Он сокращает iteration cycles, увеличивает execution bandwidth и помогает команде проверять больше продуктовых идей раньше, чем медленные конкуренты успевают отреагировать.',
+      },
+      {
+        question: 'Что клиент получает на выходе?',
+        answer: 'Рабочую delivery-систему: продуктовую архитектуру, implementation, integrations, deploy-структуру и путь к scale после launch.',
+      },
     ],
     coreStackTitle: 'Основной стек',
     clientsTitle: 'С чем обычно приходят клиенты',
@@ -390,7 +457,6 @@ export default function Home() {
     { label: 'Next.js', icon: <RiNextjsFill aria-hidden="true" /> },
     { label: 'Web3', icon: <FaCube aria-hidden="true" /> },
     { label: 'Solidity', icon: <SiSolidity aria-hidden="true" /> },
-    { label: 'WalletConnect Auth', icon: <FaWallet aria-hidden="true" /> },
     { label: 'NFT', icon: <FaCube aria-hidden="true" /> },
     { label: 'Realtime Ops', icon: <FaRedo aria-hidden="true" /> },
   ];
@@ -471,7 +537,7 @@ export default function Home() {
     },
     {
       label: 'Mail',
-      href: 'mailto:inaplanetfoundation@gmail.com',
+      href: `mailto:${SITE_EMAIL}`,
       icon: <MdMailOutline aria-hidden="true" />,
     },
   ];
@@ -479,7 +545,6 @@ export default function Home() {
   const [isCanvasInitialized, setIsCanvasInitialized] = useState(false); // State for canvas initialization
   const [application, setApplication] = useState(false); // State for canvas initialization
   const [hasAppInitialized, setHasAppInitialized] = useState(false); // Ensure Application is only initialized once
-  const [isMounted, setIsMounted] = useState(false); // Track when the component is mounted
   const [selectedWorldId, setSelectedWorldId] = useState<string | null>(null); // New state for selected world ID
   const [token, setToken] = useState<string | null>(null); // State to store the token
   const [showLandingPage, setShowLandingPage] = useState(true);
@@ -584,6 +649,67 @@ export default function Home() {
     subtitle: 'subtitle' in item ? item.subtitle : undefined,
     description: item.description,
   }));
+  const organizationSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: SITE_NAME,
+    url: SITE_URL,
+    email: SITE_EMAIL,
+    description: modalCopy.heroCopy,
+    availableLanguage: ['en', 'az', 'ru'],
+    knowsAbout: [
+      'web app development',
+      'mobile app development',
+      'backend systems',
+      'real-time systems',
+      'multiplayer web products',
+      'AI workflows',
+      'payment flows',
+    ],
+  };
+  const professionalServiceSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'ProfessionalService',
+    name: SITE_NAME,
+    url: SITE_URL,
+    email: SITE_EMAIL,
+    areaServed: 'Worldwide',
+    availableLanguage: ['en', 'az', 'ru'],
+    description: modalCopy.professionalServicesCopy,
+    serviceType: localizedExpertiseItems.map((item) => item.title),
+    hasOfferCatalog: {
+      '@type': 'OfferCatalog',
+      name: 'Digital product engineering services',
+      itemListElement: localizedExpertiseItems.map((item) => ({
+        '@type': 'Offer',
+        itemOffered: {
+          '@type': 'Service',
+          name: item.title,
+          description: item.description,
+        },
+      })),
+    },
+  };
+  const websiteSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: SITE_NAME,
+    url: SITE_URL,
+    inLanguage: modalLanguage,
+    description: modalCopy.heroCopy,
+  };
+  const faqSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: modalCopy.workMechanismItems.map((item) => ({
+      '@type': 'Question',
+      name: item.question,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: item.answer,
+      },
+    })),
+  };
 
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080';
   const WS_BASE_URL = process.env.NEXT_PUBLIC_WS_BASE_URL || 'ws://localhost:8080';
@@ -1218,24 +1344,54 @@ const handleWorldSelection = (worldId: string, listItem: HTMLLIElement, worldLis
 };
 
     useEffect(() => {
-      setIsMounted(true);
       updateWorldList({});
 
       let localRetryCount = 0;
-      const interval = setInterval(() => {
-        const container = document.getElementById('loading-layer');
-        if (container) {
-          initGlobe('loading-layer');
-          clearInterval(interval);
-        } else if (localRetryCount >= 10) {
-          console.warn('Failed to find #loading-layer after 10 retries.');
-          clearInterval(interval);
-        }
-        localRetryCount++;
-      }, 150);
+      let interval: number | undefined;
+      let deferredBootHandle: number | undefined;
+      const idleWindow = window as Window & {
+        requestIdleCallback?: (callback: (...args: unknown[]) => void, options?: { timeout: number }) => number;
+        cancelIdleCallback?: (handle: number) => void;
+      };
+      const bootGlobe = () => {
+        interval = window.setInterval(() => {
+          const container = document.getElementById('loading-layer');
+          if (container) {
+            initGlobe('loading-layer');
+            if (typeof interval === 'number') {
+              window.clearInterval(interval);
+              interval = undefined;
+            }
+          } else if (localRetryCount >= 10) {
+            console.warn('Failed to find #loading-layer after 10 retries.');
+            if (typeof interval === 'number') {
+              window.clearInterval(interval);
+              interval = undefined;
+            }
+          }
+          localRetryCount++;
+        }, 150);
+      };
+
+      if (idleWindow.requestIdleCallback) {
+        deferredBootHandle = idleWindow.requestIdleCallback(() => {
+          bootGlobe();
+        }, { timeout: 500 });
+      } else {
+        deferredBootHandle = window.setTimeout(bootGlobe, 180);
+      }
 
       return () => {
-        clearInterval(interval);
+        if (typeof interval === 'number') {
+          window.clearInterval(interval);
+        }
+        if (typeof deferredBootHandle === 'number') {
+          if (idleWindow.cancelIdleCallback) {
+            idleWindow.cancelIdleCallback(deferredBootHandle);
+          } else {
+            window.clearTimeout(deferredBootHandle);
+          }
+        }
       };
     }, []);
 
@@ -1275,19 +1431,30 @@ const handleWorldSelection = (worldId: string, listItem: HTMLLIElement, worldLis
       return () => window.cancelAnimationFrame(frame);
     }, [showLandingPage]);
 
-  if (!isMounted) {
-    // Return null on the server (or before the component is mounted on the client)
-    return null;
-  }
-
   return (
     <main className="overflow-hidden flex flex-col items-center" style={{ backgroundColor: '#000', fontFamily: "'Orbitron', sans-serif" }}>
       <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(professionalServiceSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+      />
 
       {!isCanvasInitialized && (
         <div id="loading-container">
           <div id="loading-layer" className="loading-layer overflow-hidden"></div>
-          <div id="w3m-layer" className={`w3m-layer flex-container ${showLandingPage ? 'first-screen-hidden' : ''}`}>
+          <div id="intro-panel-layer" className={`intro-panel-layer flex-container ${showLandingPage ? 'first-screen-hidden' : ''}`}>
             <div className="user-count-wrapper">
               <span id="userCountDisplay" className="user-count-display">0</span>
             </div>
@@ -1392,6 +1559,24 @@ const handleWorldSelection = (worldId: string, listItem: HTMLLIElement, worldLis
                     ))}
                   </div>
                   <div className="landing-showcase__divider" aria-hidden="true"></div>
+                  <section className="landing-showcase__section landing-showcase__section--wide">
+                    <div className="landing-showcase__answer-head">
+                      <div className="landing-showcase__answer-intro">
+                        <span className="landing-showcase__section-eyebrow">{modalCopy.professionalServicesEyebrow}</span>
+                        <h2>{modalCopy.professionalServicesTitle}</h2>
+                        <p>{modalCopy.professionalServicesCopy}</p>
+                      </div>
+                    </div>
+                    <div className="landing-showcase__answer-grid">
+                      {modalCopy.workMechanismItems.map((item) => (
+                        <article key={item.question} className="landing-showcase__answer-card">
+                          <h3>{item.question}</h3>
+                          <p>{item.answer}</p>
+                        </article>
+                      ))}
+                    </div>
+                  </section>
+                  <div className="landing-showcase__divider" aria-hidden="true"></div>
                   <div className="landing-showcase__sections">
                     <section className="landing-showcase__section landing-showcase__section--wide">
                     <h2>{modalCopy.coreStackTitle}</h2>
@@ -1461,11 +1646,11 @@ const handleWorldSelection = (worldId: string, listItem: HTMLLIElement, worldLis
                   <section className="landing-showcase__section landing-showcase__section--contact">
                     <h2>{modalCopy.contactTitle}</h2>
                     <p>
-                      {modalCopy.contactCopy.includes('office@inaplanet.com') ? (
+                      {modalCopy.contactCopy.includes(SITE_EMAIL) ? (
                         <>
-                          {modalCopy.contactCopy.split('office@inaplanet.com')[0]}
-                          <span className="landing-showcase__contact-email">office@inaplanet.com</span>
-                          {modalCopy.contactCopy.split('office@inaplanet.com').slice(1).join('office@inaplanet.com')}
+                          {modalCopy.contactCopy.split(SITE_EMAIL)[0]}
+                          <span className="landing-showcase__contact-email">{SITE_EMAIL}</span>
+                          {modalCopy.contactCopy.split(SITE_EMAIL).slice(1).join(SITE_EMAIL)}
                         </>
                       ) : (
                         modalCopy.contactCopy

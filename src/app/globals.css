@@ -1416,11 +1416,6 @@ opacity: 0;
     overflow: hidden;
 }
 
-/* Ensure the modal overlay is always on top */
-[data-testid="w3m-button"] {
-  z-index: 1000 !important; /* Set a very high z-index to ensure it appears above other elements */
-}
-
 /* Add this CSS to your style/main.css or in a <style> tag in your HTML */
 @keyframes loadingCube {
     from {
@@ -2134,8 +2129,65 @@ opacity: 0;
   font-size: 13px;
 }
 
+.landing-showcase__section-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  margin-bottom: 14px;
+  color: #ffffff;
+  font-size: 11px;
+  letter-spacing: 0.22rem;
+  text-transform: uppercase;
+}
+
 .landing-showcase__section--wide {
   grid-column: 1 / -1;
+}
+
+.landing-showcase__answer-head {
+  display: block;
+}
+
+.landing-showcase__answer-intro {
+  display: grid;
+  gap: 0;
+}
+
+.landing-showcase__answer-intro p {
+  margin-bottom: 18px !important;
+}
+
+.landing-showcase__answer-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.landing-showcase__answer-card {
+  padding: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 14px 100%, 0 calc(100% - 14px));
+  transition: transform 0.35s ease, border-color 0.35s ease, background-color 0.35s ease;
+}
+
+.landing-showcase__answer-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(255, 255, 255, 0.26);
+}
+
+.landing-showcase__answer-card h3 {
+  margin: 0 0 8px;
+  color: #ffffff;
+  font-size: 13px;
+  letter-spacing: 0.04rem;
+  text-transform: none;
+}
+
+.landing-showcase__answer-card p {
+  margin: 0;
+  color: rgba(232, 240, 255, 0.76);
+  font-size: 12px;
+  line-height: 1.6;
 }
 
 .landing-showcase__section--expertise {
@@ -2431,6 +2483,12 @@ opacity: 0;
   line-height: 1.5;
 }
 
+@media (max-width: 1080px) {
+  .landing-showcase__answer-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 767px) {
   #world-layer {
     position: fixed;
@@ -2666,7 +2724,7 @@ opacity: 0;
   overflow: hidden;
 }
 
-.w3m-layer {
+.intro-panel-layer {
   position: absolute;
   top: calc(12% - 56px);
   left: 30px;
@@ -2689,7 +2747,7 @@ opacity: 0;
 }
 
 @media (max-width: 767px) {
-  .w3m-layer {
+  .intro-panel-layer {
     position: fixed;
     top: 16px;
     left: 10px;
@@ -3338,10 +3396,6 @@ opacity: 0;
     z-index: 10; /* Ensure it is above the canvas */
     opacity: 0; /* Initially hidden */
     display: none;
-}
-
-.w3m-button {
-  text-transform: uppercase !important;
 }
 
 #coin-market {
@@ -4256,7 +4310,7 @@ opacity: 0;
 }
 
 @media (min-width: 768px) and (max-width: 1180px) {
-  .w3m-layer {
+  .intro-panel-layer {
     position: fixed;
     top: 28px;
     left: 24px;

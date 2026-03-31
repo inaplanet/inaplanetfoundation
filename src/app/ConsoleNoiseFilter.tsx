@@ -10,15 +10,12 @@ const NOISY_CONSOLE_PATTERNS = [
     'Content-Security-Policy: Ignoring',
     'Ignoring unsupported entryTypes: longtask',
     '[LaunchDarkly] LaunchDarkly client initialized',
-    'fonts.reown.com',
     'looks like it points into the shape?'
 ]
 
 const NOISY_STACK_PATTERNS = [
     'lockdown-install.js',
-    'secure.walletconnect.org',
     'auth.magic.link',
-    'reown.com',
     'cannon.js'
 ]
 

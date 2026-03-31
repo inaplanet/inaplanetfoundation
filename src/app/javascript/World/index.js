@@ -1439,7 +1439,7 @@ export default class
                     this.clearPartyState();
                 }
 
-                // Redirect to the home or wallet connection page
+                // Redirect to the home screen when the connection closes
                 if (typeof window !== 'undefined') {
                     // window.location.href = 'https://krashbox.world';
                     window.location.href = 'localhost:3000';
@@ -4529,7 +4529,7 @@ export default class
         const id = playerId || this.playerId;
 
         try {
-            // Ensure playerId is provided (from WalletConnect)
+            // Ensure playerId is provided before continuing
             if (!id) {
                 throw new Error('No playerId found. Please ensure the wallet is connected.');
             }
@@ -4723,7 +4723,7 @@ export default class
             this.startingScreen.hasStarted = true
 
             const loadingLayer = document.getElementById('loading-layer');
-            const w3mLayer = document.getElementById('w3m-layer');
+            const introPanelLayer = document.getElementById('intro-panel-layer');
             const worldLayer = document.getElementById('world-layer');
             const worldClock = document.getElementById('worldclock');
 
@@ -4731,8 +4731,8 @@ export default class
                 loadingLayer.style.display = 'none';
             }
 
-            if (w3mLayer) {
-                w3mLayer.style.display = 'none';
+            if (introPanelLayer) {
+                introPanelLayer.style.display = 'none';
             }
 
             if (worldLayer) {

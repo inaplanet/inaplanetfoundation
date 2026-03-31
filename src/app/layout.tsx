@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import './globals.css'
 import ConsoleNoiseFilter from './ConsoleNoiseFilter'
 import MobileCursorOverlay from './MobileCursorOverlay'
+import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from './content/site'
 
 const earlyConsoleNoiseFilter = `
 (() => {
@@ -53,8 +54,45 @@ const earlyConsoleNoiseFilter = `
 `;
 
 export const metadata: Metadata = {
-  title: 'Inaplanet Foundation.',
-  description: 'Defining the future, bit by bit.'
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: `${SITE_NAME}.`,
+    template: `%s | ${SITE_NAME}`,
+  },
+  description: SITE_DESCRIPTION,
+  applicationName: SITE_NAME,
+  keywords: [
+    'web app development',
+    'mobile app development',
+    'backend systems',
+    'real-time systems',
+    'multiplayer web development',
+    'AI workflows',
+    'product engineering',
+    'Azerbaijan software development',
+    'Russian speaking development team',
+    'Inaplanet',
+  ],
+  alternates: {
+    canonical: '/',
+  },
+  openGraph: {
+    type: 'website',
+    url: SITE_URL,
+    siteName: SITE_NAME,
+    title: SITE_NAME,
+    description: SITE_DESCRIPTION,
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: SITE_NAME,
+    description: SITE_DESCRIPTION,
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
+  category: 'technology',
 };
 
 // Define RootLayout
