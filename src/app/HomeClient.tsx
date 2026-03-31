@@ -31,7 +31,9 @@ import { SiCss3, SiExpress, SiExpo, SiFlutter, SiJavascript, SiPython, SiSolidit
 import { TbBrandReactNative, TbBrandSocketIo } from 'react-icons/tb';
 import { getOrCreatePlayerIdentity } from './javascript/Utils/playerIdentity.js';
 import { createRandomStarterLoadout } from './javascript/Utils/playerLoadout.js';
+import PlanetFooterSection from './PlanetFooterSection';
 import { SITE_EMAIL } from './content/site';
+import { useDeferredLanguageFont } from './useDeferredLanguageFont';
 
 // Dynamically import the Application component and disable SSR
 const Application = dynamic(() => import('./javascript/Application'), {
@@ -621,10 +623,13 @@ export default function HomeClient() {
   const [showLandingPage, setShowLandingPage] = useState(true);
   const [showLandingPageShell, setShowLandingPageShell] = useState(true);
   const [hasEnteredPlanetView, setHasEnteredPlanetView] = useState(false);
-  const [language, setLanguage] = useState<ModalLanguage>('en');
-  const [renderedFontLanguage, setRenderedFontLanguage] = useState<ModalLanguage>('en');
-  const [renderedLanguage, setRenderedLanguage] = useState<ModalLanguage>('en');
-  const [isModalLanguageReady, setIsModalLanguageReady] = useState(true);
+  const {
+    language,
+    setLanguage,
+    renderedLanguage,
+    renderedFontLanguage,
+    isLanguageReady: isModalLanguageReady,
+  } = useDeferredLanguageFont<ModalLanguage>('en');
   const [openClientFaqIndex, setOpenClientFaqIndex] = useState<number | null>(null);
   const [openWorkMechanismIndex, setOpenWorkMechanismIndex] = useState<number | null>(null);
   const [activeGreetingIndex, setActiveGreetingIndex] = useState(0);
@@ -638,91 +643,20 @@ export default function HomeClient() {
   });
   // Websocket
   const [matcaps, setMatcaps] = useState({});
-  useEffect(() => {
-    if (language === renderedLanguage && language === renderedFontLanguage) {
-      setIsModalLanguageReady(true);
-      return;
-    }
-
-    let isCancelled = false;
-    let swapTimer: number | undefined;
-    let revealTimer: number | undefined;
-
-    const fontFamily = language === 'en' ? 'Orbitron' : 'Exo 2';
-    const fontSet = typeof document !== 'undefined' ? document.fonts : null;
-    const applyLanguage = () => {
-      if (isCancelled) {
-        return;
-      }
-
-      requestAnimationFrame(() => {
-        if (isCancelled) {
-          return;
-        }
-
-        setIsModalLanguageReady(false);
-        swapTimer = window.setTimeout(() => {
-          if (isCancelled) {
-            return;
-          }
-
-          setRenderedFontLanguage(language);
-          requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
-              if (isCancelled) {
-                return;
-              }
-
-              setRenderedLanguage(language);
-
-              revealTimer = window.setTimeout(() => {
-                if (!isCancelled) {
-                  setIsModalLanguageReady(true);
-                }
-              }, 60);
-            });
-          });
-        }, 160);
-      });
-    };
-
-    if (!fontSet?.load) {
-      applyLanguage();
-      return () => {
-        isCancelled = true;
-      };
-    }
-
-    Promise.all([
-      fontSet.load(`400 16px "${fontFamily}"`),
-      fontSet.load(`700 16px "${fontFamily}"`),
-      fontSet.ready,
-    ])
-      .catch(() => undefined)
-      .finally(applyLanguage);
-
-    return () => {
-      isCancelled = true;
-      if (typeof swapTimer === 'number') {
-        window.clearTimeout(swapTimer);
-      }
-      if (typeof revealTimer === 'number') {
-        window.clearTimeout(revealTimer);
-      }
-    };
-  }, [language, renderedFontLanguage, renderedLanguage]);
 
   const modalLanguage = renderedLanguage;
   const modalCopy = MODAL_COPY[modalLanguage];
   const storyCtaLabel = 'ENTER';
-  const highlightedWorldParagraph = modalCopy.worldParagraphs[2];
-  const highlightedWorldParagraphParts = highlightedWorldParagraph.split(storyCtaLabel);
   const localizedExpertiseItems = modalCopy.expertiseItems.map((item, index) => ({
     slug: expertiseItems[index].slug,
     icon: expertiseItems[index].icon,
     title: item.title,
     subtitle: 'subtitle' in item ? item.subtitle : undefined,
     description: item.description,
+  }));
+  const localizedContactItems = contactItems.map((item, index) => ({
+    ...item,
+    label: modalCopy.contactLabels[index],
   }));
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080';
   const WS_BASE_URL = process.env.NEXT_PUBLIC_WS_BASE_URL || 'ws://localhost:8080';
@@ -1529,90 +1463,125 @@ const handleWorldSelection = (worldId: string, listItem: HTMLLIElement, worldLis
                     </button>
                   ))}
                 </div>
-                <div className="landing-showcase__body">
-                  <div className="landing-showcase__hero">
-                    <div className="landing-showcase__hero-copy">
-                      <p className="landing-showcase__eyebrow">INAPLANET.COM</p>
-                      <h1 className="landing-showcase__title">{modalCopy.heroTitle}</h1>
-                      <p className="landing-showcase__copy">{modalCopy.heroCopy}</p>
-                      <div className="landing-showcase__chips">
-                        <span>{modalCopy.chips.web}</span>
-                        <span>{modalCopy.chips.mobile}</span>
-                        <span className="landing-showcase__chip-responsive" data-desktop={modalCopy.chips.backendDesktop} data-mobile={modalCopy.chips.backendMobile}></span>
+                <div key={modalLanguage} className="landing-showcase__localized-content route-content-reveal">
+                  <div className="landing-showcase__body">
+                    <div className="landing-showcase__hero">
+                      <div className="landing-showcase__hero-copy">
+                        <p className="landing-showcase__eyebrow">INAPLANET.COM</p>
+                        <h1 className="landing-showcase__title">{modalCopy.heroTitle}</h1>
+                        <p className="landing-showcase__copy">{modalCopy.heroCopy}</p>
+                        <div className="landing-showcase__chips">
+                          <span>{modalCopy.chips.web}</span>
+                          <span>{modalCopy.chips.mobile}</span>
+                          <span className="landing-showcase__chip-responsive" data-desktop={modalCopy.chips.backendDesktop} data-mobile={modalCopy.chips.backendMobile}></span>
+                        </div>
                       </div>
-                    </div>
-                    <aside className="landing-showcase__hero-panel">
-                      <div className="landing-showcase__hero-panel-glow" aria-hidden="true"></div>
-                      <span className="landing-showcase__hero-kicker">{modalCopy.heroKicker}</span>
-                      <div className="landing-showcase__hero-metrics">
-                        {modalCopy.heroMetrics.map((metric, index) => (
-                          <div key={metric}>
-                            <strong>{`0${index + 1}`}</strong>
-                            <span>{metric}</span>
-                          </div>
-                        ))}
-                      </div>
-                      <p className="landing-showcase__hero-note">{modalCopy.heroNote}</p>
-                    </aside>
-                  </div>
-                  <div className="landing-showcase__highlights">
-                    {modalCopy.highlights.map((item) => (
-                      <article key={item.title} className="landing-showcase__card">
-                        <h2>{item.title}</h2>
-                        <p>{item.copy}</p>
-                      </article>
-                    ))}
-                  </div>
-                  <div className="landing-showcase__divider" aria-hidden="true"></div>
-                  <div className="landing-showcase__sections">
-                    <section className="landing-showcase__section landing-showcase__section--wide">
-                    <h2>{modalCopy.coreStackTitle}</h2>
-                    <div className="landing-showcase__ticker">
-                      <div className="landing-showcase__ticker-track">
-                        {[...coreStackItems, ...coreStackItems].map((item, index) => (
-                          <span key={`ticker-a-${item.label}-${index}`} className="landing-showcase__skill-item landing-showcase__skill-pill">
-                            {item.icon}
-                            {item.label}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  </section>
-                  <div className="landing-showcase__divider" aria-hidden="true"></div>
-                  <section className="landing-showcase__section landing-showcase__section--wide landing-showcase__section--expertise">
-                    <h2>{modalCopy.expertiseTitle}</h2>
-                    <p>{modalCopy.expertiseIntro}</p>
-                    <div className="landing-showcase__expertise-grid">
-                      {localizedExpertiseItems.map((item) => (
-                        <Link key={item.slug} href={`/services/${item.slug}`} className="landing-showcase__expertise-card landing-showcase__expertise-link">
-                          <div className="landing-showcase__expertise-head">
-                            <span className="landing-showcase__expertise-icon">{item.icon}</span>
-                            <div className="landing-showcase__expertise-title-group">
-                              <h3>{item.title}</h3>
-                              {item.subtitle ? <span>{item.subtitle}</span> : null}
+                      <aside className="landing-showcase__hero-panel">
+                        <div className="landing-showcase__hero-panel-glow" aria-hidden="true"></div>
+                        <span className="landing-showcase__hero-kicker">{modalCopy.heroKicker}</span>
+                        <div className="landing-showcase__hero-metrics">
+                          {modalCopy.heroMetrics.map((metric, index) => (
+                            <div key={metric}>
+                              <strong>{`0${index + 1}`}</strong>
+                              <span>{metric}</span>
                             </div>
-                          </div>
-                          <p>{item.description}</p>
-                        </Link>
+                          ))}
+                        </div>
+                        <p className="landing-showcase__hero-note">{modalCopy.heroNote}</p>
+                      </aside>
+                    </div>
+                    <div className="landing-showcase__highlights">
+                      {modalCopy.highlights.map((item) => (
+                        <article key={item.title} className="landing-showcase__card">
+                          <h2>{item.title}</h2>
+                          <p>{item.copy}</p>
+                        </article>
                       ))}
                     </div>
-                  </section>
-                  <div className="landing-showcase__divider" aria-hidden="true"></div>
-                  <section className="landing-showcase__section landing-showcase__section--clients">
-                    <span className="landing-showcase__section-eyebrow">{modalCopy.clientsEyebrow}</span>
-                    <h2>{modalCopy.clientsTitle}</h2>
-                    <p>{modalCopy.clientsCopy}</p>
-                    <div className="landing-showcase__clients-faq">
+                    <div className="landing-showcase__divider" aria-hidden="true"></div>
+                    <div className="landing-showcase__sections">
+                      <section className="landing-showcase__section landing-showcase__section--wide">
+                      <h2>{modalCopy.coreStackTitle}</h2>
+                      <div className="landing-showcase__ticker">
+                        <div className="landing-showcase__ticker-track">
+                          {[...coreStackItems, ...coreStackItems].map((item, index) => (
+                            <span key={`ticker-a-${item.label}-${index}`} className="landing-showcase__skill-item landing-showcase__skill-pill">
+                              {item.icon}
+                              {item.label}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </section>
+                    <div className="landing-showcase__divider" aria-hidden="true"></div>
+                    <section className="landing-showcase__section landing-showcase__section--wide landing-showcase__section--expertise">
+                      <h2>{modalCopy.expertiseTitle}</h2>
+                      <p>{modalCopy.expertiseIntro}</p>
+                      <div className="landing-showcase__expertise-grid">
+                        {localizedExpertiseItems.map((item) => (
+                          <Link key={item.slug} href={`/services/${item.slug}`} className="landing-showcase__expertise-card landing-showcase__expertise-link">
+                            <div className="landing-showcase__expertise-head">
+                              <span className="landing-showcase__expertise-icon">{item.icon}</span>
+                              <div className="landing-showcase__expertise-title-group">
+                                <h3>{item.title}</h3>
+                                {item.subtitle ? <span>{item.subtitle}</span> : null}
+                              </div>
+                            </div>
+                            <p>{item.description}</p>
+                          </Link>
+                        ))}
+                      </div>
+                    </section>
+                    <div className="landing-showcase__divider" aria-hidden="true"></div>
+                    <section className="landing-showcase__section landing-showcase__section--clients">
+                      <span className="landing-showcase__section-eyebrow">{modalCopy.clientsEyebrow}</span>
+                      <h2>{modalCopy.clientsTitle}</h2>
+                      <p>{modalCopy.clientsCopy}</p>
+                      <div className="landing-showcase__clients-faq">
+                        <div className="landing-showcase__answer-grid landing-showcase__answer-grid--stacked">
+                          {modalCopy.clientFaqItems.map((item, index) => {
+                            const isOpen = openClientFaqIndex === index;
+
+                            return (
+                              <article key={item.question} className={`landing-showcase__answer-card ${isOpen ? 'landing-showcase__answer-card-open' : ''}`}>
+                                <button
+                                  type="button"
+                                  className="landing-showcase__answer-toggle"
+                                  onClick={() => setOpenClientFaqIndex((currentIndex) => currentIndex === index ? null : index)}
+                                  aria-expanded={isOpen}
+                                >
+                                  <span className="landing-showcase__answer-question">{item.question}</span>
+                                  <span className="landing-showcase__answer-indicator" aria-hidden="true">
+                                    {isOpen ? '−' : '+'}
+                                  </span>
+                                </button>
+                                <div className={`landing-showcase__answer-body ${isOpen ? 'landing-showcase__answer-body-open' : ''}`}>
+                                  <p>{item.answer}</p>
+                                </div>
+                              </article>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </section>
+                    <section className="landing-showcase__section landing-showcase__section--professional">
+                      <div className="landing-showcase__answer-head">
+                        <div className="landing-showcase__answer-intro">
+                          <span className="landing-showcase__section-eyebrow">{modalCopy.professionalServicesEyebrow}</span>
+                          <h2>{modalCopy.professionalServicesTitle}</h2>
+                          <p>{modalCopy.professionalServicesCopy}</p>
+                        </div>
+                      </div>
                       <div className="landing-showcase__answer-grid landing-showcase__answer-grid--stacked">
-                        {modalCopy.clientFaqItems.map((item, index) => {
-                          const isOpen = openClientFaqIndex === index;
+                        {modalCopy.workMechanismItems.map((item, index) => {
+                          const isOpen = openWorkMechanismIndex === index;
 
                           return (
                             <article key={item.question} className={`landing-showcase__answer-card ${isOpen ? 'landing-showcase__answer-card-open' : ''}`}>
                               <button
                                 type="button"
                                 className="landing-showcase__answer-toggle"
-                                onClick={() => setOpenClientFaqIndex((currentIndex) => currentIndex === index ? null : index)}
+                                onClick={() => setOpenWorkMechanismIndex((currentIndex) => currentIndex === index ? null : index)}
                                 aria-expanded={isOpen}
                               >
                                 <span className="landing-showcase__answer-question">{item.question}</span>
@@ -1627,109 +1596,29 @@ const handleWorldSelection = (worldId: string, listItem: HTMLLIElement, worldLis
                           );
                         })}
                       </div>
-                    </div>
-                  </section>
-                  <section className="landing-showcase__section landing-showcase__section--professional">
-                    <div className="landing-showcase__answer-head">
-                      <div className="landing-showcase__answer-intro">
-                        <span className="landing-showcase__section-eyebrow">{modalCopy.professionalServicesEyebrow}</span>
-                        <h2>{modalCopy.professionalServicesTitle}</h2>
-                        <p>{modalCopy.professionalServicesCopy}</p>
-                      </div>
-                    </div>
-                    <div className="landing-showcase__answer-grid landing-showcase__answer-grid--stacked">
-                      {modalCopy.workMechanismItems.map((item, index) => {
-                        const isOpen = openWorkMechanismIndex === index;
-
-                        return (
-                          <article key={item.question} className={`landing-showcase__answer-card ${isOpen ? 'landing-showcase__answer-card-open' : ''}`}>
-                            <button
-                              type="button"
-                              className="landing-showcase__answer-toggle"
-                              onClick={() => setOpenWorkMechanismIndex((currentIndex) => currentIndex === index ? null : index)}
-                              aria-expanded={isOpen}
-                            >
-                              <span className="landing-showcase__answer-question">{item.question}</span>
-                              <span className="landing-showcase__answer-indicator" aria-hidden="true">
-                                {isOpen ? '−' : '+'}
-                              </span>
-                            </button>
-                            <div className={`landing-showcase__answer-body ${isOpen ? 'landing-showcase__answer-body-open' : ''}`}>
-                              <p>{item.answer}</p>
-                            </div>
-                          </article>
-                        );
-                      })}
-                    </div>
-                  </section>
+                    </section>
+                  </div>
                   <div className="landing-showcase__divider" aria-hidden="true"></div>
-                  <section className="landing-showcase__section landing-showcase__section--story">
-                    <h2>{modalCopy.worldTitle}</h2>
-                    <p>{modalCopy.worldParagraphs[0]}</p>
-                    <p className="landing-showcase__story-copy">{modalCopy.worldParagraphs[1]}</p>
-                    <p className="landing-showcase__story-copy">
-                      {highlightedWorldParagraphParts[0]}
-                      <button
-                        type="button"
-                        className="landing-showcase__story-cta"
-                        onClick={closeLandingPage}
-                      >
-                        {storyCtaLabel}
-                      </button>
-                      {highlightedWorldParagraphParts.slice(1).join(storyCtaLabel)}
-                    </p>
-                  </section>
-                  <section className="landing-showcase__section landing-showcase__section--contact">
-                    <h2>{modalCopy.contactTitle}</h2>
-                    <p>
-                      {modalCopy.contactCopy.includes(SITE_EMAIL) ? (
-                        <>
-                          {modalCopy.contactCopy.split(SITE_EMAIL)[0]}
-                          <span className="landing-showcase__contact-email">{SITE_EMAIL}</span>
-                          {modalCopy.contactCopy.split(SITE_EMAIL).slice(1).join(SITE_EMAIL)}
-                        </>
-                      ) : (
-                        modalCopy.contactCopy
-                      )}
-                    </p>
-                    <div className="landing-showcase__greeting-strip" aria-label={modalCopy.greetingStripAria}>
-                      {modalLanguage === 'az' ? (
-                        <>
-                          <div className="landing-showcase__greeting-typewriter" aria-live="polite">
-                            <span>{animatedGreeting}</span>
-                            <span className="landing-showcase__greeting-caret" aria-hidden="true"></span>
-                          </div>
-                          <span className="landing-showcase__greeting-label">{modalCopy.greetingLabel}</span>
-                        </>
-                      ) : (
-                        <>
-                          <span className="landing-showcase__greeting-label">{modalCopy.greetingLabel}</span>
-                          <div className="landing-showcase__greeting-typewriter" aria-live="polite">
-                            <span>{animatedGreeting}</span>
-                            <span className="landing-showcase__greeting-caret" aria-hidden="true"></span>
-                          </div>
-                        </>
-                      )}
-                    </div>
-                    <div className="landing-showcase__contact-actions">
-                      {contactItems.map((item, index) => (
-                        <a
-                          key={item.label}
-                          className="landing-showcase__back-button landing-showcase__section-button landing-showcase__contact-button"
-                          href={item.href}
-                          target={item.href.startsWith('http') ? '_blank' : undefined}
-                          rel={item.href.startsWith('http') ? 'noreferrer' : undefined}
-                        >
-                          <span className="landing-showcase__contact-icon">{item.icon}</span>
-                          <span>{modalCopy.contactLabels[index]}</span>
-                        </a>
-                      ))}
-                    </div>
-                  </section>
-                </div>
-                <p className="landing-showcase__footer-note">
-                  {modalCopy.footer}
-                </p>
+                  <PlanetFooterSection
+                    aboutTitle={modalCopy.worldTitle}
+                    aboutParagraphs={modalCopy.worldParagraphs}
+                    contactTitle={modalCopy.contactTitle}
+                    contactCopy={modalCopy.contactCopy}
+                    greetingStripAria={modalCopy.greetingStripAria}
+                    greetingLabel={modalCopy.greetingLabel}
+                    animatedGreeting={animatedGreeting}
+                    isAzerbaijaniLayout={modalLanguage === 'az'}
+                    contactItems={localizedContactItems}
+                    footer={modalCopy.footer}
+                    email={SITE_EMAIL}
+                    desktopLayout="split"
+                    inlineCta={{
+                      label: storyCtaLabel,
+                      onClick: closeLandingPage,
+                      token: storyCtaLabel,
+                    }}
+                  />
+                  </div>
                 </div>
                 </div>
               </div>

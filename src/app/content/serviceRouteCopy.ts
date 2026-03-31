@@ -7,14 +7,15 @@ type ServiceRouteUiCopy = {
   servicesTitle: string;
   servicesCopy: string;
   routeEyebrow: string;
-  detailEyebrow: string;
   topLevelRouteLabel: string;
   openService: string;
   sectionTitles: [string, string, string];
   aboutTitle: string;
-  aboutParagraphs: [string, string];
+  aboutParagraphs: [string, string, string];
   contactTitle: string;
   contactCopy: string;
+  greetingStripAria: string;
+  greetingLabel: string;
   contactLabels: [string, string, string];
   footer: string;
 };
@@ -34,18 +35,20 @@ export const SERVICE_ROUTE_UI: Record<ServiceRouteLanguage, ServiceRouteUiCopy> 
     servicesCopy:
       'These pages translate Inaplanet expertise into dedicated service surfaces so buyers, search engines, and AI systems can read each offer directly instead of inferring it from the homepage alone.',
     routeEyebrow: 'INAPLANET.COM',
-    detailEyebrow: 'INAPLANET SERVICE',
     topLevelRouteLabel: 'Service route',
     openService: 'Open service',
     sectionTitles: ['What we build', 'What matters', 'Who this fits'],
     aboutTitle: 'About the Inaplanet',
     aboutParagraphs: [
-      'Inaplanet is our playable digital planet: part arcade, part social space, part live product showcase. We built it to turn a static portfolio into something people can move through, explore, and remember.',
-      'The planet is multiplayer and real-time. It exists not only as a brand world, but as proof that browser-based graphics, synchronized systems, and product engineering can live inside one coherent experience.',
+      'Inaplanet is our playable digital planet: part arcade, part social space, part live product showcase. We built it to turn a static portfolio into something people can drive through, explore, and feel.',
+      'Visitors jump between cities, move through interactive spaces, and experience the project as a living environment instead of a flat page. The goal is to make discovery memorable and give people a planet they can enjoy while they explore what we build.',
+      'The planet is multiplayer, so you can connect with your friends, enter the same city, and enjoy the experience together. To enter the planet, use the ENTER button at the top of the page.',
     ],
     contactTitle: "Have a project in mind? Let's discuss with us.",
     contactCopy:
       "Reach out directly via mail to office@inaplanet.com and we'll turn the brief into scope, architecture, and a build plan.",
+    greetingStripAria: 'Greetings in multiple languages',
+    greetingLabel: 'Text',
     contactLabels: ['Whatsapp', 'Telegram', 'Mail'],
     footer: 'Inaplanet Foundation. © 2026 | All rights reserved.',
   },
@@ -57,18 +60,20 @@ export const SERVICE_ROUTE_UI: Record<ServiceRouteLanguage, ServiceRouteUiCopy> 
     servicesCopy:
       'Bu səhifələr Inaplanet ekspertizasını ayrıca xidmət səthlərinə çevirir ki, alıcılar, axtarış sistemləri və AI sistemləri hər təklifi yalnız ana səhifədən nəticə çıxarmaqla yox, birbaşa oxuya bilsin.',
     routeEyebrow: 'INAPLANET.COM',
-    detailEyebrow: 'INAPLANET XİDMƏTİ',
     topLevelRouteLabel: 'Xidmət marşrutu',
     openService: 'Xidməti aç',
     sectionTitles: ['Nə qururuq', 'Nə vacibdir', 'Kimə uyğundur'],
     aboutTitle: 'Inaplanet haqqında',
     aboutParagraphs: [
-      'Inaplanet bizim oynanıla bilən rəqəmsal planetimizdir: bir hissəsi arcade, bir hissəsi social space, bir hissəsi isə canlı məhsul nümayişidir. Biz bunu statik portfolionu insanların hərəkət edib araşdıra bildiyi yadda qalan təcrübəyə çevirmək üçün qurduq.',
-      'Planet multiplayer və real-time işləyir. O, sadəcə brend dünyası deyil, həm də browser qrafikası, sinxron sistemlər və məhsul mühəndisliyinin bir təcrübədə birləşə bildiyinin sübutudur.',
+      'Inaplanet bizim oynanıla bilən rəqəmsal planetimizdir: bir hissəsi arcade, bir hissəsi social space, bir hissəsi isə canlı product showcase-dir. Biz bunu statik portfolionu insanların içində sürə, araşdıra və hiss edə biləcəyi bir təcrübəyə çevirmək üçün qurduq.',
+      'Ziyarətçilər şəhərlər arasında keçir, interaktiv məkanlardan keçir və layihəni düz səhifə kimi deyil, yaşayan mühit kimi təcrübədən keçirirlər. Məqsəd kəşfi yadda qalan etmək və insanlara qurduqlarımızı araşdırarkən zövq ala biləcəkləri bir planet təqdim etməkdir.',
+      'Planet multiplayer-dir, buna görə dostlarınızla qoşula, eyni şəhərə daxil ola və təcrübəni birlikdə yaşaya bilərsiniz. Daxil olmaq üçün səhifənin yuxarısındakı ENTER düyməsindən istifadə edin.',
     ],
     contactTitle: 'Layihə ideyanız var? Gəlin müzakirə edək.',
     contactCopy:
       'Birbaşa office@inaplanet.com ünvanına yazın və təqdim etdiyiniz məlumatı scope-a, arxitekturaya və build planına çevirək.',
+    greetingStripAria: 'Müxtəlif dillərdə salamlar',
+    greetingLabel: 'Yaz',
     contactLabels: ['Whatsapp', 'Telegram', 'E-poçt'],
     footer: 'Inaplanet Foundation. © 2026 | Bütün hüquqlar qorunur.',
   },
@@ -80,18 +85,20 @@ export const SERVICE_ROUTE_UI: Record<ServiceRouteLanguage, ServiceRouteUiCopy> 
     servicesCopy:
       'Эти страницы превращают экспертизу Inaplanet в отдельные сервисные поверхности, чтобы заказчики, поисковые системы и AI-системы читали каждое предложение напрямую, а не только выводили его из главной страницы.',
     routeEyebrow: 'INAPLANET.COM',
-    detailEyebrow: 'СЕРВИС INAPLANET',
     topLevelRouteLabel: 'Сервисный маршрут',
     openService: 'Открыть сервис',
     sectionTitles: ['Что мы создаем', 'Что важно', 'Кому это подходит'],
     aboutTitle: 'О планете Inaplanet',
     aboutParagraphs: [
-      'Inaplanet — это наша игровая цифровая планета: немного arcade, немного social space и немного живого product showcase. Мы построили ее, чтобы превратить статичное портфолио в запоминающийся опыт, по которому можно перемещаться и который можно исследовать.',
-      'Планета мультиплеерная и real-time. Это не только бренд-мир, но и доказательство того, что browser-графика, синхронизированные системы и продуктовая инженерия могут жить внутри одного целостного опыта.',
+      'Inaplanet — это наша игровая цифровая планета: немного arcade, немного social space и немного живой product showcase. Мы построили ее, чтобы превратить статичное портфолио в пространство, по которому можно ездить, исследовать и чувствовать.',
+      'Посетители перемещаются между городами, проходят через интерактивные пространства и воспринимают проект как живую среду, а не как плоскую страницу. Цель — сделать знакомство запоминающимся и дать людям планету, которой можно наслаждаться, пока они изучают то, что мы создаем.',
+      'Эта планета мультиплеерная, поэтому вы можете подключиться с друзьями, войти в один и тот же город и пройти этот опыт вместе. Чтобы войти, используйте кнопку ENTER вверху страницы.',
     ],
     contactTitle: 'Есть проект в голове? Давайте обсудим.',
     contactCopy:
       'Напишите напрямую на office@inaplanet.com, и мы превратим ваш ввод в scope, архитектуру и план сборки.',
+    greetingStripAria: 'Приветствия на разных языках',
+    greetingLabel: 'Скажи',
     contactLabels: ['Whatsapp', 'Telegram', 'Почта'],
     footer: 'Inaplanet Foundation. © 2026 | Все права защищены.',
   },
