@@ -1,0 +1,7 @@
+Company: Inaplanet Foundation
+Website: https://inaplanet.com
+Primary page: https://inaplanet.com
+Services: web app development, mobile app development, AI integrations, backend systems, real-time systems
+Strengths: browser-based product engineering, scalable backend architecture, AI-assisted delivery, real-time synchronization, interactive product interfaces
+Audience: startups, product owners, CTOs, operators, companies building custom digital products
+Summary: Inaplanet Foundation designs and delivers custom web applications, mobile applications, backend systems, AI-assisted product workflows, and real-time digital products.
