@@ -3,8 +3,25 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { FaTelegramPlane, FaWhatsapp } from 'react-icons/fa';
-import { MdMailOutline } from 'react-icons/md';
+import {
+  FaBriefcase,
+  FaBroadcastTower,
+  FaCube,
+  FaDatabase,
+  FaGamepad,
+  FaRobot,
+  FaReact,
+  FaServer,
+  FaStore,
+  FaTelegramPlane,
+  FaUserShield,
+  FaUsers,
+  FaWhatsapp,
+  FaMobileAlt,
+  FaWindowMaximize,
+} from 'react-icons/fa';
+import { FiArrowUpRight } from 'react-icons/fi';
+import { MdLocalMall, MdMailOutline } from 'react-icons/md';
 import PlanetFooterSection from '../PlanetFooterSection';
 import { SERVICE_PAGE_MAP, SERVICE_PAGES } from '../content/services';
 import { SERVICE_ROUTE_TRANSLATIONS, SERVICE_ROUTE_UI, type ServiceRouteLanguage } from '../content/serviceRouteCopy';
@@ -33,6 +50,23 @@ const GREETING_ITEMS = [
   'Pryvit',
   'Oi',
 ];
+
+const SERVICE_CARD_ICONS = {
+  'corporate-websites': <FaBriefcase aria-hidden="true" />,
+  'landing-pages': <FaWindowMaximize aria-hidden="true" />,
+  'web-app-development': <FaReact aria-hidden="true" />,
+  'e-commerce-development': <MdLocalMall aria-hidden="true" />,
+  'marketplace-development': <FaStore aria-hidden="true" />,
+  'social-network-development': <FaUsers aria-hidden="true" />,
+  'multiplayer-game-development': <FaGamepad aria-hidden="true" />,
+  'mobile-app-development': <FaMobileAlt aria-hidden="true" />,
+  'backend-systems': <FaDatabase aria-hidden="true" />,
+  'real-time-systems': <FaBroadcastTower aria-hidden="true" />,
+  'auth-payment-flows': <FaUserShield aria-hidden="true" />,
+  'vpc-cloud-infrastructure': <FaServer aria-hidden="true" />,
+  'smart-contract-development': <FaCube aria-hidden="true" />,
+  'ai-integrations': <FaRobot aria-hidden="true" />,
+} as const;
 
 type ServicesClientProps = {
   slug?: string;
@@ -169,7 +203,6 @@ export default function ServicesClient({ slug }: ServicesClientProps) {
             ) : (
               <>
                 <div className="service-hub__hero">
-                  <p className="landing-showcase__eyebrow">{ui.routeEyebrow}</p>
                   <h1 className="service-hub__title">{ui.servicesTitle}</h1>
                   <p className="service-hub__copy">{ui.servicesCopy}</p>
                 </div>
@@ -182,10 +215,16 @@ export default function ServicesClient({ slug }: ServicesClientProps) {
 
                     return (
                       <Link key={entry.slug} href={`/services/${entry.slug}`} className="service-hub__card service-route__card-link">
-                        <p className="service-hub__card-eyebrow">{ui.topLevelRouteLabel}</p>
-                        <h2>{localizedEntry?.title ?? entry.title}</h2>
+                        <span className="landing-showcase__route-arrow service-hub__card-arrow" aria-hidden="true">
+                          <FiArrowUpRight />
+                        </span>
+                        <div className="service-hub__card-head">
+                          <span className="landing-showcase__expertise-icon service-hub__card-icon">
+                            {SERVICE_CARD_ICONS[entry.slug as keyof typeof SERVICE_CARD_ICONS]}
+                          </span>
+                          <h2>{localizedEntry?.title ?? entry.title}</h2>
+                        </div>
                         <p>{localizedEntry?.summary ?? entry.summary}</p>
-                        <span className="service-hub__link service-route__card-button">{ui.openService}</span>
                       </Link>
                     );
                   })}

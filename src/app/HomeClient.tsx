@@ -24,6 +24,7 @@ import {
   FaWhatsapp,
   FaWindowMaximize,
 } from 'react-icons/fa';
+import { FiArrowUpRight } from 'react-icons/fi';
 import { BiLogoTypescript } from 'react-icons/bi';
 import { MdLocalMall, MdMailOutline } from 'react-icons/md';
 import { RiNextjsFill, RiTailwindCssFill } from 'react-icons/ri';
@@ -1520,6 +1521,9 @@ const handleWorldSelection = (worldId: string, listItem: HTMLLIElement, worldLis
                       <div className="landing-showcase__expertise-grid">
                         {localizedExpertiseItems.map((item) => (
                           <Link key={item.slug} href={`/services/${item.slug}`} className="landing-showcase__expertise-card landing-showcase__expertise-link">
+                            <span className="landing-showcase__route-arrow" aria-hidden="true">
+                              <FiArrowUpRight />
+                            </span>
                             <div className="landing-showcase__expertise-head">
                               <span className="landing-showcase__expertise-icon">{item.icon}</span>
                               <div className="landing-showcase__expertise-title-group">

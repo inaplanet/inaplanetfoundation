@@ -6,9 +6,6 @@ type ServiceRouteUiCopy = {
   allServices: string;
   servicesTitle: string;
   servicesCopy: string;
-  routeEyebrow: string;
-  topLevelRouteLabel: string;
-  openService: string;
   sectionTitles: [string, string, string];
   aboutTitle: string;
   aboutParagraphs: [string, string, string];
@@ -34,9 +31,6 @@ export const SERVICE_ROUTE_UI: Record<ServiceRouteLanguage, ServiceRouteUiCopy> 
     servicesTitle: 'Service Routes',
     servicesCopy:
       'These pages translate Inaplanet expertise into dedicated service surfaces so buyers, search engines, and AI systems can read each offer directly instead of inferring it from the homepage alone.',
-    routeEyebrow: 'INAPLANET.COM',
-    topLevelRouteLabel: 'Service route',
-    openService: 'Open service',
     sectionTitles: ['What we build', 'What matters', 'Who this fits'],
     aboutTitle: 'About the Inaplanet',
     aboutParagraphs: [
@@ -59,9 +53,6 @@ export const SERVICE_ROUTE_UI: Record<ServiceRouteLanguage, ServiceRouteUiCopy> 
     servicesTitle: 'Xidmət marşrutları',
     servicesCopy:
       'Bu səhifələr Inaplanet ekspertizasını ayrıca xidmət səthlərinə çevirir ki, alıcılar, axtarış sistemləri və AI sistemləri hər təklifi yalnız ana səhifədən nəticə çıxarmaqla yox, birbaşa oxuya bilsin.',
-    routeEyebrow: 'INAPLANET.COM',
-    topLevelRouteLabel: 'Xidmət marşrutu',
-    openService: 'Xidməti aç',
     sectionTitles: ['Nə qururuq', 'Nə vacibdir', 'Kimə uyğundur'],
     aboutTitle: 'Inaplanet haqqında',
     aboutParagraphs: [
@@ -84,9 +75,6 @@ export const SERVICE_ROUTE_UI: Record<ServiceRouteLanguage, ServiceRouteUiCopy> 
     servicesTitle: 'Сервисные маршруты',
     servicesCopy:
       'Эти страницы превращают экспертизу Inaplanet в отдельные сервисные поверхности, чтобы заказчики, поисковые системы и AI-системы читали каждое предложение напрямую, а не только выводили его из главной страницы.',
-    routeEyebrow: 'INAPLANET.COM',
-    topLevelRouteLabel: 'Сервисный маршрут',
-    openService: 'Открыть сервис',
     sectionTitles: ['Что мы создаем', 'Что важно', 'Кому это подходит'],
     aboutTitle: 'О планете Inaplanet',
     aboutParagraphs: [
