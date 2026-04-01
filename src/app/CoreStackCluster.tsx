@@ -1,6 +1,7 @@
 import React from 'react';
 
 type CoreStackItem = {
+  id: string;
   label: string;
   icon: React.ReactNode;
 };
@@ -16,6 +17,7 @@ export default function CoreStackCluster({ items }: CoreStackClusterProps) {
         <div
           key={item.label}
           className="landing-showcase__stack-chip landing-showcase__stack-chip--small"
+          data-stack-id={item.id}
         >
           <span className="landing-showcase__stack-chip-icon" aria-hidden="true">
             {item.icon}

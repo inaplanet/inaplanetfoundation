@@ -35,6 +35,7 @@ import { createRandomStarterLoadout } from './javascript/Utils/playerLoadout.js'
 import CoreStackCluster from './CoreStackCluster';
 import CoreStackTicker from './CoreStackTicker';
 import PlanetFooterSection from './PlanetFooterSection';
+import SignatureComponent from './SignatureComponent';
 import { SITE_EMAIL } from './content/site';
 import { useDeferredLanguageFont } from './useDeferredLanguageFont';
 
@@ -506,33 +507,33 @@ export default function HomeClient() {
   const pendingWorldCountsRef = useRef<Record<string, number> | null>(null);
   const worldCountsFrameRef = useRef<number | null>(null);
   const coreStackItems = [
-    { label: 'Javascript', icon: <SiJavascript aria-hidden="true" /> },
-    { label: 'Typescript', icon: <BiLogoTypescript aria-hidden="true" /> },
-    { label: 'Node', icon: <FaNodeJs aria-hidden="true" /> },
-    { label: 'Express', icon: <SiExpress aria-hidden="true" /> },
-    { label: 'Websocket', icon: <TbBrandSocketIo aria-hidden="true" /> },
-    { label: 'WebRTC', icon: <SiWebrtc aria-hidden="true" /> },
-    { label: 'Three.js', icon: <SiThreedotjs aria-hidden="true" /> },
-    { label: 'CSS', icon: <SiCss3 aria-hidden="true" /> },
-    { label: 'Tailwind', icon: <RiTailwindCssFill aria-hidden="true" /> },
-    { label: 'React', icon: <FaReact aria-hidden="true" /> },
-    { label: 'React Native', icon: <TbBrandReactNative aria-hidden="true" /> },
-    { label: 'Expo', icon: <SiExpo aria-hidden="true" /> },
-    { label: 'Flutter', icon: <SiFlutter aria-hidden="true" /> },
-    { label: 'Python', icon: <SiPython aria-hidden="true" /> },
-    { label: 'Netlify', icon: <SiNetlify aria-hidden="true" /> },
-    { label: 'Docker', icon: <SiDocker aria-hidden="true" /> },
-    { label: 'MongoDB', icon: <SiMongodb aria-hidden="true" /> },
-    { label: 'PostgreSQL', icon: <SiPostgresql aria-hidden="true" /> },
-    { label: 'Redis', icon: <SiRedis aria-hidden="true" /> },
-    { label: 'AWS', icon: <FaAws aria-hidden="true" /> },
-    { label: 'DigitalOcean', icon: <SiDigitalocean aria-hidden="true" /> },
-    { label: 'Vercel', icon: <SiVercel aria-hidden="true" /> },
-    { label: 'Next.js', icon: <RiNextjsFill aria-hidden="true" /> },
-    { label: 'Web3', icon: <FaCube aria-hidden="true" /> },
-    { label: 'Solidity', icon: <SiSolidity aria-hidden="true" /> },
-    { label: 'NFT', icon: <FaCube aria-hidden="true" /> },
-    { label: 'Realtime Ops', icon: <FaBroadcastTower aria-hidden="true" /> },
+    { id: 'javascript', label: 'Javascript', icon: <SiJavascript aria-hidden="true" /> },
+    { id: 'typescript', label: 'Typescript', icon: <BiLogoTypescript aria-hidden="true" /> },
+    { id: 'node', label: 'Node', icon: <FaNodeJs aria-hidden="true" /> },
+    { id: 'express', label: 'Express', icon: <SiExpress aria-hidden="true" /> },
+    { id: 'websocket', label: 'Websocket', icon: <TbBrandSocketIo aria-hidden="true" /> },
+    { id: 'webrtc', label: 'WebRTC', icon: <SiWebrtc aria-hidden="true" /> },
+    { id: 'threejs', label: 'Three.js', icon: <SiThreedotjs aria-hidden="true" /> },
+    { id: 'css', label: 'CSS', icon: <SiCss3 aria-hidden="true" /> },
+    { id: 'tailwind', label: 'Tailwind', icon: <RiTailwindCssFill aria-hidden="true" /> },
+    { id: 'react', label: 'React', icon: <FaReact aria-hidden="true" /> },
+    { id: 'native', label: 'Native', icon: <TbBrandReactNative aria-hidden="true" /> },
+    { id: 'expo', label: 'Expo', icon: <SiExpo aria-hidden="true" /> },
+    { id: 'flutter', label: 'Flutter', icon: <SiFlutter aria-hidden="true" /> },
+    { id: 'python', label: 'Python', icon: <SiPython aria-hidden="true" /> },
+    { id: 'netlify', label: 'Netlify', icon: <SiNetlify aria-hidden="true" /> },
+    { id: 'docker', label: 'Docker', icon: <SiDocker aria-hidden="true" /> },
+    { id: 'mongodb', label: 'MongoDB', icon: <SiMongodb aria-hidden="true" /> },
+    { id: 'postgresql', label: 'PostgreSQL', icon: <SiPostgresql aria-hidden="true" /> },
+    { id: 'redis', label: 'Redis', icon: <SiRedis aria-hidden="true" /> },
+    { id: 'aws', label: 'AWS', icon: <FaAws aria-hidden="true" /> },
+    { id: 'digital-ocean', label: 'DigitalOcean', icon: <SiDigitalocean aria-hidden="true" /> },
+    { id: 'vercel', label: 'Vercel', icon: <SiVercel aria-hidden="true" /> },
+    { id: 'nextjs', label: 'Next.js', icon: <RiNextjsFill aria-hidden="true" /> },
+    { id: 'web3', label: 'Web3', icon: <FaCube aria-hidden="true" /> },
+    { id: 'solidity', label: 'Solidity', icon: <SiSolidity aria-hidden="true" /> },
+    { id: 'nft', label: 'NFT', icon: <FaCube aria-hidden="true" /> },
+    { id: 'real-time', label: 'Real Time', icon: <FaBroadcastTower aria-hidden="true" /> },
   ];
   const expertiseItems = [
     {
@@ -1610,25 +1611,27 @@ const handleWorldSelection = (worldId: string, listItem: HTMLLIElement, worldLis
                     </section>
                   </div>
                   <div className="landing-showcase__divider" aria-hidden="true"></div>
-                  <PlanetFooterSection
-                    aboutTitle={modalCopy.worldTitle}
-                    aboutParagraphs={modalCopy.worldParagraphs}
-                    contactTitle={modalCopy.contactTitle}
-                    contactCopy={modalCopy.contactCopy}
-                    greetingStripAria={modalCopy.greetingStripAria}
-                    greetingLabel={modalCopy.greetingLabel}
-                    animatedGreeting={animatedGreeting}
-                    isAzerbaijaniLayout={modalLanguage === 'az'}
-                    contactItems={localizedContactItems}
-                    footer={modalCopy.footer}
-                    email={SITE_EMAIL}
-                    desktopLayout="split"
-                    inlineCta={{
-                      label: storyCtaLabel,
-                      onClick: closeLandingPage,
-                      token: storyCtaLabel,
-                    }}
-                  />
+                  <div className="landing-showcase__footer-stack">
+                    <PlanetFooterSection
+                      aboutTitle={modalCopy.worldTitle}
+                      aboutParagraphs={modalCopy.worldParagraphs}
+                      contactTitle={modalCopy.contactTitle}
+                      contactCopy={modalCopy.contactCopy}
+                      greetingStripAria={modalCopy.greetingStripAria}
+                      greetingLabel={modalCopy.greetingLabel}
+                      animatedGreeting={animatedGreeting}
+                      isAzerbaijaniLayout={modalLanguage === 'az'}
+                      contactItems={localizedContactItems}
+                      email={SITE_EMAIL}
+                      desktopLayout="split"
+                      inlineCta={{
+                        label: storyCtaLabel,
+                        onClick: closeLandingPage,
+                        token: storyCtaLabel,
+                      }}
+                    />
+                    <SignatureComponent text={modalCopy.footer} />
+                  </div>
                   </div>
                 </div>
                 </div>

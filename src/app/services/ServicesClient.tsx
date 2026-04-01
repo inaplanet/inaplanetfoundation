@@ -23,6 +23,7 @@ import {
 import { FiArrowUpRight } from 'react-icons/fi';
 import { MdLocalMall, MdMailOutline } from 'react-icons/md';
 import PlanetFooterSection from '../PlanetFooterSection';
+import SignatureComponent from '../SignatureComponent';
 import { SERVICE_PAGE_MAP, SERVICE_PAGES } from '../content/services';
 import { SERVICE_ROUTE_TRANSLATIONS, SERVICE_ROUTE_UI, type ServiceRouteLanguage } from '../content/serviceRouteCopy';
 import { SITE_EMAIL } from '../content/site';
@@ -234,20 +235,22 @@ export default function ServicesClient({ slug }: ServicesClientProps) {
 
             <div className="service-route__divider landing-showcase__divider" aria-hidden="true"></div>
 
-            <PlanetFooterSection
-              aboutTitle={ui.aboutTitle}
-              aboutParagraphs={ui.aboutParagraphs}
-              contactTitle={ui.contactTitle}
-              contactCopy={ui.contactCopy}
-              greetingStripAria={ui.greetingStripAria}
-              greetingLabel={ui.greetingLabel}
-              animatedGreeting={animatedGreeting}
-              isAzerbaijaniLayout={renderedLanguage === 'az'}
-              contactItems={contactItems}
-              footer={ui.footer}
-              email={SITE_EMAIL}
-              desktopLayout="split"
-            />
+            <div className="landing-showcase__footer-stack">
+              <PlanetFooterSection
+                aboutTitle={ui.aboutTitle}
+                aboutParagraphs={ui.aboutParagraphs}
+                contactTitle={ui.contactTitle}
+                contactCopy={ui.contactCopy}
+                greetingStripAria={ui.greetingStripAria}
+                greetingLabel={ui.greetingLabel}
+                animatedGreeting={animatedGreeting}
+                isAzerbaijaniLayout={renderedLanguage === 'az'}
+                contactItems={contactItems}
+                email={SITE_EMAIL}
+                desktopLayout="split"
+              />
+              <SignatureComponent text={ui.footer} />
+            </div>
           </div>
         </div>
       </section>

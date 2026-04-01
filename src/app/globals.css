@@ -2475,12 +2475,10 @@ opacity: 0;
 }
 
 .landing-showcase__stack-cluster {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  align-items: flex-start;
-  align-content: flex-start;
-  gap: 10px;
+  display: grid;
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+  align-items: stretch;
+  gap: 8px;
   padding: 6px 0 2px;
   width: 100%;
 }
@@ -2489,10 +2487,10 @@ opacity: 0;
   position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 12px;
-  width: fit-content;
-  max-width: 100%;
-  flex: 0 0 auto;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
   box-sizing: border-box;
   border: 1px solid rgba(255, 255, 255, 0.14);
   background: rgba(255, 255, 255, 0.035);
@@ -2502,6 +2500,7 @@ opacity: 0;
   transition: transform 0.25s ease, border-color 0.25s ease, background-color 0.25s ease;
   overflow: hidden;
   backdrop-filter: none;
+  text-align: center;
 }
 
 .landing-showcase__stack-chip:hover {
@@ -2511,8 +2510,8 @@ opacity: 0;
 }
 
 .landing-showcase__stack-chip--small {
-  padding: 10px 11px;
-  min-height: 44px;
+  padding: 9px 10px;
+  min-height: 42px;
 }
 
 .landing-showcase__stack-chip--medium {
@@ -2547,7 +2546,9 @@ opacity: 0;
   display: inline-flex;
   line-height: 1.15;
   font-weight: 500;
-  white-space: nowrap;
+  white-space: normal;
+  text-wrap: balance;
+  justify-content: center;
 }
 
 .landing-showcase__stack-chip--small .landing-showcase__stack-chip-icon {
@@ -2556,7 +2557,7 @@ opacity: 0;
 
 .landing-showcase__stack-chip--small .landing-showcase__stack-chip-label {
   font-size: 9px;
-  letter-spacing: 0.08rem;
+  letter-spacing: 0.06rem;
 }
 
 .landing-showcase__stack-chip--medium .landing-showcase__stack-chip-icon {
@@ -2588,45 +2589,26 @@ opacity: 0;
 
 @media (min-width: 768px) and (max-width: 1024px) {
   .landing-showcase__stack-cluster {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 8px;
   }
 
-  .landing-showcase__stack-chip {
-    width: 100%;
-    min-width: 0;
-    justify-content: center;
-    text-align: center;
-  }
-
-  .landing-showcase__stack-chip-label {
-    white-space: normal;
-    text-wrap: balance;
-    justify-content: center;
+  .landing-showcase__stack-chip[data-stack-id='digital-ocean'],
+  .landing-showcase__stack-chip[data-stack-id='real-time'],
+  .landing-showcase__stack-chip[data-stack-id='nft'] {
+    display: none;
   }
 }
 
 @media (min-width: 1025px) {
-  .landing-showcase__stack-cluster {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    align-items: flex-start;
-    align-content: flex-start;
-    gap: 10px;
-  }
-
-  .landing-showcase__stack-chip {
-    width: fit-content;
-    min-width: 0;
-    justify-content: flex-start;
-    text-align: left;
-  }
-
-  .landing-showcase__stack-chip-label {
-    white-space: nowrap;
-    justify-content: flex-start;
+  .landing-showcase__stack-chip[data-stack-id='digital-ocean'],
+  .landing-showcase__stack-chip[data-stack-id='flutter'],
+  .landing-showcase__stack-chip[data-stack-id='netlify'],
+  .landing-showcase__stack-chip[data-stack-id='vercel'],
+  .landing-showcase__stack-chip[data-stack-id='web3'],
+  .landing-showcase__stack-chip[data-stack-id='nft'],
+  .landing-showcase__stack-chip[data-stack-id='real-time'] {
+    display: none;
   }
 }
 
@@ -2810,9 +2792,17 @@ opacity: 0;
   font-weight: 700;
 }
 
-.landing-showcase__footer-note {
+.landing-showcase__footer-stack {
+  display: grid;
+  gap: 28px;
+}
+
+.landing-showcase__signature {
   flex: 0 0 auto;
-  margin: 26px 0 0;
+}
+
+.landing-showcase__footer-note {
+  margin: 0;
   padding: 0;
   text-align: center;
   font-size: 9px;
@@ -3411,7 +3401,6 @@ opacity: 0;
   }
 
   .landing-showcase__stack-cluster {
-    display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 8px;
     padding: 4px 0 0;
@@ -3481,15 +3470,15 @@ opacity: 0;
     letter-spacing: 0.06rem;
   }
 
-  .landing-showcase__stack-chip-label {
-    white-space: normal;
-    text-wrap: balance;
-    justify-content: center;
-  }
-
   .landing-showcase__stack-chip--huge .landing-showcase__stack-chip-label {
     font-size: 13px;
     letter-spacing: 0.07rem;
+  }
+
+  .landing-showcase__stack-chip[data-stack-id='digital-ocean'],
+  .landing-showcase__stack-chip[data-stack-id='real-time'],
+  .landing-showcase__stack-chip[data-stack-id='nft'] {
+    display: none;
   }
 
   .landing-showcase__ticker-track {
@@ -3535,8 +3524,15 @@ opacity: 0;
     justify-content: center;
   }
 
+  .landing-showcase__signature {
+    margin-top: 0;
+  }
+
+  .landing-showcase__footer-stack {
+    gap: 22px;
+  }
+
   .landing-showcase__footer-note {
-    margin: 20px 0 0;
     padding: 0;
     font-size: 6px;
   }
@@ -5515,6 +5511,12 @@ opacity: 0;
   line-height: 1.05;
 }
 
+.service-page__title {
+  font-size: clamp(1.85rem, 3.2vw, 3rem);
+  line-height: 1.02;
+  text-wrap: balance;
+}
+
 .service-hub__copy,
 .service-page__copy {
   max-width: 760px;
@@ -5652,6 +5654,11 @@ opacity: 0;
   .service-page__sections {
     grid-template-columns: minmax(0, 1fr);
   }
+
+  .service-page__title {
+    font-size: clamp(1.7rem, 4.8vw, 2.5rem);
+    line-height: 1.04;
+  }
 }
 
 @media (max-width: 720px) {
@@ -5686,6 +5693,11 @@ opacity: 0;
   .service-page__card h2 {
     font-size: 0.76rem;
     line-height: 1.4;
+  }
+
+  .service-page__title {
+    font-size: clamp(1.5rem, 7vw, 2rem);
+    line-height: 1.06;
   }
 
   .service-hub__card p,

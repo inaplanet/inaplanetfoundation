@@ -1,6 +1,7 @@
 import React from 'react';
 
 type CoreStackItem = {
+  id: string;
   label: string;
   icon: React.ReactNode;
 };
