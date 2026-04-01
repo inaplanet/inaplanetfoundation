@@ -36,7 +36,7 @@ export const SERVICE_ROUTE_UI: Record<ServiceRouteLanguage, ServiceRouteUiCopy> 
     aboutParagraphs: [
       'Inaplanet is our playable digital planet: part arcade, part social space, part live product showcase. We built it to turn a static portfolio into something people can drive through, explore, and feel.',
       'Visitors jump between cities, move through interactive spaces, and experience the project as a living environment instead of a flat page. The goal is to make discovery memorable and give people a planet they can enjoy while they explore what we build.',
-      'The planet is multiplayer, so you can connect with your friends, enter the same city, and enjoy the experience together. To enter the planet, use the ENTER button at the top of the page.',
+      'The planet is multiplayer, so you can connect with your friends, enter the same city, and enjoy the experience together.',
     ],
     contactTitle: "Have a project in mind? Let's discuss with us.",
     contactCopy:
@@ -58,7 +58,7 @@ export const SERVICE_ROUTE_UI: Record<ServiceRouteLanguage, ServiceRouteUiCopy> 
     aboutParagraphs: [
       'Inaplanet bizim oynanıla bilən rəqəmsal planetimizdir: bir hissəsi arcade, bir hissəsi social space, bir hissəsi isə canlı product showcase-dir. Biz bunu statik portfolionu insanların içində sürə, araşdıra və hiss edə biləcəyi bir təcrübəyə çevirmək üçün qurduq.',
       'Ziyarətçilər şəhərlər arasında keçir, interaktiv məkanlardan keçir və layihəni düz səhifə kimi deyil, yaşayan mühit kimi təcrübədən keçirirlər. Məqsəd kəşfi yadda qalan etmək və insanlara qurduqlarımızı araşdırarkən zövq ala biləcəkləri bir planet təqdim etməkdir.',
-      'Planet multiplayer-dir, buna görə dostlarınızla qoşula, eyni şəhərə daxil ola və təcrübəni birlikdə yaşaya bilərsiniz. Daxil olmaq üçün səhifənin yuxarısındakı ENTER düyməsindən istifadə edin.',
+      'Planet multiplayer-dir, buna görə dostlarınızla qoşula, eyni şəhərə daxil ola və təcrübəni birlikdə yaşaya bilərsiniz.',
     ],
     contactTitle: 'Layihə ideyanız var? Gəlin müzakirə edək.',
     contactCopy:
@@ -80,7 +80,7 @@ export const SERVICE_ROUTE_UI: Record<ServiceRouteLanguage, ServiceRouteUiCopy> 
     aboutParagraphs: [
       'Inaplanet — это наша игровая цифровая планета: немного arcade, немного social space и немного живой product showcase. Мы построили ее, чтобы превратить статичное портфолио в пространство, по которому можно ездить, исследовать и чувствовать.',
       'Посетители перемещаются между городами, проходят через интерактивные пространства и воспринимают проект как живую среду, а не как плоскую страницу. Цель — сделать знакомство запоминающимся и дать людям планету, которой можно наслаждаться, пока они изучают то, что мы создаем.',
-      'Эта планета мультиплеерная, поэтому вы можете подключиться с друзьями, войти в один и тот же город и пройти этот опыт вместе. Чтобы войти, используйте кнопку ENTER вверху страницы.',
+      'Эта планета мультиплеерная, поэтому вы можете подключиться с друзьями, войти в один и тот же город и пройти этот опыт вместе.',
     ],
     contactTitle: 'Есть проект в голове? Давайте обсудим.',
     contactCopy:

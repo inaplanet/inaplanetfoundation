@@ -6,12 +6,12 @@ import React from 'react';
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { initGlobe, addSignalEffect, removeSignalEffect } from './globe'; // Adjust path as necessary
 import {
+  FaAws,
   FaBriefcase,
   FaBroadcastTower,
   FaCube,
   FaDatabase,
   FaGamepad,
-  FaLinux,
   FaNodeJs,
   FaReact,
   FaRedo,
@@ -28,10 +28,12 @@ import { FiArrowUpRight } from 'react-icons/fi';
 import { BiLogoTypescript } from 'react-icons/bi';
 import { MdLocalMall, MdMailOutline } from 'react-icons/md';
 import { RiNextjsFill, RiTailwindCssFill } from 'react-icons/ri';
-import { SiCss3, SiExpress, SiExpo, SiFlutter, SiJavascript, SiPython, SiSolidity, SiWebrtc } from 'react-icons/si';
+import { SiCss3, SiDigitalocean, SiDocker, SiExpress, SiExpo, SiFlutter, SiJavascript, SiMongodb, SiNetlify, SiPostgresql, SiPython, SiRedis, SiSolidity, SiThreedotjs, SiVercel, SiWebrtc } from 'react-icons/si';
 import { TbBrandReactNative, TbBrandSocketIo } from 'react-icons/tb';
 import { getOrCreatePlayerIdentity } from './javascript/Utils/playerIdentity.js';
 import { createRandomStarterLoadout } from './javascript/Utils/playerLoadout.js';
+import CoreStackCluster from './CoreStackCluster';
+import CoreStackTicker from './CoreStackTicker';
 import PlanetFooterSection from './PlanetFooterSection';
 import { SITE_EMAIL } from './content/site';
 import { useDeferredLanguageFont } from './useDeferredLanguageFont';
@@ -58,6 +60,8 @@ const GREETING_ITEMS = [
   'Pryvit',
   'Oi',
 ];
+
+const CORE_STACK_VARIANT: 'ticker' | 'cluster' = 'cluster';
 
 const LANGUAGE_OPTIONS = [
   { code: 'az', label: 'AZ' },
@@ -508,6 +512,7 @@ export default function HomeClient() {
     { label: 'Express', icon: <SiExpress aria-hidden="true" /> },
     { label: 'Websocket', icon: <TbBrandSocketIo aria-hidden="true" /> },
     { label: 'WebRTC', icon: <SiWebrtc aria-hidden="true" /> },
+    { label: 'Three.js', icon: <SiThreedotjs aria-hidden="true" /> },
     { label: 'CSS', icon: <SiCss3 aria-hidden="true" /> },
     { label: 'Tailwind', icon: <RiTailwindCssFill aria-hidden="true" /> },
     { label: 'React', icon: <FaReact aria-hidden="true" /> },
@@ -515,7 +520,14 @@ export default function HomeClient() {
     { label: 'Expo', icon: <SiExpo aria-hidden="true" /> },
     { label: 'Flutter', icon: <SiFlutter aria-hidden="true" /> },
     { label: 'Python', icon: <SiPython aria-hidden="true" /> },
-    { label: 'Linux', icon: <FaLinux aria-hidden="true" /> },
+    { label: 'Netlify', icon: <SiNetlify aria-hidden="true" /> },
+    { label: 'Docker', icon: <SiDocker aria-hidden="true" /> },
+    { label: 'MongoDB', icon: <SiMongodb aria-hidden="true" /> },
+    { label: 'PostgreSQL', icon: <SiPostgresql aria-hidden="true" /> },
+    { label: 'Redis', icon: <SiRedis aria-hidden="true" /> },
+    { label: 'AWS', icon: <FaAws aria-hidden="true" /> },
+    { label: 'DigitalOcean', icon: <SiDigitalocean aria-hidden="true" /> },
+    { label: 'Vercel', icon: <SiVercel aria-hidden="true" /> },
     { label: 'Next.js', icon: <RiNextjsFill aria-hidden="true" /> },
     { label: 'Web3', icon: <FaCube aria-hidden="true" /> },
     { label: 'Solidity', icon: <SiSolidity aria-hidden="true" /> },
@@ -1502,18 +1514,13 @@ const handleWorldSelection = (worldId: string, listItem: HTMLLIElement, worldLis
                     <div className="landing-showcase__divider" aria-hidden="true"></div>
                     <div className="landing-showcase__sections">
                       <section className="landing-showcase__section landing-showcase__section--wide">
-                      <h2>{modalCopy.coreStackTitle}</h2>
-                      <div className="landing-showcase__ticker">
-                        <div className="landing-showcase__ticker-track">
-                          {[...coreStackItems, ...coreStackItems].map((item, index) => (
-                            <span key={`ticker-a-${item.label}-${index}`} className="landing-showcase__skill-item landing-showcase__skill-pill">
-                              {item.icon}
-                              {item.label}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    </section>
+                        <h2>{modalCopy.coreStackTitle}</h2>
+                        {CORE_STACK_VARIANT === 'ticker' ? (
+                          <CoreStackTicker items={coreStackItems} />
+                        ) : (
+                          <CoreStackCluster items={coreStackItems} />
+                        )}
+                      </section>
                     <div className="landing-showcase__divider" aria-hidden="true"></div>
                     <section className="landing-showcase__section landing-showcase__section--wide landing-showcase__section--expertise">
                       <h2>{modalCopy.expertiseTitle}</h2>
