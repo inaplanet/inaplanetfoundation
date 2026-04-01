@@ -38,7 +38,7 @@ export const SERVICE_ROUTE_UI: Record<ServiceRouteLanguage, ServiceRouteUiCopy> 
       'Visitors jump between cities, move through interactive spaces, and experience the project as a living environment instead of a flat page. The goal is to make discovery memorable and give people a planet they can enjoy while they explore what we build.',
       'The planet is multiplayer, so you can connect with your friends, enter the same city, and enjoy the experience together.',
     ],
-    contactTitle: "Have a project in mind? Let's discuss with us.",
+    contactTitle: "Have a project in mind?",
     contactCopy:
       "Reach out directly via mail to office@inaplanet.com and we'll turn the brief into scope, architecture, and a build plan.",
     greetingStripAria: 'Greetings in multiple languages',

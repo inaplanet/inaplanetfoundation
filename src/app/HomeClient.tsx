@@ -74,8 +74,8 @@ const MODAL_COPY = {
   en: {
     languageSwitcherLabel: 'Select modal language',
     enterButton: 'ENTER THE PLANET',
-    heroTitle: 'Designs & ships digital products that move from brief to revenue.',
-    heroCopy: 'Web apps, mobile apps, admin panels, real-time systems, AI workflows, payment flows, and product delivery built around a clear technical task.',
+    heroTitle: 'Designs & ships digital products for real business use.',
+    heroCopy: 'Websites, apps, backend systems, payment flows, and product infrastructure built to launch cleanly, run reliably, and scale with demand.',
     chips: {
       web: 'Web Apps',
       mobile: 'Mobile Apps',
@@ -88,7 +88,7 @@ const MODAL_COPY = {
       'Execution across the stack',
       'Launch-ready product delivery',
     ],
-    heroNote: 'We build products that are meant to be used, scaled, and remembered, not just presented.',
+    heroNote: 'We build products that are meant to be used, scaled, and remembered.',
     highlights: [
       { title: 'Scope', copy: 'We turn rough briefs into a clear build plan.' },
       { title: 'Execution', copy: 'Frontend, backend, integrations, and tooling move as one system.' },
@@ -119,7 +119,7 @@ const MODAL_COPY = {
     coreStackTitle: 'Core Stack',
     clientsTitle: 'What Clients Usually Bring',
     clientsEyebrow: 'TECHNICAL TASK',
-    clientsCopy: 'A rough brief, a technical task, a Figma file, a half-built product, or an operational bottleneck. We translate that into architecture, implementation, deadline planning, delivery structure, deployment, and iteration. That usually means clarifying priorities, defining what needs to be shipped first, and turning an unclear starting point into a practical path to launch.',
+    clientsCopy: 'A rough brief, a technical task, a Figma file, a half-built product, or an operational bottleneck. We translate that into architecture, implementation, deadline planning, delivery structure, deployment, and iteration.',
     clientFaqItems: [
       {
         question: 'What if the brief is still unclear?',
@@ -204,7 +204,7 @@ const MODAL_COPY = {
       'Visitors jump between cities, move through interactive spaces, and experience the project as a living environment instead of a flat page. The goal is to make discovery memorable and give people a planet they can enjoy while they explore what we build.',
       'The planet is multiplayer, so you can connect with your friends, enter the same city, and enjoy the experience together. To enter the planet, use the ENTER button at the top of the page.',
     ],
-    contactTitle: "Have a project in mind? Let's discuss with us.",
+    contactTitle: "Have a project in mind?",
     contactCopy: "Reach out directly via mail to office@inaplanet.com and we'll turn the brief into scope, architecture, and a build plan.",
     greetingStripAria: 'Greetings in multiple languages',
     greetingLabel: 'Text',
@@ -214,8 +214,8 @@ const MODAL_COPY = {
   az: {
     languageSwitcherLabel: 'Modal dilini seçin',
     enterButton: 'PLANETƏ DAXİL OL',
-    heroTitle: 'Briefdən gəlirə gedən rəqəmsal məhsulları dizayn edir və təhvil verir.',
-    heroCopy: 'Web tətbiqlər, mobil tətbiqlər, admin panellər, real-time sistemlər, AI iş axınları, ödəniş axınları və aydın texniki tapşırıq ətrafında qurulan məhsul təhvili.',
+    heroTitle: 'Real biznes istifadəsi üçün rəqəmsal məhsulları dizayn edir və təhvil verir.',
+    heroCopy: 'Saytlar, tətbiqlər, backend sistemləri, ödəniş axınları və məhsul infrastrukturu launch üçün hazır, sabit işləyən və artan tələblə birlikdə böyüyən şəkildə qurulur.',
     chips: {
       web: 'Web tətbiqlər',
       mobile: 'Mobil tətbiqlər',
@@ -354,8 +354,8 @@ const MODAL_COPY = {
   ru: {
     languageSwitcherLabel: 'Выберите язык модального окна',
     enterButton: 'ВОЙТИ В ПЛАНЕТУ',
-    heroTitle: 'Проектирует и запускает цифровые продукты, которые ведут от брифа к выручке.',
-    heroCopy: 'Веб-приложения, мобильные приложения, админ-панели, real-time системы, AI-процессы, платежные сценарии и продуктовая поставка вокруг четкой технической задачи.',
+    heroTitle: 'Проектирует и запускает цифровые продукты для реального бизнеса.',
+    heroCopy: 'Сайты, приложения, бэкенд-системы, платежные сценарии и продуктовая инфраструктура, рассчитанные на чистый запуск, стабильную работу и рост вместе с нагрузкой.',
     chips: {
       web: 'Веб-приложения',
       mobile: 'Мобильные приложения',
