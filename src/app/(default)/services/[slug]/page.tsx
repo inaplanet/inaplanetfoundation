@@ -22,12 +22,12 @@ export function generateMetadata({ params }: { params: Params }): Metadata {
 
   return {
     metadataBase: new URL(SITE_URL),
-    title: service.title,
+    title: `${service.title} | ${SITE_NAME}.`,
     description: service.description,
     keywords: service.keywords,
     alternates: buildLocaleAlternates('en', `/services/${service.slug}`),
     openGraph: {
-      title: `${service.title} | ${SITE_NAME}`,
+      title: `${service.title} | ${SITE_NAME}.`,
       description: service.description,
       url: getLocaleUrl('en', `/services/${service.slug}`),
       type: 'website',
@@ -35,7 +35,7 @@ export function generateMetadata({ params }: { params: Params }): Metadata {
     },
     twitter: {
       card: 'summary_large_image',
-      title: `${service.title} | ${SITE_NAME}`,
+      title: `${service.title} | ${SITE_NAME}.`,
       description: service.description,
       images: [DEFAULT_TWITTER_IMAGE],
     },

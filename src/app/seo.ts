@@ -86,7 +86,7 @@ export function buildHomeMetadata(locale: SiteLocale): Metadata {
 }
 
 export function buildServicesIndexMetadata(locale: ServiceRouteLanguage): Metadata {
-  const title = SERVICE_ROUTE_UI[locale].servicesTitle;
+  const title = `Services | ${SITE_NAME}.`;
   const description = SERVICE_ROUTE_UI[locale].servicesCopy;
   const pageUrl = getLocaleUrl(locale, '/services');
 
@@ -96,7 +96,7 @@ export function buildServicesIndexMetadata(locale: ServiceRouteLanguage): Metada
     description,
     alternates: buildLocaleAlternates(locale, '/services'),
     openGraph: {
-      title: `${title} | ${SITE_NAME}`,
+      title,
       description,
       url: pageUrl,
       type: 'website',
@@ -104,7 +104,7 @@ export function buildServicesIndexMetadata(locale: ServiceRouteLanguage): Metada
     },
     twitter: {
       card: 'summary_large_image',
-      title: `${title} | ${SITE_NAME}`,
+      title,
       description,
       images: [DEFAULT_TWITTER_IMAGE],
     },

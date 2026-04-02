@@ -26,6 +26,33 @@ export default class Controls extends EventEmitter
         this.time = _options.time
         this.camera = _options.camera
         this.sounds = _options.sounds
+        this.desktopPressCleanups = []
+        this.createdTouchNodeIds = [
+            'touch-joystick',
+            'touch-reset',
+            'reset-label',
+            'camera-view',
+            'camera-label',
+            'touch-siren',
+            'siren-label',
+            'touch-boost',
+            'boost-label',
+            'touch-forward',
+            'forward-label',
+            'touch-shoot',
+            'shoot-label',
+            'touch-brake',
+            'brake-label',
+            'touch-backward',
+            'backward-label'
+        ]
+        this.reusedTouchNodeIds = [
+            'touch-radio',
+            'touch-previous',
+            'touch-next',
+            'touch-mute',
+            'touch-slider'
+        ]
 
         this.setActions()
         this.setKeyboard()
@@ -68,18 +95,21 @@ export default class Controls extends EventEmitter
             this.actions.camera = true
         }
 
-        document.addEventListener('visibilitychange', () =>
+        this.handleActionVisibilityChange = () =>
         {
             if(!document.hidden)
             {
                 this.resetActionStates()
             }
-        })
+        }
 
-        window.addEventListener('blur', () =>
+        this.handleActionWindowBlur = () =>
         {
             this.resetActionStates()
-        })
+        }
+
+        document.addEventListener('visibilitychange', this.handleActionVisibilityChange)
+        window.addEventListener('blur', this.handleActionWindowBlur)
     }
 
     setKeyboard()
@@ -586,11 +616,7 @@ export default class Controls extends EventEmitter
                 }
             }
 
-            _element.addEventListener('mousedown', mouseDown)
-            _element.addEventListener('touchstart', markTouchInteraction, { passive: true })
-            _element.addEventListener('touchend', markTouchInteraction, { passive: true })
-            _element.addEventListener('touchcancel', markTouchInteraction, { passive: true })
-            _element.addEventListener('click', (_event) => {
+            const clickHandler = (_event) => {
                 if (Date.now() < ignoreMouseUntil) {
                     _event.preventDefault()
                     return
@@ -600,8 +626,21 @@ export default class Controls extends EventEmitter
                 if (_handlers.onClick) {
                     _handlers.onClick(_event)
                 }
-            })
+            }
+
+            _element.addEventListener('mousedown', mouseDown)
+            _element.addEventListener('touchstart', markTouchInteraction, { passive: true })
+            _element.addEventListener('touchend', markTouchInteraction, { passive: true })
+            _element.addEventListener('touchcancel', markTouchInteraction, { passive: true })
+            _element.addEventListener('click', clickHandler)
             document.addEventListener('mouseup', mouseUp)
+
+            this.desktopPressCleanups.push(() => _element.removeEventListener('mousedown', mouseDown))
+            this.desktopPressCleanups.push(() => _element.removeEventListener('touchstart', markTouchInteraction))
+            this.desktopPressCleanups.push(() => _element.removeEventListener('touchend', markTouchInteraction))
+            this.desktopPressCleanups.push(() => _element.removeEventListener('touchcancel', markTouchInteraction))
+            this.desktopPressCleanups.push(() => _element.removeEventListener('click', clickHandler))
+            this.desktopPressCleanups.push(() => document.removeEventListener('mouseup', mouseUp))
         }
 
         /**
@@ -1424,6 +1463,7 @@ export default class Controls extends EventEmitter
 
         // CSS Animation for Spinning
         const styleSheet = document.createElement("style");
+        this.radioStyleSheet = styleSheet
         styleSheet.type = "text/css";
         styleSheet.innerText = `
             @keyframes spin {
@@ -2096,6 +2136,7 @@ export default class Controls extends EventEmitter
 
         // Add custom styles for the slider
         const sliderStyle = document.createElement('style');
+        this.sliderStyleSheet = sliderStyle
         sliderStyle.innerHTML = `
             input[type="range"] {
                 -webkit-appearance: none;
@@ -3237,18 +3278,74 @@ export default class Controls extends EventEmitter
                 this.touch.backward.release()
             }
 
-            window.addEventListener('blur', this.touch.releaseInterruptedInputs)
-            document.addEventListener('visibilitychange', () => {
+            this.handleTouchBlur = this.touch.releaseInterruptedInputs
+            this.handleTouchVisibilityChange = () => {
                 if(document.hidden)
                 {
                     this.touch.releaseInterruptedInputs()
                 }
-            })
+            }
 
-            window.addEventListener('resize', () => {
+            this.handleTouchResize = () => {
                 this.updateButtonPositions();
                 this.touch.joystick.resize();
-            });
+            };
+
+            window.addEventListener('blur', this.handleTouchBlur)
+            document.addEventListener('visibilitychange', this.handleTouchVisibilityChange)
+            window.addEventListener('resize', this.handleTouchResize);
         }
+    }
+
+    resetStaticNode(_id)
+    {
+        const node = document.getElementById(_id)
+        if (!node || !node.parentNode) {
+            return
+        }
+
+        const clone = node.cloneNode(true)
+        node.parentNode.replaceChild(clone, node)
+    }
+
+    destroy()
+    {
+        this.touch?.releaseInterruptedInputs?.()
+
+        if (this.handleActionVisibilityChange) {
+            document.removeEventListener('visibilitychange', this.handleActionVisibilityChange)
+        }
+        if (this.handleActionWindowBlur) {
+            window.removeEventListener('blur', this.handleActionWindowBlur)
+        }
+
+        document.removeEventListener('keydown', this.keyboard?.events?.keyDown)
+        document.removeEventListener('keyup', this.keyboard?.events?.keyUp)
+        document.removeEventListener('mousedown', this.mouse?.events?.mouseDown)
+        document.removeEventListener('mouseup', this.mouse?.events?.mouseUp)
+
+        if (this.handleTouchBlur) {
+            window.removeEventListener('blur', this.handleTouchBlur)
+        }
+        if (this.handleTouchVisibilityChange) {
+            document.removeEventListener('visibilitychange', this.handleTouchVisibilityChange)
+        }
+        if (this.handleTouchResize) {
+            window.removeEventListener('resize', this.handleTouchResize)
+        }
+
+        this.desktopPressCleanups.forEach((cleanup) => cleanup())
+        this.desktopPressCleanups = []
+
+        this.createdTouchNodeIds.forEach((_id) => {
+            document.getElementById(_id)?.remove()
+        })
+
+        this.reusedTouchNodeIds.forEach((_id) => {
+            this.resetStaticNode(_id)
+        })
+
+        this.radioStyleSheet?.remove?.()
+        this.sliderStyleSheet?.remove?.()
     }
 }

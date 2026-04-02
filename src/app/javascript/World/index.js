@@ -90,6 +90,7 @@ export default class
         this.peerConnections = {};
         this.localStream = null;
         this.timerInterval = null;
+        this.isDestroying = false;
 
         // Debug
         if(this.debug)
@@ -900,8 +901,6 @@ export default class
                     selectedCar: this.carName || null,
                     matcaps: this.matcaps || {}
                 }));
-                console.log('Connected to WebSocket server with worldId', this.worldId);
-
                 // Request the player's score from the server
                 this.requestPlayerScore(this.playerId);
 
@@ -1432,17 +1431,16 @@ export default class
             // });
     
             ws.onclose = () => {
-                console.log('Disconnected from WebSocket server');
-    
+                if (this.isDestroying) {
+                    return;
+                }
+
                 if (this.inParty) {
-                    console.log('Player was in a party. Clearing party state.');
                     this.clearPartyState();
                 }
 
-                // Redirect to the home screen when the connection closes
                 if (typeof window !== 'undefined') {
-                    // window.location.href = 'https://krashbox.world';
-                    window.location.href = 'localhost:3000';
+                    window.location.reload();
                 }
             };
         }
@@ -4128,16 +4126,18 @@ export default class
                 });
 
                 if (typeof window !== 'undefined') {
-                    window.addEventListener('resize', this.refreshRemotePlayerIdTexts);
-        
-                    window.addEventListener("beforeunload", () => {
+                    this.handleRemotePlayerResize = this.refreshRemotePlayerIdTexts;
+                    window.addEventListener('resize', this.handleRemotePlayerResize);
+
+                    this.handleBeforeUnload = () => {
                         if (ws.readyState === WebSocket.OPEN) {
                             ws.send(JSON.stringify({
                                 type: 'remove',
                                 playerId: this.playerId,
                             }));
                         }
-                    });
+                    };
+                    window.addEventListener("beforeunload", this.handleBeforeUnload);
                 }
 
                 if (typeof document !== 'undefined' && document.fonts?.ready) {
@@ -4178,9 +4178,10 @@ export default class
         this.updateTargetPlayerDisplay();
 
         if (typeof window !== 'undefined') {
-            window.addEventListener('resize', () => {
+            this.handleMiniMapResize = () => {
                 this.updateTargetPlayerDisplay();
-            });
+            };
+            window.addEventListener('resize', this.handleMiniMapResize);
         }
     }
 
@@ -4851,6 +4852,99 @@ export default class
     {
         this.axis = new THREE.AxesHelper(50)
         this.container.add(this.axis)
+    }
+
+    resetStaticNode(_id)
+    {
+        const node = document.getElementById(_id)
+        if (!node || !node.parentNode) {
+            return
+        }
+
+        const clone = node.cloneNode(true)
+        node.parentNode.replaceChild(clone, node)
+    }
+
+    destroy()
+    {
+        if (this.isDestroying) {
+            return
+        }
+
+        this.isDestroying = true
+
+        clearInterval(this.timerInterval)
+        this.cleanUpCallSession?.()
+
+        if (this.handleRemotePlayerResize) {
+            window.removeEventListener('resize', this.handleRemotePlayerResize)
+        }
+        if (this.handleBeforeUnload) {
+            window.removeEventListener('beforeunload', this.handleBeforeUnload)
+        }
+        if (this.handleMiniMapResize) {
+            window.removeEventListener('resize', this.handleMiniMapResize)
+        }
+
+        if (this.ws) {
+            this.ws.onopen = null
+            this.ws.onmessage = null
+            this.ws.onerror = null
+            this.ws.onclose = null
+        }
+
+        this.controls?.destroy?.();
+
+        [
+            'invite-prompt',
+            'friend-invite-prompt',
+            'party-info',
+            'party-call-session',
+            'mini-map',
+            'party-call-prompt'
+        ].forEach((id) => {
+            document.getElementById(id)?.remove()
+        });
+
+        document.querySelectorAll('[id^="audio-"]').forEach((node) => node.remove());
+        this.startingScreen?.percentageLabel?.remove?.();
+
+        [
+            'invite-button',
+            'friend-invite-button',
+            'toggle-contact-list',
+            'toggle-contact',
+            'toggle-settings',
+            'toggle-settings-window',
+            'toggle-party-list',
+            'party-call-button',
+            'toggle-lobby',
+            'party-chat-container',
+            'party-chat-box',
+            'party-message-input',
+            'send-message-button',
+            'ok-button',
+            'reset-button',
+            'save-settings-button',
+            'btn1',
+            'btn2',
+            'btn3',
+            'btn4',
+            'btn5',
+            'btn6',
+            'btn7',
+            'btn8',
+            'slot1',
+            'slot2',
+            'slot3',
+            'slot4',
+            'slot5',
+            'slot6',
+            'slot7',
+            'slot8'
+        ].forEach((id) => {
+            this.resetStaticNode(id)
+        });
     }
 
     setControls()

@@ -5746,6 +5746,13 @@ opacity: 0;
 }
 
 @media (max-width: 1024px) {
+  .service-hub__hero,
+  .service-page__hero {
+    padding-left: 12px;
+    padding-right: 12px;
+    box-sizing: border-box;
+  }
+
   .landing-showcase__service-links-grid,
   .service-hub__grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -5786,6 +5793,12 @@ opacity: 0;
 
   .service-route__content {
     padding: 0 0 20px;
+  }
+
+  .service-hub__hero,
+  .service-page__hero {
+    padding-left: 10px;
+    padding-right: 10px;
   }
 
   .service-route__topbar {

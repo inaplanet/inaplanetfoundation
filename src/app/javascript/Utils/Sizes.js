@@ -59,6 +59,17 @@ export default class Sizes extends EventEmitter
   }
 }
 
+    destroy()
+    {
+        if (typeof window !== 'undefined' && this.resize) {
+            window.removeEventListener('resize', this.resize)
+        }
+
+        if (typeof document !== 'undefined' && this.$sizeViewport?.parentNode) {
+            this.$sizeViewport.parentNode.removeChild(this.$sizeViewport)
+        }
+    }
+
 //   resize() {
 //     if (typeof document !== 'undefined' && typeof window !== 'undefined') {
 //       document.body.appendChild(this.$sizeViewport);

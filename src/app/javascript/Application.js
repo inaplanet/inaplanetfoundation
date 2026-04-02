@@ -108,12 +108,13 @@ const Application = ({ playerId, selectedWorldId, token, carName, matcaps, onRea
             this.config.cyberTruck = window.location.hash === '#cybertruck';
             this.config.touch = false;
     
-            window.addEventListener('touchstart', () => {
+            this.handleFirstTouch = () => {
                 this.config.touch = true;
                 if (this.renderer) {
                     this.renderer.setPixelRatio(this.getPixelRatio());
                 }
-            }, { once: true });
+            };
+            window.addEventListener('touchstart', this.handleFirstTouch, { once: true });
         }
     }    
 
@@ -431,7 +432,7 @@ const Application = ({ playerId, selectedWorldId, token, carName, matcaps, onRea
         });
 
         // Key event listener for camera toggle
-        document.addEventListener('keydown', (e) => {
+        this.handleCameraToggleKeyDown = (e) => {
             if ((e.key === 'Y' || e.key === 'y') && !this.camera.actionInProgress) {
                 this.camera.actionInProgress = true; // Mark the action as in progress
 
@@ -440,7 +441,8 @@ const Application = ({ playerId, selectedWorldId, token, carName, matcaps, onRea
                     this.camera.actionInProgress = false; // Reset the flag
                 });
             }
-        });
+        };
+        document.addEventListener('keydown', this.handleCameraToggleKeyDown);
     }
 
     setPasses()
@@ -492,10 +494,39 @@ const Application = ({ playerId, selectedWorldId, token, carName, matcaps, onRea
         {
             document.removeEventListener('visibilitychange', this.handleVisibilityChange)
         }
+        if(this.handleFirstTouch)
+        {
+            window.removeEventListener('touchstart', this.handleFirstTouch)
+        }
         if(this.handleCameraZoomButton)
         {
             window.removeEventListener('inaplanet-camera-zoom', this.handleCameraZoomButton)
         }
+        if(this.handleCameraToggleKeyDown)
+        {
+            document.removeEventListener('keydown', this.handleCameraToggleKeyDown)
+        }
+
+        const worldSocket = this.world?.ws
+        if(worldSocket && worldSocket.readyState === WebSocket.OPEN && this.playerId)
+        {
+            worldSocket.send(JSON.stringify({
+                type: 'remove',
+                playerId: this.playerId
+            }))
+        }
+        if(worldSocket && (worldSocket.readyState === WebSocket.OPEN || worldSocket.readyState === WebSocket.CONNECTING))
+        {
+            worldSocket.close()
+        }
+
+        this.world?.destroy?.()
+        if(this.world?.container?.parent)
+        {
+            this.world.container.parent.remove(this.world.container)
+        }
+        this.camera?.destroy?.()
+        this.sizes?.destroy?.()
 
         this.camera.orbitControls.dispose()
         this.renderer.dispose()
@@ -527,15 +558,6 @@ if (typeof originalFinish === 'function') {
 // Cleanup on unmount
 return () => {
     if (appInstanceRef.current) {
-      const worldSocket = appInstanceRef.current?.world?.ws;
-      const currentPlayerId = appInstanceRef.current?.playerId;
-    if (worldSocket && worldSocket.readyState === WebSocket.OPEN && currentPlayerId) {
-      worldSocket.send(JSON.stringify({
-        type: 'remove',
-        playerId: currentPlayerId
-      }));
-      worldSocket.close();
-      }
       appInstanceRef.current.destructor();
       appInstanceRef.current = null;
     }

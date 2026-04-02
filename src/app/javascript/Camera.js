@@ -25,6 +25,7 @@ export default class Camera
 
         this.type = 'perspective'
         this.isNewCameraActive = false;
+        this.cameraActionTimeout = null;
 
         // Debug
         if(this.debug)
@@ -94,62 +95,51 @@ export default class Camera
     // }
     
     triggerCameraAction(onComplete) {
-        console.log("Y button pressed, triggering camera action...");
-        
         const transitionDuration = 1.5; // Duration in seconds for the transition
     
         if (this.isNewCameraActive) {
             // Switch back to the old camera logic
-            console.log("Switching to Old Camera...");
             this.isNewCameraActive = false;
     
             // Perform the old camera toggle actions
             if (this.type === 'perspective') {
                 this.setOrthographic(() => {
                     this.type = 'orthographic';
-                    console.log(`Old Camera Mode: Orthographic`);
                 });
             } else if (this.type === 'orthographic') {
                 this.setBirdsEye(() => {
                     this.type = 'birdsEye';
-                    console.log(`Old Camera Mode: Birds-Eye`);
                 });
             } else {
                 this.setPerspective(() => {
                     this.type = 'perspective';
-                    console.log(`Old Camera Mode: Perspective`);
                 });
             }
         } else {
             // Activate the new camera logic
-            console.log("Switching to New Camera...");
             const newCameraOffset = { x: 0, y: -15, z: 10 }; // Example offset
             const newCameraTarget = { x: 0, y: 0, z: 0 }; // Example target
 
             this.setNewCamera(newCameraOffset, newCameraTarget, () => {
                 this.type = 'newCamera'; // Mark new camera as active
                 this.isNewCameraActive = true;
-                console.log("New Camera Activated");
             });
         }
     
         // Invoke the callback after the transition
-        setTimeout(() => {
+        this.cameraActionTimeout = setTimeout(() => {
             if (typeof onComplete === 'function') {
                 onComplete();
             }
+            this.cameraActionTimeout = null;
         }, transitionDuration * 1000); // Convert seconds to milliseconds
     }
     
     setNewCamera(offset, target, onComplete) {
-        console.log("Setting New Camera...");
-    
         // Apply the new camera offset and target
         this.instance.position.set(offset.x, offset.y, offset.z);
         this.instance.lookAt(target.x, target.y, target.z);
-    
-        console.log(`Camera positioned at (${offset.x}, ${offset.y}, ${offset.z}) and looking at (${target.x}, ${target.y}, ${target.z})`);
-    
+
         // Invoke the callback if provided
         if (typeof onComplete === 'function') {
             onComplete();
@@ -403,23 +393,21 @@ export default class Camera
         this.zoom.distance = this.zoom.minDistance + this.zoom.amplitude * this.zoom.value;
     
         // Listen to mousewheel event
-        document.addEventListener(
-            'wheel',
-            (_event) => {
-                if (!this.isNewCameraActive) { // Prevent zoom in new camera mode
-                    this.zoom.targetValue += _event.deltaY * 0.001;
-                    this.zoom.targetValue = Math.min(Math.max(this.zoom.targetValue, 0), this.zoom.maxValue);
-                }
-            },
-            { passive: true }
-        );
+        this.zoom.events = {}
+        this.zoom.events.wheel = (_event) => {
+            if (!this.isNewCameraActive) { // Prevent zoom in new camera mode
+                this.zoom.targetValue += _event.deltaY * 0.001;
+                this.zoom.targetValue = Math.min(Math.max(this.zoom.targetValue, 0), this.zoom.maxValue);
+            }
+        }
+        document.addEventListener('wheel', this.zoom.events.wheel, { passive: true });
     
         // Touch zoom
         this.zoom.touch = {};
         this.zoom.touch.startDistance = 0;
         this.zoom.touch.startValue = 0;
     
-        this.renderer.domElement.addEventListener('touchstart', (_event) => {
+        this.zoom.events.touchstart = (_event) => {
             if (!this.isNewCameraActive && _event.touches.length === 2) { // Prevent zoom in new camera mode
                 this.zoom.touch.startDistance = Math.hypot(
                     _event.touches[0].clientX - _event.touches[1].clientX,
@@ -427,9 +415,10 @@ export default class Camera
                 );
                 this.zoom.touch.startValue = this.zoom.targetValue;
             }
-        });
+        };
+        this.renderer.domElement.addEventListener('touchstart', this.zoom.events.touchstart);
     
-        this.renderer.domElement.addEventListener('touchmove', (_event) => {
+        this.zoom.events.touchmove = (_event) => {
             if (!this.isNewCameraActive && _event.touches.length === 2) { // Prevent zoom in new camera mode
                 _event.preventDefault();
     
@@ -442,7 +431,8 @@ export default class Camera
                 this.zoom.targetValue = this.zoom.touch.startValue - (ratio - 1);
                 this.zoom.targetValue = Math.min(Math.max(this.zoom.targetValue, 0), this.zoom.maxValue);
             }
-        });
+        };
+        this.renderer.domElement.addEventListener('touchmove', this.zoom.events.touchmove);
     
         // Time tick event for zoom and camera clipping plane adjustments
         this.time.on('tick', () => {
@@ -570,42 +560,48 @@ export default class Camera
         }
 
         // Mouse
-        window.addEventListener('mousedown', (_event) =>
+        this.pan.events = {}
+        this.pan.events.mouseDown = (_event) =>
         {
             this.pan.down(_event.clientX, _event.clientY)
-        })
-
-        window.addEventListener('mousemove', (_event) =>
+        }
+        this.pan.events.mouseMove = (_event) =>
         {
             this.pan.move(_event.clientX, _event.clientY)
-        })
-
-        window.addEventListener('mouseup', () =>
+        }
+        this.pan.events.mouseUp = () =>
         {
             this.pan.up()
-        })
+        }
+
+        window.addEventListener('mousedown', this.pan.events.mouseDown)
+        window.addEventListener('mousemove', this.pan.events.mouseMove)
+        window.addEventListener('mouseup', this.pan.events.mouseUp)
 
         // Touch
-        this.renderer.domElement.addEventListener('touchstart', (_event) =>
+        this.pan.events.touchStart = (_event) =>
         {
             if(_event.touches.length === 1)
             {
                 this.pan.down(_event.touches[0].clientX, _event.touches[0].clientY)
             }
-        })
+        }
+        this.renderer.domElement.addEventListener('touchstart', this.pan.events.touchStart)
 
-        this.renderer.domElement.addEventListener('touchmove', (_event) =>
+        this.pan.events.touchMove = (_event) =>
         {
             if(_event.touches.length === 1)
             {
                 this.pan.move(_event.touches[0].clientX, _event.touches[0].clientY)
             }
-        })
+        }
+        this.renderer.domElement.addEventListener('touchmove', this.pan.events.touchMove)
 
-        this.renderer.domElement.addEventListener('touchend', () =>
+        this.pan.events.touchEnd = () =>
         {
             this.pan.up()
-        })
+        }
+        this.renderer.domElement.addEventListener('touchend', this.pan.events.touchEnd)
 
         // Time tick event
         this.time.on('tick', () =>
@@ -646,6 +642,43 @@ export default class Camera
         if(this.debug)
         {
             this.debugFolder.add(this.orbitControls, 'enabled').name('orbitControlsEnabled')
+        }
+    }
+
+    destroy()
+    {
+        if (this.cameraActionTimeout) {
+            clearTimeout(this.cameraActionTimeout)
+            this.cameraActionTimeout = null
+        }
+
+        if (this.zoom?.events?.wheel) {
+            document.removeEventListener('wheel', this.zoom.events.wheel)
+        }
+        if (this.zoom?.events?.touchstart) {
+            this.renderer.domElement.removeEventListener('touchstart', this.zoom.events.touchstart)
+        }
+        if (this.zoom?.events?.touchmove) {
+            this.renderer.domElement.removeEventListener('touchmove', this.zoom.events.touchmove)
+        }
+
+        if (this.pan?.events?.mouseDown) {
+            window.removeEventListener('mousedown', this.pan.events.mouseDown)
+        }
+        if (this.pan?.events?.mouseMove) {
+            window.removeEventListener('mousemove', this.pan.events.mouseMove)
+        }
+        if (this.pan?.events?.mouseUp) {
+            window.removeEventListener('mouseup', this.pan.events.mouseUp)
+        }
+        if (this.pan?.events?.touchStart) {
+            this.renderer.domElement.removeEventListener('touchstart', this.pan.events.touchStart)
+        }
+        if (this.pan?.events?.touchMove) {
+            this.renderer.domElement.removeEventListener('touchmove', this.pan.events.touchMove)
+        }
+        if (this.pan?.events?.touchEnd) {
+            this.renderer.domElement.removeEventListener('touchend', this.pan.events.touchEnd)
         }
     }
 }

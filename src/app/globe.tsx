@@ -301,8 +301,6 @@ export function destroyGlobe(): void {
 // }
 
 export function addSignalEffect(worldId: string, location: { lat: number; lng: number }) {
-    console.log(`addSignalEffect called for ${worldId}:`, location);
-
     if (!scene) {
         console.error('Scene is not initialized');
         return;
@@ -400,7 +398,6 @@ export function removeSignalEffect(worldId: string) {
             if (globeMesh) {
                 globeMesh.remove(signal); // Remove the signal
                 activeSignals.delete(worldId); // Remove reference from map
-                console.log(`Signal removed for ${worldId}`);
             }
         }
     }
