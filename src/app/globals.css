@@ -5580,7 +5580,7 @@ opacity: 0;
 }
 
 .service-hub__hero {
-  margin: 18px 0 0;
+  margin: 38px 0 0;
   justify-items: center;
   text-align: center;
 }
@@ -5753,6 +5753,12 @@ opacity: 0;
     box-sizing: border-box;
   }
 
+  .service-hub__copy,
+  .service-page__copy {
+    font-size: 0.94rem;
+    line-height: 1.72;
+  }
+
   .landing-showcase__service-links-grid,
   .service-hub__grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -5799,6 +5805,12 @@ opacity: 0;
   .service-page__hero {
     padding-left: 10px;
     padding-right: 10px;
+  }
+
+  .service-hub__copy,
+  .service-page__copy {
+    font-size: 0.84rem;
+    line-height: 1.66;
   }
 
   .service-route__topbar {
