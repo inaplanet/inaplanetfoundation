@@ -1,6 +1,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
+import GreetingTypewriter from './GreetingTypewriter';
 
 type PlanetFooterContactItem = {
   href: string;
@@ -21,7 +22,6 @@ type PlanetFooterSectionProps = {
   contactCopy: string;
   greetingStripAria: string;
   greetingLabel: string;
-  animatedGreeting: string;
   isAzerbaijaniLayout: boolean;
   contactItems: PlanetFooterContactItem[];
   email: string;
@@ -36,7 +36,6 @@ export default function PlanetFooterSection({
   contactCopy,
   greetingStripAria,
   greetingLabel,
-  animatedGreeting,
   isAzerbaijaniLayout,
   contactItems,
   email,
@@ -94,19 +93,13 @@ export default function PlanetFooterSection({
         <div className="landing-showcase__greeting-strip" aria-label={greetingStripAria}>
           {isAzerbaijaniLayout ? (
             <>
-              <div className="landing-showcase__greeting-typewriter" aria-live="polite">
-                <span>{animatedGreeting}</span>
-                <span className="landing-showcase__greeting-caret" aria-hidden="true"></span>
-              </div>
+              <GreetingTypewriter />
               <span className="landing-showcase__greeting-label">{greetingLabel}</span>
             </>
           ) : (
             <>
               <span className="landing-showcase__greeting-label">{greetingLabel}</span>
-              <div className="landing-showcase__greeting-typewriter" aria-live="polite">
-                <span>{animatedGreeting}</span>
-                <span className="landing-showcase__greeting-caret" aria-hidden="true"></span>
-              </div>
+              <GreetingTypewriter />
             </>
           )}
         </div>

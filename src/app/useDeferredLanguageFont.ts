@@ -8,6 +8,13 @@ export function useDeferredLanguageFont<T extends string>(initialLanguage: T) {
   const hasMountedRef = useRef(false);
 
   useEffect(() => {
+    setLanguage(initialLanguage);
+    setRenderedLanguage(initialLanguage);
+    setRenderedFontLanguage(initialLanguage);
+    setIsLanguageReady(true);
+  }, [initialLanguage]);
+
+  useEffect(() => {
     if (!hasMountedRef.current) {
       hasMountedRef.current = true;
       return;
@@ -17,7 +24,7 @@ export function useDeferredLanguageFont<T extends string>(initialLanguage: T) {
     let revealFrameOne: number | undefined;
     let revealFrameTwo: number | undefined;
     const fontSet = typeof document !== 'undefined' ? document.fonts : null;
-    const fontFamily = language === 'en' ? 'Orbitron' : 'Exo 2';
+    const fontFamily = language === 'en' ? 'Orbitron' : 'Secondary UI';
 
     const revealLanguage = () => {
       if (isCancelled) {

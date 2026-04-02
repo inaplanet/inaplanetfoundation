@@ -2,9 +2,10 @@
 
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import React from 'react';
 import { useEffect, useState, useRef, useCallback } from 'react';
-import { initGlobe, addSignalEffect, removeSignalEffect } from './globe'; // Adjust path as necessary
+import { addSignalEffect, removeSignalEffect } from './globe'; // Adjust path as necessary
 import {
   FaAws,
   FaBriefcase,
@@ -37,6 +38,7 @@ import CoreStackTicker from './CoreStackTicker';
 import PlanetFooterSection from './PlanetFooterSection';
 import SignatureComponent from './SignatureComponent';
 import { SITE_EMAIL } from './content/site';
+import { getLocalePath, type SiteLocale } from './i18n';
 import { useDeferredLanguageFont } from './useDeferredLanguageFont';
 
 // Dynamically import the Application component and disable SSR
@@ -44,23 +46,6 @@ const Application = dynamic(() => import('./javascript/Application'), {
   ssr: false,
   loading: () => null,
 });
-
-const GREETING_ITEMS = [
-  'Salam',
-  'Merhaba',
-  'Privet',
-  'Hello',
-  'Ciao',
-  'Ni Hao',
-  'Hola',
-  'Bonjour',
-  'Namaste',
-  'Xin Chao',
-  'Neih Hou',
-  'Jambo',
-  'Pryvit',
-  'Oi',
-];
 
 const CORE_STACK_VARIANT: 'ticker' | 'cluster' = 'cluster';
 
@@ -75,7 +60,7 @@ const MODAL_COPY = {
     languageSwitcherLabel: 'Select modal language',
     enterButton: 'ENTER THE PLANET',
     heroTitle: 'Designs & ships digital products for real business use.',
-    heroCopy: 'Websites, apps, backend systems, payment flows, and product infrastructure built to launch cleanly, run reliably, and scale with demand.',
+    heroCopy: 'Web and mobile apps, backend systems, payment flows, and product infrastructure built to launch cleanly, run reliably, and scale with demand.',
     chips: {
       web: 'Web Apps',
       mobile: 'Mobile Apps',
@@ -88,7 +73,7 @@ const MODAL_COPY = {
       'Execution across the stack',
       'Launch-ready product delivery',
     ],
-    heroNote: 'We build products that are meant to be used, scaled, and remembered.',
+    heroNote: "It's no longer the big beating the small, but the fast beating the slow.",
     highlights: [
       { title: 'Scope', copy: 'We turn rough briefs into a clear build plan.' },
       { title: 'Execution', copy: 'Frontend, backend, integrations, and tooling move as one system.' },
@@ -145,7 +130,7 @@ const MODAL_COPY = {
       { title: '3. Launch', copy: 'Ship with monitoring, polish, and a path to scale.' },
     ],
     expertiseTitle: 'Our Expertise',
-    expertiseIntro: 'Product work usually spans multiple layers. We build the business-facing surface, the operational system behind it, and the infrastructure needed to run it. We mainly focus on writing native code for both frontend and backend to bring high-quality products to life.',
+    expertiseIntro: 'Product work usually spans multiple layers. We build the business-facing surface, the operational system behind it, and the infrastructure needed to run it. The focus stays on writing native code for both frontend and backend to bring high-quality products to life.',
     expertiseItems: [
       {
         title: 'Corporate website',
@@ -228,7 +213,7 @@ const MODAL_COPY = {
       'Bütün stack üzrə icra',
       'Buraxılışa hazır məhsul təhvili',
     ],
-    heroNote: 'Biz sadəcə təqdim olunan deyil, istifadə olunan, miqyaslanan və yadda qalan məhsullar qururuq.',
+    heroNote: 'Artıq böyük olan kiçik olanı deyil, sürətli olan yavaş olanı geridə qoyur.',
     highlights: [
       { title: 'Əhatə dairəsi', copy: 'Qeyri-müəyyən briefi aydın build planına çeviririk.' },
       { title: 'İcra', copy: 'Frontend, backend, inteqrasiyalar və alətlər bir sistem kimi işləyir.' },
@@ -368,7 +353,7 @@ const MODAL_COPY = {
       'Исполнение по всему стеку',
       'Поставка продукта, готового к запуску',
     ],
-    heroNote: 'Мы создаем продукты, которыми пользуются, которые масштабируются и запоминаются, а не просто показываются.',
+    heroNote: 'Теперь побеждает не большой против малого, а быстрый против медленного.',
     highlights: [
       { title: 'Объем', copy: 'Мы превращаем сырой бриф в понятный план сборки.' },
       { title: 'Исполнение', copy: 'Frontend, backend, интеграции и инструменты движутся как одна система.' },
@@ -495,7 +480,12 @@ const MODAL_COPY = {
 
 type ModalLanguage = keyof typeof MODAL_COPY;
 
-export default function HomeClient() {
+type HomeClientProps = {
+  initialLanguage?: SiteLocale;
+};
+
+export default function HomeClient({ initialLanguage = 'en' }: HomeClientProps) {
+  const router = useRouter();
   const MAX_PLAYERS_PER_WORLD = 10;
   const wsRef = useRef<WebSocket | null>(null);
   const landingShowcaseRef = useRef<HTMLDivElement | null>(null);
@@ -630,7 +620,6 @@ export default function HomeClient() {
   ];
   const [playerId, setPlayerId] = useState<string | null>(null);
   const [isCanvasInitialized, setIsCanvasInitialized] = useState(false); // State for canvas initialization
-  const [application, setApplication] = useState(false); // State for canvas initialization
   const [hasAppInitialized, setHasAppInitialized] = useState(false); // Ensure Application is only initialized once
   const [selectedWorldId, setSelectedWorldId] = useState<string | null>(null); // New state for selected world ID
   const [token, setToken] = useState<string | null>(null); // State to store the token
@@ -639,16 +628,12 @@ export default function HomeClient() {
   const [hasEnteredPlanetView, setHasEnteredPlanetView] = useState(false);
   const {
     language,
-    setLanguage,
     renderedLanguage,
     renderedFontLanguage,
     isLanguageReady: isModalLanguageReady,
-  } = useDeferredLanguageFont<ModalLanguage>('en');
+  } = useDeferredLanguageFont<ModalLanguage>(initialLanguage);
   const [openClientFaqIndex, setOpenClientFaqIndex] = useState<number | null>(null);
   const [openWorkMechanismIndex, setOpenWorkMechanismIndex] = useState<number | null>(null);
-  const [activeGreetingIndex, setActiveGreetingIndex] = useState(0);
-  const [animatedGreeting, setAnimatedGreeting] = useState('');
-  const [isDeletingGreeting, setIsDeletingGreeting] = useState(false);
   const landingOpenTimerRef = useRef<number | undefined>(undefined);
   const landingCloseTimerRef = useRef<number | undefined>(undefined);
   const [carName, setCarName] = useState<string | null>(() => {
@@ -660,6 +645,7 @@ export default function HomeClient() {
 
   const modalLanguage = renderedLanguage;
   const modalCopy = MODAL_COPY[modalLanguage];
+  const localeAwareServicesPath = (slug: string) => getLocalePath(initialLanguage, `/services/${slug}`);
   const storyCtaLabel = 'ENTER';
   const localizedExpertiseItems = modalCopy.expertiseItems.map((item, index) => ({
     slug: expertiseItems[index].slug,
@@ -697,6 +683,10 @@ export default function HomeClient() {
     window.location.reload(); // Reload the page
   };
 
+  const handleApplicationReady = useCallback(() => {
+    setIsCanvasInitialized(true);
+  }, []);
+
   useEffect(() => {
     return () => {
       if (typeof landingOpenTimerRef.current === 'number') {
@@ -716,36 +706,6 @@ export default function HomeClient() {
       }
     };
   }, []);
-
-  useEffect(() => {
-    const currentGreeting = GREETING_ITEMS[activeGreetingIndex];
-    const normalizedGreeting = animatedGreeting === '\u00A0' ? '' : animatedGreeting;
-    const reachedEnd = normalizedGreeting === currentGreeting;
-    const reachedStart = normalizedGreeting.length === 0;
-
-    const timeout = window.setTimeout(() => {
-      if (!isDeletingGreeting) {
-        if (reachedEnd) {
-          setIsDeletingGreeting(true);
-          return;
-        }
-
-        setAnimatedGreeting(currentGreeting.slice(0, normalizedGreeting.length + 1));
-        return;
-      }
-
-      if (!reachedStart) {
-        const nextGreeting = currentGreeting.slice(0, normalizedGreeting.length - 1);
-        setAnimatedGreeting(nextGreeting || '\u00A0');
-        return;
-      }
-
-      setIsDeletingGreeting(false);
-      setActiveGreetingIndex((currentIndex) => (currentIndex + 1) % GREETING_ITEMS.length);
-    }, reachedEnd && !isDeletingGreeting ? 900 : isDeletingGreeting ? 170 : 310);
-
-    return () => window.clearTimeout(timeout);
-  }, [activeGreetingIndex, animatedGreeting, isDeletingGreeting]);
 
   const openLandingPage = useCallback(() => {
     if (typeof landingCloseTimerRef.current === 'number') {
@@ -1284,8 +1244,6 @@ const handleWorldSelection = (worldId: string, listItem: HTMLLIElement, worldLis
   if (!selectedWorldId) {
     setSelectedWorldId(worldId);
     setIsCanvasInitialized(false);
-    setApplication(false);
-    setTimeout(() => setApplication(true), 500);
 
     if (wsRef.current) {
       wsRef.current.close();
@@ -1308,54 +1266,6 @@ const handleWorldSelection = (worldId: string, listItem: HTMLLIElement, worldLis
 
     useEffect(() => {
       updateWorldList({});
-
-      let localRetryCount = 0;
-      let interval: number | undefined;
-      let deferredBootHandle: number | undefined;
-      const idleWindow = window as Window & {
-        requestIdleCallback?: (callback: (...args: unknown[]) => void, options?: { timeout: number }) => number;
-        cancelIdleCallback?: (handle: number) => void;
-      };
-      const bootGlobe = () => {
-        interval = window.setInterval(() => {
-          const container = document.getElementById('loading-layer');
-          if (container) {
-            initGlobe('loading-layer');
-            if (typeof interval === 'number') {
-              window.clearInterval(interval);
-              interval = undefined;
-            }
-          } else if (localRetryCount >= 10) {
-            console.warn('Failed to find #loading-layer after 10 retries.');
-            if (typeof interval === 'number') {
-              window.clearInterval(interval);
-              interval = undefined;
-            }
-          }
-          localRetryCount++;
-        }, 150);
-      };
-
-      if (idleWindow.requestIdleCallback) {
-        deferredBootHandle = idleWindow.requestIdleCallback(() => {
-          bootGlobe();
-        }, { timeout: 500 });
-      } else {
-        deferredBootHandle = window.setTimeout(bootGlobe, 180);
-      }
-
-      return () => {
-        if (typeof interval === 'number') {
-          window.clearInterval(interval);
-        }
-        if (typeof deferredBootHandle === 'number') {
-          if (idleWindow.cancelIdleCallback) {
-            idleWindow.cancelIdleCallback(deferredBootHandle);
-          } else {
-            window.clearTimeout(deferredBootHandle);
-          }
-        }
-      };
     }, []);
 
     useEffect(() => {
@@ -1398,13 +1308,28 @@ const handleWorldSelection = (worldId: string, listItem: HTMLLIElement, worldLis
       return () => window.cancelAnimationFrame(frame);
     }, [showLandingPage]);
 
-  return (
-    <main className="overflow-hidden flex flex-col items-center" style={{ backgroundColor: '#000', fontFamily: "'Orbitron', sans-serif" }}>
-      <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    useEffect(() => {
+      const globeMode = isCanvasInitialized ? 'hidden' : showLandingPage ? 'passive' : 'interactive';
 
+      window.dispatchEvent(
+        new CustomEvent('inaplanet-globe-mode', {
+          detail: { mode: globeMode },
+        })
+      );
+
+      return () => {
+        window.dispatchEvent(
+          new CustomEvent('inaplanet-globe-mode', {
+            detail: { mode: 'passive' },
+          })
+        );
+      };
+    }, [isCanvasInitialized, showLandingPage]);
+
+  return (
+    <main className="overflow-hidden flex flex-col items-center" style={{ backgroundColor: '#000', fontFamily: 'var(--font-orbitron), sans-serif' }}>
       {!isCanvasInitialized && (
         <div id="loading-container">
-          <div id="loading-layer" className="loading-layer overflow-hidden"></div>
           <div id="intro-panel-layer" className={`intro-panel-layer flex-container ${showLandingPage ? 'first-screen-hidden' : ''}`}>
             <div className="user-count-wrapper">
               <span id="userCountDisplay" className="user-count-display">0</span>
@@ -1471,7 +1396,11 @@ const handleWorldSelection = (worldId: string, listItem: HTMLLIElement, worldLis
                       key={option.code}
                       type="button"
                       className={`landing-showcase__language-button ${language === option.code ? 'landing-showcase__language-button-active' : ''}`}
-                      onClick={() => setLanguage(option.code)}
+                      onClick={() => {
+                        if (option.code !== initialLanguage) {
+                          router.push(getLocalePath(option.code, '/'));
+                        }
+                      }}
                     >
                       {option.label}
                     </button>
@@ -1528,7 +1457,7 @@ const handleWorldSelection = (worldId: string, listItem: HTMLLIElement, worldLis
                       <p>{modalCopy.expertiseIntro}</p>
                       <div className="landing-showcase__expertise-grid">
                         {localizedExpertiseItems.map((item) => (
-                          <Link key={item.slug} href={`/services/${item.slug}`} className="landing-showcase__expertise-card landing-showcase__expertise-link">
+                          <Link key={item.slug} href={localeAwareServicesPath(item.slug)} className="landing-showcase__expertise-card landing-showcase__expertise-link">
                             <span className="landing-showcase__route-arrow" aria-hidden="true">
                               <FiArrowUpRight />
                             </span>
@@ -1619,7 +1548,6 @@ const handleWorldSelection = (worldId: string, listItem: HTMLLIElement, worldLis
                       contactCopy={modalCopy.contactCopy}
                       greetingStripAria={modalCopy.greetingStripAria}
                       greetingLabel={modalCopy.greetingLabel}
-                      animatedGreeting={animatedGreeting}
                       isAzerbaijaniLayout={modalLanguage === 'az'}
                       contactItems={localizedContactItems}
                       email={SITE_EMAIL}
@@ -1641,11 +1569,19 @@ const handleWorldSelection = (worldId: string, listItem: HTMLLIElement, worldLis
         </div>
       )}
 
-      {playerId && selectedWorldId && token && application && (
-        <Application playerId={playerId} selectedWorldId={selectedWorldId} token={token} carName={carName} matcaps={matcaps} />
+      {playerId && selectedWorldId && token && (
+        <Application
+          key={`${playerId}-${selectedWorldId}`}
+          playerId={playerId}
+          selectedWorldId={selectedWorldId}
+          token={token}
+          carName={carName}
+          matcaps={matcaps}
+          onReady={handleApplicationReady}
+        />
       )}
 
-      {playerId && selectedWorldId && token && application && (
+      {playerId && selectedWorldId && token && (
         <div className="grid bg-transparent overflow-hidden shadow-sm">
           <div className="flex justify-center items-center p-4">
             <div
@@ -1709,7 +1645,7 @@ const handleWorldSelection = (worldId: string, listItem: HTMLLIElement, worldLis
             <div id="contact-list-container">
                 <button id="toggle-contact-list" className='toggle-contact-list' style={{ display: 'none', opacity: 0 }}></button>
                 <div id="contact-list">
-                  <h1 style={{textAlign: 'center', paddingBottom: '10px'}}>CONNECTED LINKS</h1>
+                  <h2 style={{textAlign: 'center', paddingBottom: '10px'}}>CONNECTED LINKS</h2>
                   <button id='toggle-contact' className='toggle-contact'></button>
                 </div>
             </div>
@@ -1718,7 +1654,7 @@ const handleWorldSelection = (worldId: string, listItem: HTMLLIElement, worldLis
             <div id="settings-container">
                 <button id="toggle-settings" className="toggle-settings"></button>
                 <div id="settings-window" className='display: block;'>
-                  <h1 style={{textAlign: 'center', paddingBottom: '10px'}}>CONTROLLER</h1>
+                  <h2 style={{textAlign: 'center', paddingBottom: '10px'}}>CONTROLLER</h2>
                   <button id='toggle-settings-window' className='toggle-settings-window'></button>
                   <div id='joystick-setup-container' className='joystick-setup-container'>
                     {/* <button id="move-joystick-left"><i data-feather="arrow-down-left"></i> </button> */}

@@ -2,6 +2,14 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 
 let scene: THREE.Scene | null = null;
+let renderer: THREE.WebGLRenderer | null = null;
+let controls: OrbitControls | null = null;
+let animationFrameId: number | null = null;
+let resizeHandler: (() => void) | null = null;
+let currentContainerId: string | null = null;
+let currentCanvas: HTMLCanvasElement | null = null;
+let isAnimating = false;
+let loadedTextures: THREE.Texture[] = [];
 
 const worldSignals: Record<string, THREE.Mesh> = {}; // Store active signals by worldId
 const worldPlayerCounts = new Map<string, number>(); // To track player counts per worldId
@@ -14,6 +22,13 @@ export function initGlobe(containerId: string): void {
         return;
     }
 
+    if (container.querySelector('canvas')) {
+        currentContainerId = containerId;
+        return;
+    }
+
+    currentContainerId = containerId;
+
     // Create Scene
     scene = new THREE.Scene();
 
@@ -22,10 +37,11 @@ export function initGlobe(containerId: string): void {
     camera.position.z = 8.4;
 
     // Renderer Setup
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(container.clientWidth, container.clientHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     container.appendChild(renderer.domElement);
+    currentCanvas = renderer.domElement;
 
     const globeSystem = new THREE.Group();
     if (scene) {
@@ -47,13 +63,9 @@ export function initGlobe(containerId: string): void {
     const dayTextureUrl = '/images/texture/dayTexture.png';
     // const dayTextureUrl = '//unpkg.com/three-globe/example/img/earth-night.png';
     const nightTextureUrl = '/images/texture/nightTexture.png';
-    const bumpTextureUrl = '//unpkg.com/three-globe/example/img/earth-topology.png';
-
     const isDayTexture = hours < 12;
     const earthTexture = textureLoader.load(isDayTexture ? dayTextureUrl : nightTextureUrl);
-    console.log(`Loading ${isDayTexture ? 'day' : 'night'} texture based on time: ${hours} hours`);
-
-    const bumpTexture = textureLoader.load(bumpTextureUrl);
+    loadedTextures = [earthTexture];
 
     // Lighting
     const ambientLight = new THREE.AmbientLight(0x7b89a8, 0.56);
@@ -76,8 +88,6 @@ export function initGlobe(containerId: string): void {
     const globeGeometry = new THREE.SphereGeometry(5, 64, 64);
     const globeMaterial = new THREE.MeshStandardMaterial({
         map: earthTexture,
-        bumpMap: bumpTexture,
-        bumpScale: 0.5,
         emissive: new THREE.Color(0x060d1a),
         emissiveIntensity: 0.12,
         roughness: 0.92,
@@ -137,7 +147,7 @@ export function initGlobe(containerId: string): void {
     animateGlobeScaleIn();
 
     // Orbit Controls
-    const controls = new OrbitControls(camera, renderer.domElement);
+    controls = new OrbitControls(camera, renderer.domElement);
     controls.enablePan = false; // Disable panning
     controls.enableZoom = false; // Disable zooming
     controls.enableDamping = true;
@@ -148,8 +158,14 @@ export function initGlobe(containerId: string): void {
     controls.update();
 
     // Animation Loop
+    isAnimating = true;
+
     function animate() {
-        requestAnimationFrame(animate);
+        if (!isAnimating) {
+            return;
+        }
+
+        animationFrameId = requestAnimationFrame(animate);
 
         globeOrbitAngle += 0.0011;
         updateCelestialLighting(globeOrbitAngle);
@@ -158,19 +174,73 @@ export function initGlobe(containerId: string): void {
         globeMesh.rotation.x += 0.001;
         globeMesh.rotation.y += 0.001;
         globeMesh.rotation.z += 0.001;
-        controls.update(); // Apply damping (inertia) to controls
+        controls?.update(); // Apply damping (inertia) to controls
 
-        renderer.render(scene!, camera);
+        if (!renderer || !scene) {
+            return;
+        }
+
+        renderer.render(scene, camera);
     }
     animate();
 
     // Handle Window Resize
-    window.addEventListener('resize', () => {
+    resizeHandler = () => {
         camera.aspect = container.clientWidth / container.clientHeight;
         camera.updateProjectionMatrix();
-        renderer.setSize(container.clientWidth, container.clientHeight);
+        renderer?.setSize(container.clientWidth, container.clientHeight);
         applyResponsiveScale();
-    });
+    };
+
+    window.addEventListener('resize', resizeHandler);
+}
+
+export function destroyGlobe(): void {
+    isAnimating = false;
+
+    if (typeof animationFrameId === 'number') {
+        window.cancelAnimationFrame(animationFrameId);
+        animationFrameId = null;
+    }
+
+    if (resizeHandler) {
+        window.removeEventListener('resize', resizeHandler);
+        resizeHandler = null;
+    }
+
+    controls?.dispose();
+    controls = null;
+
+    if (scene) {
+        scene.traverse((object) => {
+            const mesh = object as THREE.Mesh;
+            if (mesh.geometry) {
+                mesh.geometry.dispose?.();
+            }
+
+            const material = mesh.material as THREE.Material | THREE.Material[] | undefined;
+            if (Array.isArray(material)) {
+                material.forEach((entry) => entry.dispose?.());
+            } else {
+                material?.dispose?.();
+            }
+        });
+    }
+
+    loadedTextures.forEach((texture) => texture.dispose());
+    loadedTextures = [];
+
+    renderer?.forceContextLoss?.();
+    renderer?.dispose();
+
+    if (currentCanvas?.parentElement) {
+        currentCanvas.parentElement.removeChild(currentCanvas);
+    }
+
+    currentCanvas = null;
+    renderer = null;
+    scene = null;
+    currentContainerId = null;
 }
 
 // export function addSignalEffect(worldId: string, location: { lat: number; lng: number }) {

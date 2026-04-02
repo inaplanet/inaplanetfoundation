@@ -1,8 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   FaBriefcase,
   FaBroadcastTower,
@@ -27,6 +26,7 @@ import SignatureComponent from '../SignatureComponent';
 import { SERVICE_PAGE_MAP, SERVICE_PAGES } from '../content/services';
 import { SERVICE_ROUTE_TRANSLATIONS, SERVICE_ROUTE_UI, type ServiceRouteLanguage } from '../content/serviceRouteCopy';
 import { SITE_EMAIL } from '../content/site';
+import { getLocalePath, type SiteLocale } from '../i18n';
 import { useDeferredLanguageFont } from '../useDeferredLanguageFont';
 
 const LANGUAGE_OPTIONS = [
@@ -34,23 +34,6 @@ const LANGUAGE_OPTIONS = [
   { code: 'ru', label: 'RU' },
   { code: 'en', label: 'ENG' },
 ] as const;
-
-const GREETING_ITEMS = [
-  'Salam',
-  'Merhaba',
-  'Privet',
-  'Hello',
-  'Ciao',
-  'Ni Hao',
-  'Hola',
-  'Bonjour',
-  'Namaste',
-  'Xin Chao',
-  'Neih Hou',
-  'Jambo',
-  'Pryvit',
-  'Oi',
-];
 
 const SERVICE_CARD_ICONS = {
   'corporate-websites': <FaBriefcase aria-hidden="true" />,
@@ -71,23 +54,24 @@ const SERVICE_CARD_ICONS = {
 
 type ServicesClientProps = {
   slug?: string;
+  initialLanguage?: SiteLocale;
 };
 
-export default function ServicesClient({ slug }: ServicesClientProps) {
+export default function ServicesClient({ slug, initialLanguage = 'en' }: ServicesClientProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const {
     language,
-    setLanguage,
     renderedLanguage,
     renderedFontLanguage,
     isLanguageReady,
-  } = useDeferredLanguageFont<ServiceRouteLanguage>('en');
-  const [activeGreetingIndex, setActiveGreetingIndex] = useState(0);
-  const [animatedGreeting, setAnimatedGreeting] = useState('');
-  const [isDeletingGreeting, setIsDeletingGreeting] = useState(false);
+  } = useDeferredLanguageFont<ServiceRouteLanguage>(initialLanguage);
   const ui = SERVICE_ROUTE_UI[renderedLanguage];
   const fontClass = renderedFontLanguage === 'en' ? 'landing-showcase__shell--orbitron' : 'landing-showcase__shell--exo';
   const service = slug ? SERVICE_PAGE_MAP[slug] : null;
+  const currentLocalePath = slug ? `/services/${slug}` : '/services';
+  const homePath = getLocalePath(initialLanguage, '/');
+  const allServicesPath = getLocalePath(initialLanguage, '/services');
 
   if (slug && !service) {
     return null;
@@ -124,36 +108,6 @@ export default function ServicesClient({ slug }: ServicesClientProps) {
     },
   ];
 
-  useEffect(() => {
-    const currentGreeting = GREETING_ITEMS[activeGreetingIndex];
-    const normalizedGreeting = animatedGreeting === '\u00A0' ? '' : animatedGreeting;
-    const reachedEnd = normalizedGreeting === currentGreeting;
-    const reachedStart = normalizedGreeting.length === 0;
-
-    const timeout = window.setTimeout(() => {
-      if (!isDeletingGreeting) {
-        if (reachedEnd) {
-          setIsDeletingGreeting(true);
-          return;
-        }
-
-        setAnimatedGreeting(currentGreeting.slice(0, normalizedGreeting.length + 1));
-        return;
-      }
-
-      if (!reachedStart) {
-        const nextGreeting = currentGreeting.slice(0, normalizedGreeting.length - 1);
-        setAnimatedGreeting(nextGreeting || '\u00A0');
-        return;
-      }
-
-      setIsDeletingGreeting(false);
-      setActiveGreetingIndex((currentIndex) => (currentIndex + 1) % GREETING_ITEMS.length);
-    }, reachedEnd && !isDeletingGreeting ? 900 : isDeletingGreeting ? 170 : 310);
-
-    return () => window.clearTimeout(timeout);
-  }, [activeGreetingIndex, animatedGreeting, isDeletingGreeting]);
-
   return (
     <main className={slug ? 'service-page' : 'service-hub'}>
       <section
@@ -161,7 +115,7 @@ export default function ServicesClient({ slug }: ServicesClientProps) {
         aria-busy={!isLanguageReady}
       >
         <div className="landing-showcase__topbar service-route__topbar">
-          <Link href="/" className="landing-showcase__back-button service-route__back-button">
+          <Link href={homePath} className="landing-showcase__back-button service-route__back-button">
             <span className="landing-showcase__back-label">{ui.backToMainPage}</span>
           </Link>
         </div>
@@ -172,7 +126,11 @@ export default function ServicesClient({ slug }: ServicesClientProps) {
                 key={option.code}
                 type="button"
                 className={`landing-showcase__language-button ${language === option.code ? 'landing-showcase__language-button-active' : ''}`}
-                onClick={() => setLanguage(option.code)}
+                onClick={() => {
+                  if (option.code !== initialLanguage) {
+                    router.push(getLocalePath(option.code, currentLocalePath));
+                  }
+                }}
               >
                 {option.label}
               </button>
@@ -197,7 +155,7 @@ export default function ServicesClient({ slug }: ServicesClientProps) {
                   ))}
                 </div>
 
-                <Link href="/services" className="service-hub__link service-route__all-services-link">
+                <Link href={allServicesPath} className="service-hub__link service-route__all-services-link">
                   {ui.allServices}
                 </Link>
               </>
@@ -215,7 +173,7 @@ export default function ServicesClient({ slug }: ServicesClientProps) {
                     const localizedEntry = renderedLanguage !== 'en' ? SERVICE_ROUTE_TRANSLATIONS[renderedLanguage][entry.slug] : null;
 
                     return (
-                      <Link key={entry.slug} href={`/services/${entry.slug}`} className="service-hub__card service-route__card-link">
+                      <Link key={entry.slug} href={getLocalePath(initialLanguage, `/services/${entry.slug}`)} className="service-hub__card service-route__card-link">
                         <span className="landing-showcase__route-arrow service-hub__card-arrow" aria-hidden="true">
                           <FiArrowUpRight />
                         </span>
@@ -243,7 +201,6 @@ export default function ServicesClient({ slug }: ServicesClientProps) {
                 contactCopy={ui.contactCopy}
                 greetingStripAria={ui.greetingStripAria}
                 greetingLabel={ui.greetingLabel}
-                animatedGreeting={animatedGreeting}
                 isAzerbaijaniLayout={renderedLanguage === 'az'}
                 contactItems={contactItems}
                 email={SITE_EMAIL}

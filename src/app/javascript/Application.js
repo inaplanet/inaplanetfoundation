@@ -10,17 +10,41 @@ import Resources from './Resources.js'
 import Camera from './Camera.js'
 
 // Main Application as a React component
-const Application = ({ playerId, selectedWorldId, token, carName, matcaps }) => {
+const Application = ({ playerId, selectedWorldId, token, carName, matcaps, onReady }) => {
     const canvasRef = useRef(null);
     const appInstanceRef = useRef(null);
+    const onReadyRef = useRef(onReady);
+
+    useEffect(() => {
+      onReadyRef.current = onReady;
+    }, [onReady]);
   
     useEffect(() => {
       // Ensure Three.js only runs on the client side
       if (typeof window === 'undefined' || !canvasRef.current) {
         return;
       }
+
+      if (appInstanceRef.current) {
+        return;
+      }
   
       const canvasElement = canvasRef.current;
+      canvasElement.classList.add('canvas--pending');
+      let hasReportedReady = false;
+
+      const markReady = () => {
+        if (hasReportedReady) {
+          return;
+        }
+
+        hasReportedReady = true;
+        canvasElement.classList.remove('canvas--pending');
+
+        if (typeof onReadyRef.current === 'function') {
+          onReadyRef.current();
+        }
+      };
   
       // Application class logic wrapped inside a function
       const app = new (class Application {
@@ -469,22 +493,41 @@ const Application = ({ playerId, selectedWorldId, token, carName, matcaps }) => 
 // Save instance for later cleanup
 appInstanceRef.current = app;
 
+const originalFinish = app.world?.startingScreen?.finish;
+
+if (typeof originalFinish === 'function') {
+  app.world.startingScreen.finish = (...args) => {
+    const result = originalFinish.apply(app.world.startingScreen, args);
+
+    requestAnimationFrame(() => {
+      markReady();
+    });
+
+    return result;
+  };
+} else {
+  requestAnimationFrame(() => {
+    markReady();
+  });
+}
+
 // Cleanup on unmount
 return () => {
-  if (appInstanceRef.current) {
-    const worldSocket = appInstanceRef.current?.world?.ws;
-    const currentPlayerId = appInstanceRef.current?.playerId;
+    if (appInstanceRef.current) {
+      const worldSocket = appInstanceRef.current?.world?.ws;
+      const currentPlayerId = appInstanceRef.current?.playerId;
     if (worldSocket && worldSocket.readyState === WebSocket.OPEN && currentPlayerId) {
       worldSocket.send(JSON.stringify({
         type: 'remove',
         playerId: currentPlayerId
       }));
       worldSocket.close();
+      }
+      appInstanceRef.current.destructor();
+      appInstanceRef.current = null;
     }
-    appInstanceRef.current.destructor();
-  }
-};
-}, [playerId]);
+  };
+}, [carName, matcaps, playerId, selectedWorldId, token]);
 
 return (
       <canvas ref={canvasRef} className="canvas js-canvas" />

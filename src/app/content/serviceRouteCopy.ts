@@ -28,9 +28,9 @@ export const SERVICE_ROUTE_UI: Record<ServiceRouteLanguage, ServiceRouteUiCopy> 
     languageSwitcherLabel: 'Select page language',
     backToMainPage: 'BACK TO MAIN PAGE',
     allServices: 'ALL SERVICES',
-    servicesTitle: 'Service Routes',
+    servicesTitle: 'OUR EXPERTISE',
     servicesCopy:
-      'These pages translate Inaplanet expertise into dedicated service surfaces so buyers, search engines, and AI systems can read each offer directly instead of inferring it from the homepage alone.',
+      'Dedicated service routes that help visitors quickly understand what we build, who it fits, and what each offer is meant to solve.',
     sectionTitles: ['What we build', 'What matters', 'Who this fits'],
     aboutTitle: 'About the Inaplanet',
     aboutParagraphs: [
@@ -50,9 +50,9 @@ export const SERVICE_ROUTE_UI: Record<ServiceRouteLanguage, ServiceRouteUiCopy> 
     languageSwitcherLabel: 'Səhifə dilini seçin',
     backToMainPage: 'ƏSAS SƏHİFƏYƏ QAYIT',
     allServices: 'BÜTÜN XİDMƏTLƏR',
-    servicesTitle: 'Xidmət marşrutları',
+    servicesTitle: 'EKSPERTİZAMIZ',
     servicesCopy:
-      'Bu səhifələr Inaplanet ekspertizasını ayrıca xidmət səthlərinə çevirir ki, alıcılar, axtarış sistemləri və AI sistemləri hər təklifi yalnız ana səhifədən nəticə çıxarmaqla yox, birbaşa oxuya bilsin.',
+      'Ayrıca xidmət marşrutları ziyarətçilərə nə qurduğumuzu, bunun kimə uyğun olduğunu və hər təklifin hansı ehtiyacı həll etdiyini tez anlamağa kömək edir.',
     sectionTitles: ['Nə qururuq', 'Nə vacibdir', 'Kimə uyğundur'],
     aboutTitle: 'Inaplanet haqqında',
     aboutParagraphs: [
@@ -72,9 +72,9 @@ export const SERVICE_ROUTE_UI: Record<ServiceRouteLanguage, ServiceRouteUiCopy> 
     languageSwitcherLabel: 'Выберите язык страницы',
     backToMainPage: 'НАЗАД НА ГЛАВНУЮ',
     allServices: 'ВСЕ СЕРВИСЫ',
-    servicesTitle: 'Сервисные маршруты',
+    servicesTitle: 'НАША ЭКСПЕРТИЗА',
     servicesCopy:
-      'Эти страницы превращают экспертизу Inaplanet в отдельные сервисные поверхности, чтобы заказчики, поисковые системы и AI-системы читали каждое предложение напрямую, а не только выводили его из главной страницы.',
+      'Отдельные сервисные маршруты помогают посетителям быстро понять, что мы создаем, кому это подходит и какую задачу решает каждое предложение.',
     sectionTitles: ['Что мы создаем', 'Что важно', 'Кому это подходит'],
     aboutTitle: 'О планете Inaplanet',
     aboutParagraphs: [

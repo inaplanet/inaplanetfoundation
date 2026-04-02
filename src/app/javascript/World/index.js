@@ -4779,7 +4779,22 @@ export default class
         this.startingScreen.percentageLabel.style.transform = 'translate(-50%, -50%)'
         this.startingScreen.percentageLabel.style.fontSize = '50px'
         this.startingScreen.percentageLabel.style.fontFamily = 'Orbitron, sans-serif'
+        this.startingScreen.percentageLabel.style.opacity = '0'
         document.body.appendChild(this.startingScreen.percentageLabel)
+
+        if (typeof document !== 'undefined' && document.fonts?.load) {
+            document.fonts.load('700 50px Orbitron').then(() => {
+                if (this.startingScreen?.percentageLabel) {
+                    this.startingScreen.percentageLabel.style.opacity = '1'
+                }
+            }).catch(() => {
+                if (this.startingScreen?.percentageLabel) {
+                    this.startingScreen.percentageLabel.style.opacity = '1'
+                }
+            })
+        } else {
+            this.startingScreen.percentageLabel.style.opacity = '1'
+        }
 
         // Start label
         this.startingScreen.startLabel = {}
