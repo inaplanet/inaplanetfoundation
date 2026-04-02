@@ -2961,7 +2961,13 @@ opacity: 0;
   cursor: pointer;
   /* border-radius: 10px; */
   text-align: center;
-  transition: background-color 0.2s ease;
+  transform: translateY(10px) scale(0.985);
+  opacity: 0;
+  transition:
+    background-color 0.2s ease,
+    opacity 0.28s ease,
+    transform 0.28s ease,
+    box-shadow 0.28s ease;
   backdrop-filter: blur(5px);
   /* box-shadow: 0px 5px 5px -4px rgba(0,0,0,0.2); */
 }
@@ -2975,9 +2981,25 @@ opacity: 0;
     cursor: pointer;
     /* border-radius: 10px; */
     text-align: center;
-    transition: background-color 0.2s ease;
+    transform: translateY(10px) scale(0.985);
+    opacity: 0;
+    transition:
+      background-color 0.2s ease,
+      opacity 0.28s ease,
+      transform 0.28s ease,
+      box-shadow 0.28s ease;
     backdrop-filter: blur(5px);
   }
+}
+
+#world-list li.world-list-item-entered {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+#world-list li.world-list-item-updating {
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.12), 0 10px 30px rgba(255, 255, 255, 0.06);
+  transform: translateY(-2px) scale(1.01);
 }
 
 #search-bar {
@@ -4820,6 +4842,12 @@ opacity: 0;
   color: #FFF;
   font-family: var(--font-orbitron), sans-serif;
   /* text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9); */
+  transition: transform 0.22s ease, opacity 0.22s ease;
+}
+
+.user-count-display--updating {
+  transform: translateY(-1px) scale(1.08);
+  opacity: 0.92;
 }
 
 .stream-label {
@@ -5505,7 +5533,7 @@ opacity: 0;
   max-width: 100%;
   height: 100dvh;
   margin: 0;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: none;
   background: rgba(255, 255, 255, 0.02);
   clip-path: none;
   backdrop-filter: blur(26px);
@@ -5558,7 +5586,7 @@ opacity: 0;
 }
 
 .service-page__hero {
-  margin: 28px 0 0;
+  margin: 38px 0 0;
   justify-items: center;
   text-align: center;
 }

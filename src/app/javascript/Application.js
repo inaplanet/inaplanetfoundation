@@ -9,6 +9,18 @@ import World from './World/index.js'
 import Resources from './Resources.js'
 import Camera from './Camera.js'
 
+const removeDuplicateGameCanvases = (activeCanvas) => {
+    if (typeof document === 'undefined') {
+        return
+    }
+
+    document.querySelectorAll('canvas.js-canvas').forEach(($canvas) => {
+        if ($canvas !== activeCanvas) {
+            $canvas.remove()
+        }
+    })
+}
+
 // Main Application as a React component
 const Application = ({ playerId, selectedWorldId, token, carName, matcaps, onReady }) => {
     const canvasRef = useRef(null);
@@ -30,6 +42,7 @@ const Application = ({ playerId, selectedWorldId, token, carName, matcaps, onRea
       }
   
       const canvasElement = canvasRef.current;
+      removeDuplicateGameCanvases(canvasElement);
       canvasElement.classList.add('canvas--pending');
       let hasReportedReady = false;
 

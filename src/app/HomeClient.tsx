@@ -492,8 +492,11 @@ export default function HomeClient({ initialLanguage = 'en' }: HomeClientProps) 
   const worldPlayerCountsRef = useRef(new Map<string, number>());
   const currentCountsRef = useRef<Record<string, number>>({});
   const searchQueryRef = useRef('');
+  const sessionBootstrapInFlightRef = useRef(false);
+  const displayedPlayerCountRef = useRef(0);
   const pendingPlayerCountRef = useRef<number | null>(null);
   const playerCountFrameRef = useRef<number | null>(null);
+  const playerCountAnimationFrameRef = useRef<number | null>(null);
   const pendingWorldCountsRef = useRef<Record<string, number> | null>(null);
   const worldCountsFrameRef = useRef<number | null>(null);
   const coreStackItems = [
@@ -704,42 +707,11 @@ export default function HomeClient({ initialLanguage = 'en' }: HomeClientProps) 
       if (typeof worldCountsFrameRef.current === 'number') {
         window.cancelAnimationFrame(worldCountsFrameRef.current);
       }
+
+      if (typeof playerCountAnimationFrameRef.current === 'number') {
+        window.cancelAnimationFrame(playerCountAnimationFrameRef.current);
+      }
     };
-  }, []);
-
-  const openLandingPage = useCallback(() => {
-    if (typeof landingCloseTimerRef.current === 'number') {
-      window.clearTimeout(landingCloseTimerRef.current);
-      landingCloseTimerRef.current = undefined;
-    }
-
-    setHasEnteredPlanetView(false);
-    setShowLandingPage(true);
-    setShowLandingPageShell(false);
-
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        landingOpenTimerRef.current = window.setTimeout(() => {
-          setShowLandingPageShell(true);
-          landingOpenTimerRef.current = undefined;
-        }, 120);
-      });
-    });
-  }, []);
-
-  const closeLandingPage = useCallback(() => {
-    if (typeof landingOpenTimerRef.current === 'number') {
-      window.clearTimeout(landingOpenTimerRef.current);
-      landingOpenTimerRef.current = undefined;
-    }
-
-    landingShowcaseRef.current?.scrollTo({ top: 0, behavior: 'auto' });
-    setShowLandingPageShell(false);
-    landingCloseTimerRef.current = window.setTimeout(() => {
-      setShowLandingPage(false);
-      setHasEnteredPlanetView(true);
-      landingCloseTimerRef.current = undefined;
-    }, 220);
   }, []);
 
   const predefinedWorldIds = [
@@ -893,30 +865,25 @@ export default function HomeClient({ initialLanguage = 'en' }: HomeClientProps) 
 };
 
   // Function to get token from the server
-  const getToken = async (playerId: string) => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/getToken`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ playerId }),
-      });
+  const getToken = useCallback(async (playerId: string) => {
+    const response = await fetch(`${API_BASE_URL}/getToken`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ playerId }),
+    });
 
-      if (!response.ok) {
-        throw new Error('Failed to get token from server');
-      }
-
-      const { token } = await response.json(); // Extract token from response
-      // localStorage.setItem('token', token); // Store token in localStorage
-      sessionStorage.setItem('token', token); // Store token in localStorage
-      setToken(token); // Set token in state
-
-      // console.log('Token received and stored:', token);
-    } catch (error) {
-      console.error('Error fetching token:', error);
+    if (!response.ok) {
+      throw new Error('Failed to get token from server');
     }
-  };
+
+    const { token } = await response.json();
+    sessionStorage.setItem('token', token);
+    setToken(token);
+
+    return token;
+  }, [API_BASE_URL]);
 
   const applyWorldCounts = useCallback((counts: Record<string, number>) => {
     updateWorldList(counts);
@@ -1007,23 +974,24 @@ export default function HomeClient({ initialLanguage = 'en' }: HomeClientProps) 
     }
 
     if (wsRef.current) {
-      // Avoid reinitializing if already connected
-      // console.log("WebSocket already initialized");
-      return;
+      if (wsRef.current.readyState === WebSocket.OPEN || wsRef.current.readyState === WebSocket.CONNECTING) {
+        return;
+      }
+
+      wsRef.current = null;
     }
 
     const token = sessionStorage.getItem('token');
-    console.log("Session storage", sessionStorage);
     if (!token) {
       console.error('No token found in localStorage');
       return;
     }
     
     const serverAddress = `${WS_BASE_URL}?token=${encodeURIComponent(token)}`;
-    wsRef.current = new WebSocket(serverAddress);
+    const socket = new WebSocket(serverAddress);
+    wsRef.current = socket;
 
-    wsRef.current.onopen = () => {
-      console.log('WebSocket connected');
+    socket.onopen = () => {
       updateWorldList(currentCountsRef.current);
 
       if (playerId) {
@@ -1033,7 +1001,7 @@ export default function HomeClient({ initialLanguage = 'en' }: HomeClientProps) 
       }
     };
 
-    wsRef.current.onmessage = (event) => {
+    socket.onmessage = (event) => {
 
       let message;
         try {
@@ -1107,7 +1075,7 @@ export default function HomeClient({ initialLanguage = 'en' }: HomeClientProps) 
   };
   
 
-    wsRef.current.onerror = (error) => {
+    socket.onerror = (error) => {
       console.error('WebSocket error:', error, {
         wsBaseUrl: WS_BASE_URL,
         apiBaseUrl: API_BASE_URL,
@@ -1115,24 +1083,11 @@ export default function HomeClient({ initialLanguage = 'en' }: HomeClientProps) 
       });
     };
 
-     wsRef.current.onclose = (event) => {
-      console.log('WebSocket closed', {
-        code: event.code,
-        reason: event.reason,
-        wasClean: event.wasClean,
-        wsBaseUrl: WS_BASE_URL,
-        apiBaseUrl: API_BASE_URL,
-      });
-      // if (event.code !== 1000) {
-      //   console.error('WebSocket closed unexpectedly with code:', event.code);
-      //   console.error('Reason:', event.reason);
-      // }
-      
-      // setIsWebSocketReady(false);
+     socket.onclose = () => {
+      if (wsRef.current === socket) {
+        wsRef.current = null;
+      }
     };
-    // localStorage.removeItem('token');
-    // sessionStorage.removeItem('token');
-    // console.log("Session storage", sessionStorage);
   }, [applyStarterLoadout, schedulePlayerCountUpdate, scheduleWorldCountsUpdate, selectedWorldId]);
 
   const handleExitWorld = useCallback(() => {
@@ -1155,8 +1110,42 @@ const filterWorlds = (event: React.FormEvent<HTMLInputElement>) => {
 
 const updatePlayerCount = (count: number) => {
   const playerCountElement = document.getElementById('userCountDisplay');
+  const nextCount = Math.max(0, Math.round(count));
+
+  if (typeof playerCountAnimationFrameRef.current === 'number') {
+    window.cancelAnimationFrame(playerCountAnimationFrameRef.current);
+    playerCountAnimationFrameRef.current = null;
+  }
+
   if (playerCountElement) {
-    playerCountElement.innerText = `${count}`;
+    const startCount = displayedPlayerCountRef.current;
+    const startTime = performance.now();
+    const duration = startCount === nextCount ? 0 : 320;
+
+    playerCountElement.classList.remove('user-count-display--updating');
+    void playerCountElement.offsetWidth;
+    playerCountElement.classList.add('user-count-display--updating');
+
+    const animateCount = (timestamp: number) => {
+      const progress = duration === 0 ? 1 : Math.min((timestamp - startTime) / duration, 1);
+      const easedProgress = 1 - Math.pow(1 - progress, 3);
+      const interpolatedCount = Math.round(startCount + (nextCount - startCount) * easedProgress);
+
+      playerCountElement.textContent = `${interpolatedCount}`;
+
+      if (progress < 1) {
+        playerCountAnimationFrameRef.current = window.requestAnimationFrame(animateCount);
+        return;
+      }
+
+      displayedPlayerCountRef.current = nextCount;
+      playerCountAnimationFrameRef.current = null;
+      window.setTimeout(() => {
+        playerCountElement.classList.remove('user-count-display--updating');
+      }, 220);
+    };
+
+    playerCountAnimationFrameRef.current = window.requestAnimationFrame(animateCount);
   }
 
   const barThresholds = [1, 150, 300, 500];
@@ -1172,71 +1161,105 @@ const updatePlayerCount = (count: number) => {
   });
 };
 
+const createWorldListItem = (worldId: string, playerCount: number, worldList: HTMLElement) => {
+  const listItem = document.createElement('li');
+  listItem.dataset.worldId = worldId;
+  listItem.dataset.playerCount = `${playerCount}`;
+  listItem.classList.add('world-list-item');
+
+  const contentContainer = document.createElement('div');
+  contentContainer.classList.add('content-container');
+
+  const playerCountDiv = document.createElement('div');
+  playerCountDiv.textContent = `${playerCount}/${MAX_PLAYERS_PER_WORLD}`;
+  playerCountDiv.classList.add('player-count');
+
+  const flagDiv = document.createElement('div');
+  const flagImg = document.createElement('img');
+  const flagFile = cityToFlagMapping[worldId] || 'zz.svg';
+  flagImg.src = `/flags/${flagFile.toLowerCase().replace(/\s+/g, '_')}`;
+  flagImg.alt = `${worldId} flag`;
+  flagImg.classList.add('flag-icon');
+  flagDiv.appendChild(flagImg);
+
+  const worldIdDiv = document.createElement('div');
+  worldIdDiv.textContent = worldId;
+  worldIdDiv.classList.add('world-id');
+
+  contentContainer.appendChild(playerCountDiv);
+  contentContainer.appendChild(flagDiv);
+  contentContainer.appendChild(worldIdDiv);
+  listItem.appendChild(contentContainer);
+  listItem.onclick = () => handleWorldSelection(worldId, listItem, worldList);
+
+  requestAnimationFrame(() => {
+    listItem.classList.add('world-list-item-entered');
+  });
+
+  return listItem;
+};
+
+const syncWorldListItemState = (listItem: HTMLLIElement, worldId: string, playerCount: number, worldList: HTMLElement) => {
+  const playerCountDiv = listItem.querySelector('.player-count');
+  const previousCount = Number(listItem.dataset.playerCount ?? 0);
+
+  if (playerCountDiv && previousCount !== playerCount) {
+    playerCountDiv.textContent = `${playerCount}/${MAX_PLAYERS_PER_WORLD}`;
+    listItem.dataset.playerCount = `${playerCount}`;
+    listItem.classList.remove('world-list-item-updating');
+    void listItem.offsetWidth;
+    listItem.classList.add('world-list-item-updating');
+    window.setTimeout(() => {
+      listItem.classList.remove('world-list-item-updating');
+    }, 260);
+  }
+
+  if (selectedWorldId && selectedWorldId !== worldId) {
+    listItem.classList.add('disabled');
+  } else {
+    listItem.classList.remove('disabled');
+  }
+
+  if (selectedWorldId === worldId) {
+    listItem.classList.add('selected');
+  } else {
+    listItem.classList.remove('selected');
+  }
+
+  listItem.onclick = () => handleWorldSelection(worldId, listItem, worldList);
+};
+
 const updateWorldList = (counts: Record<string, number>) => {
-  currentCountsRef.current = counts; // Store the counts for reuse
+  currentCountsRef.current = counts;
   const worldList = document.getElementById('world-list');
 
   if (worldList) {
-    worldList.innerHTML = ''; // Clear existing list items
+    const filteredWorldIds = predefinedWorldIds.filter((worldId) =>
+      worldId.toLowerCase().includes(searchQueryRef.current)
+    );
+    const existingItems = new Map(
+      Array.from(worldList.querySelectorAll('li[data-world-id]')).map((item) => [
+        (item as HTMLLIElement).dataset.worldId ?? '',
+        item as HTMLLIElement,
+      ])
+    );
 
-    predefinedWorldIds
-      .filter((worldId) => worldId.toLowerCase().includes(searchQueryRef.current)) // Filter worlds by search query
-      .forEach((worldId) => {
-        const index = predefinedWorldIds.indexOf(worldId); // Get the index for flag lookup
-        const playerCount = counts[worldId] || 0; // Default to 0 if no count available
+    filteredWorldIds.forEach((worldId) => {
+      const playerCount = counts[worldId] || 0;
+      let listItem = existingItems.get(worldId);
 
-        // Create a list item for the world
-        const listItem = document.createElement('li');
+      if (!listItem) {
+        listItem = createWorldListItem(worldId, playerCount, worldList);
+      }
 
-        // Create a container div for player count, flag, and world ID
-        const contentContainer = document.createElement('div');
-        contentContainer.classList.add('content-container');
+      syncWorldListItemState(listItem, worldId, playerCount, worldList);
+      worldList.appendChild(listItem);
+      existingItems.delete(worldId);
+    });
 
-        // Player count div
-        const playerCountDiv = document.createElement('div');
-        playerCountDiv.textContent = `${playerCount}/${MAX_PLAYERS_PER_WORLD}`;
-        playerCountDiv.classList.add('player-count');
-
-        // Flag div
-        const flagDiv = document.createElement('div');
-        const flagImg = document.createElement('img');
-
-        // Use cityToFlagMapping to get the correct flag
-        const flagFile = cityToFlagMapping[worldId] || 'zz.svg'; // Fallback to default.svg if not found
-        flagImg.src = `/flags/${flagFile.toLowerCase().replace(/\s+/g, '_')}`; // Dynamically set the SVG path
-        flagImg.alt = `${worldId} flag`;
-        flagImg.classList.add('flag-icon');
-
-        flagDiv.appendChild(flagImg);
-
-        // World ID div
-        const worldIdDiv = document.createElement('div');
-        worldIdDiv.textContent = worldId;
-        worldIdDiv.classList.add('world-id');
-
-        // Append components to the content container
-        contentContainer.appendChild(playerCountDiv);
-        contentContainer.appendChild(flagDiv);
-        contentContainer.appendChild(worldIdDiv);
-
-        // Append the content container to the list item
-        listItem.appendChild(contentContainer);
-
-        // Apply classes based on selection status
-        if (selectedWorldId && selectedWorldId !== worldId) {
-          listItem.classList.add('disabled');
-        }
-
-        if (selectedWorldId === worldId) {
-          listItem.classList.add('selected');
-        }
-
-        // Add click event to list item
-        listItem.onclick = () => handleWorldSelection(worldId, listItem, worldList);
-
-        // Append the list item to the world list
-        worldList.appendChild(listItem);
-      });
+    existingItems.forEach((listItem) => {
+      listItem.remove();
+    });
   }
 };
 
@@ -1268,33 +1291,76 @@ const handleWorldSelection = (worldId: string, listItem: HTMLLIElement, worldLis
       updateWorldList({});
     }, []);
 
-    useEffect(() => {
-      if (showLandingPage) {
-        return;
-      }
-
+    const bootstrapPlanetSession = useCallback(async () => {
       const identity = getOrCreatePlayerIdentity();
       if (!identity?.playerId) {
         return;
       }
 
       setPlayerId(identity.playerId);
-      if (hasAppInitialized) {
+
+      if (hasAppInitialized || sessionBootstrapInFlightRef.current) {
         return;
       }
 
-      getToken(identity.playerId)
-        .then(() => {
-          initializeWebSocket(identity.playerId);
-          setHasAppInitialized(true);
-          localStorage.removeItem('playerId');
-          localStorage.removeItem('worldId');
-        })
-        .catch((error) => {
-          console.error('Error fetching token:', error);
+      sessionBootstrapInFlightRef.current = true;
+
+      try {
+        await getToken(identity.playerId);
+        initializeWebSocket(identity.playerId);
+        setHasAppInitialized(true);
+        localStorage.removeItem('playerId');
+        localStorage.removeItem('worldId');
+      } catch (error) {
+        console.error('Error fetching token:', error);
+      } finally {
+        sessionBootstrapInFlightRef.current = false;
+      }
+    }, [getToken, hasAppInitialized, initializeWebSocket]);
+
+    const openLandingPage = useCallback(() => {
+      if (typeof landingCloseTimerRef.current === 'number') {
+        window.clearTimeout(landingCloseTimerRef.current);
+        landingCloseTimerRef.current = undefined;
+      }
+
+      setHasEnteredPlanetView(false);
+      setShowLandingPage(true);
+      setShowLandingPageShell(false);
+
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          landingOpenTimerRef.current = window.setTimeout(() => {
+            setShowLandingPageShell(true);
+            landingOpenTimerRef.current = undefined;
+          }, 120);
         });
-      
-    }, [hasAppInitialized, initializeWebSocket, showLandingPage]);
+      });
+    }, []);
+
+    const closeLandingPage = useCallback(() => {
+      if (typeof landingOpenTimerRef.current === 'number') {
+        window.clearTimeout(landingOpenTimerRef.current);
+        landingOpenTimerRef.current = undefined;
+      }
+
+      void bootstrapPlanetSession();
+      landingShowcaseRef.current?.scrollTo({ top: 0, behavior: 'auto' });
+      setShowLandingPageShell(false);
+      landingCloseTimerRef.current = window.setTimeout(() => {
+        setShowLandingPage(false);
+        setHasEnteredPlanetView(true);
+        landingCloseTimerRef.current = undefined;
+      }, 220);
+    }, [bootstrapPlanetSession]);
+
+    useEffect(() => {
+      if (showLandingPage) {
+        return;
+      }
+
+      void bootstrapPlanetSession();
+    }, [bootstrapPlanetSession, showLandingPage]);
 
     useEffect(() => {
       if (!showLandingPage) {

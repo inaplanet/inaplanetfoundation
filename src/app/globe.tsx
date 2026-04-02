@@ -5,6 +5,7 @@ let scene: THREE.Scene | null = null;
 let renderer: THREE.WebGLRenderer | null = null;
 let controls: OrbitControls | null = null;
 let animationFrameId: number | null = null;
+let globeScaleAnimationFrameId: number | null = null;
 let resizeHandler: (() => void) | null = null;
 let currentContainerId: string | null = null;
 let currentCanvas: HTMLCanvasElement | null = null;
@@ -141,7 +142,9 @@ export function initGlobe(containerId: string): void {
         globeMesh.scale.setScalar(eased);
 
         if (progress < 1) {
-            requestAnimationFrame(animateGlobeScaleIn);
+            globeScaleAnimationFrameId = requestAnimationFrame(animateGlobeScaleIn);
+        } else {
+            globeScaleAnimationFrameId = null;
         }
     };
     animateGlobeScaleIn();
@@ -201,6 +204,11 @@ export function destroyGlobe(): void {
     if (typeof animationFrameId === 'number') {
         window.cancelAnimationFrame(animationFrameId);
         animationFrameId = null;
+    }
+
+    if (typeof globeScaleAnimationFrameId === 'number') {
+        window.cancelAnimationFrame(globeScaleAnimationFrameId);
+        globeScaleAnimationFrameId = null;
     }
 
     if (resizeHandler) {
